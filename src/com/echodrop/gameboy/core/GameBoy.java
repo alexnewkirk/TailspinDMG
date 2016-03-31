@@ -1,26 +1,32 @@
 package com.echodrop.gameboy.core;
 
 import com.echodrop.gameboy.graphics.GPU;
-import com.echodrop.gameboy.interfaces.IMMU;
 
 public class GameBoy {
 	
 	private Z80 processor;
 	private GPU gpu;
-	private IMMU mem;
+	private MMU mem;
 	
 	public GameBoy() {
-		
-		this.setMem(new GBMMU(this));
+		this.setMem(new MMU(this));
 		this.setProcessor(new Z80(this));
 		this.setGpu(new GPU(this));
 	}
+	
+	public void reset() {
+		processor.initialize();
+		gpu.initialize();
+		mem.initialize();
+		
+		mem.loadBios();
+	}
 
-	public IMMU getMem() {
+	public MMU getMem() {
 		return mem;
 	}
 
-	public void setMem(IMMU mem) {
+	public void setMem(MMU mem) {
 		this.mem = mem;
 	}
 

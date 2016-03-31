@@ -2,8 +2,6 @@ package com.echodrop.gameboy.core;
 
 import java.util.HashMap;
 
-import com.echodrop.gameboy.interfaces.IMMU;
-
 /**
  * Emulation core for Z80 microprocessor
  * @author echo_drop
@@ -57,7 +55,7 @@ public class Z80 {
 	byte m;
 	
 	//Memory Management Unit
-	IMMU mem;
+	MMU mem;
 	
 	boolean running;
 	
@@ -67,7 +65,7 @@ public class Z80 {
 	
 	
 	public Z80(GameBoy system) {
-		this.reset();
+		this.initialize();
 		
 		this.system = system;
 		this.mem = system.getMem();
@@ -130,7 +128,7 @@ public class Z80 {
 	/**
 	 * Resets the CPU to its initial state
 	 */
-	public void reset() {
+	public void initialize() {
 		a = new Register((byte)0x0);
 		b = new Register((byte)0x0);
 		c = new Register((byte)0x0);
@@ -174,6 +172,7 @@ public class Z80 {
 		opCodes.put((byte)0xfb, () -> eI());
 		opCodes.put((byte)0x0e, () -> ldCn());
 		opCodes.put((byte)0x9f, () -> res3a());
+		opCodes.put((byte)0x3e, () -> ldAn());
 	}
 	
 	private void loadCbOpcodes() {
@@ -198,9 +197,6 @@ public class Z80 {
 			zeroFlag = false;
 		}
 		System.out.println("Testing bit 7 of " + bin + ": zeroFlag = " + zeroFlag);
-		
-		//DEBUG, REMOVE ASAP
-		//zeroFlag = true;
 	}
 
 	//Loads a 16 bit immediate into SP
@@ -260,6 +256,13 @@ public class Z80 {
 	private void ldCn() {
 		c.value = mem.readByte(pc);
 		System.out.println("Loaded " + Integer.toHexString(c.value & 0xFF) + " into C");
+		pc++;
+	}
+	
+	//load 8-bit immediate into A
+	private void ldAn() {
+		a.value = mem.readByte(pc);
+		System.out.println("Loaded " + Integer.toHexString(a.value & 0xFF) + " into A");
 		pc++;
 	}
 	

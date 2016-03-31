@@ -5,22 +5,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.echodrop.gameboy.interfaces.IMMU;
 
-public class GBMMU implements IMMU {
+/**
+ * Emulation core for GameBoy MMU.
+ * @author echo_drop
+ */
+public class MMU {
 	
 	private GameBoy system;
 	
+	//After the bios runs, it unmaps itself from memory
 	private boolean biosMapped = true;
 	
+	//Memory map
 	private MemoryRegion bios;
 	private MemoryRegion rom;
 	private MemoryRegion workingRam;
 	private MemoryRegion externalRam;
 	private MemoryRegion zeroPage;
 	
-	
-	public GBMMU(GameBoy system) {
+	public MMU(GameBoy system) {
 		this.system = system;
 		this.initialize();
 	}
@@ -65,46 +69,41 @@ public class GBMMU implements IMMU {
 	 */
 	
 	public void initialize() {
-		
-		bios = new MemoryRegion((char)0x0000, (char)0x00ff);
-		rom = new MemoryRegion((char)0x0000, (char)0x7fff);
-		workingRam = new MemoryRegion((char)0xc000, (char)0xdfff);
-		zeroPage = new MemoryRegion((char)0xff80, (char) 0xffff);
-		externalRam = new MemoryRegion((char) 0xa000, (char)0xbfff);
-		
-		//load bios
-		byte[] gbBios = loadBios();
-		
-		//System.out.println(bios.contents.length);
-		for(int i = 0; i < gbBios.length -1; i++) {
-//			System.out.println(Integer.toHexString(gbBios[i] & 0xFF));
+		bios = new MemoryRegion((char)0x0000, (char)0x00ff, "bios");
+		rom = new MemoryRegion((char)0x0000, (char)0x7fff, "rom");
+		workingRam = new MemoryRegion((char)0xc000, (char)0xdfff, "workingRam");
+		zeroPage = new MemoryRegion((char)0xff80, (char) 0xffff, "zeroPage");
+		externalRam = new MemoryRegion((char) 0xa000, (char)0xbfff, "externalRam");
+	}
+	
+	public void loadBios() {
+		Path path = Paths.get("bios.gb");
+		byte[] gbBios = null;
+	    try {
+			gbBios = Files.readAllBytes(path);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    
+	    for(int i = 0; i < gbBios.length -1; i++) {
 			bios.setMem((char)i, (byte)(gbBios[i] & 0xFF));
 		}
-
 	}
 	
-	public byte[] loadBios() {
-		Path path = Paths.get("bios.gb");
-	    try {
-			return Files.readAllBytes(path);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    return null;
-	}
-	
-	public byte[] loadRom(String filename) {
+	public void loadRom(String filename) {
 		Path path = Paths.get(filename);
-		try {
-			return Files.readAllBytes(path);
+		byte[] romData = null;
+	    try {
+			romData = Files.readAllBytes(path);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	    return null;
+	    
+	    for(int i = 0; i < romData.length -1; i++) {
+			rom.setMem((char)i, (byte)(romData[i] & 0xFF));
+		}
 	}
 	
-	@Override
 	public byte readByte(char address) {
 		MemoryRegion r = findMemoryRegion(address);
 		return r.getMem(address);
@@ -193,22 +192,21 @@ public class GBMMU implements IMMU {
 			
 	}
 
-	@Override
 	public char readWord(char address) {
-		char result = (char) (readByte(address) << 8 | readByte((char)(address + 1)) & 0xFF);
-		return result;
-	}
-
-	@Override
-	public void writeByte(char address, byte data) {
-		// TODO Auto-generated method stub
+		byte b1 = readByte(address);
+		byte b2 = readByte((char)(address + 1));
 		
+		return Util.bytesToWord(b1, b2);
 	}
 
-	@Override
+	public void writeByte(char address, byte data) {
+		MemoryRegion r = findMemoryRegion(address);
+		r.setMem(address, data);
+	}
+
 	public void writeWord(char address, char data) {
 		// TODO Auto-generated method stub
-		
+		System.err.println("Attemted write word; not yet implemented");
 	}
 
 

@@ -3,6 +3,11 @@ package com.echodrop.gameboy.graphics;
 import com.echodrop.gameboy.core.GameBoy;
 import com.echodrop.gameboy.core.MemoryRegion;
 
+/**
+ * Emulation core for GameBoy GPU
+ * @author echo_drop
+ *
+ */
 public class GPU {
 
 	private GameBoy system;
@@ -12,8 +17,12 @@ public class GPU {
 	
 	public GPU(GameBoy system) {
 		this.system = system;
-		this.vram = new MemoryRegion((char)0x8000, (char)0x9FFF);
-		this.setOam(new MemoryRegion((char)0x8000, (char)0x9FFF));
+		this.initialize();
+	}
+	
+	public void initialize() {
+		this.vram = new MemoryRegion((char)0x8000, (char)0x9FFF, "vram");
+		this.setOam(new MemoryRegion((char)0x8000, (char)0x9FFF, "oam"));
 	}
 
 	public MemoryRegion getVram() {
