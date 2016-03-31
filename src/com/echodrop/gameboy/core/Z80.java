@@ -91,9 +91,7 @@ public class Z80 {
 		this.cbOpCodes = new HashMap<Byte, OpCode>();
 		this.loadOpCodes();
 		this.loadCbOpCodes();
-
-		this.initLogging();
-
+		
 		this.running = true;
 	}
 
@@ -167,16 +165,8 @@ public class Z80 {
 		clock_m = new Register((byte) 0x0);
 	}
 
-	private void initLogging() {
-		// disable default handler in root logger
-		Logger globalLogger = Logger.getLogger("");
-		Handler[] handlers = globalLogger.getHandlers();
-		for (Handler handler : handlers) {
-			globalLogger.removeHandler(handler);
-		}
-
-		logger.setLevel(Level.ALL);
-		logger.addHandler(new CliHandler());
+	public void initLogging() {
+		logger.setParent(system.getLogger());
 	}
 
 	/**
@@ -259,6 +249,7 @@ public class Z80 {
 		 * 
 		 */
 		logger.finer("Incremented C");
+		logger.warning("INC C called, half carry flag not implemented");
 	}
 
 	// Save A at address pointed to by
@@ -287,6 +278,7 @@ public class Z80 {
 		 * 
 		 * 
 		 */
+		logger.warning("SBC A, A called, half carry flag not implemented");
 
 		if (a.value < 0) {
 			fullCarryFlag = true;
@@ -399,6 +391,13 @@ public class Z80 {
 		logger.finer("Resetting bit 3 of A");
 		logger.finer("A before reset: " + bin);
 		logger.finer("A after reset: ");
+		/***
+		 * 
+		 * NOT IMPLEMENTED
+		 * 
+		 * 
+		 */
+		logger.warning("RES 3 A called, not implemented");
 	}
 
 }

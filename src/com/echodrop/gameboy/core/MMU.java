@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 
 /**
@@ -13,6 +14,8 @@ import java.nio.file.Paths;
 public class MMU {
 	
 	private GameBoy system;
+	
+	private static final Logger logger = Logger.getLogger(MMU.class.getName());
 	
 	//After the bios runs, it unmaps itself from memory
 	private boolean biosMapped = true;
@@ -85,6 +88,10 @@ public class MMU {
 		io = new MemoryRegion((char) 0xFF00, (char)0xFF7F, "IO");
 	}
 	
+	public void initLogging() {
+		logger.setParent(system.getLogger());
+	}
+	
 	/**
 	 * Loads the DMG bios into memory
 	 */
@@ -100,6 +107,8 @@ public class MMU {
 	    for(int i = 0; i < gbBios.length -1; i++) {
 			bios.setMem((char)i, (byte)(gbBios[i] & 0xFF));
 		}
+	    
+	    logger.info("BIOS loaded: " + gbBios.length + " bytes");
 	}
 	
 	/**
