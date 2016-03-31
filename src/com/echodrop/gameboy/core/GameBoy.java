@@ -2,6 +2,11 @@ package com.echodrop.gameboy.core;
 
 import com.echodrop.gameboy.graphics.GPU;
 
+/**
+ * This class represents a combination of the components
+ * required for the emulator to run
+ * @author echo_drop
+ */
 public class GameBoy {
 	
 	private Z80 processor;

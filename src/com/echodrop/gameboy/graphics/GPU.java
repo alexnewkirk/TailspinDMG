@@ -6,7 +6,6 @@ import com.echodrop.gameboy.core.MemoryRegion;
 /**
  * Emulation core for GameBoy GPU
  * @author echo_drop
- *
  */
 public class GPU {
 
@@ -20,6 +19,9 @@ public class GPU {
 		this.initialize();
 	}
 	
+	/**
+	 * Sets the GPU to its initial state
+	 */
 	public void initialize() {
 		this.vram = new MemoryRegion((char)0x8000, (char)0x9FFF, "vram");
 		this.setOam(new MemoryRegion((char)0x8000, (char)0x9FFF, "oam"));

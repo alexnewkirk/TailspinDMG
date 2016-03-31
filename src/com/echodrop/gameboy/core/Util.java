@@ -1,5 +1,11 @@
 package com.echodrop.gameboy.core;
 
+/**
+ * Contains various utilities that are used throughout
+ * the codebase.
+ * 
+ * @author echo_drop
+ */
 public class Util {
 	
 	public static byte[] wordToBytes(char word) {

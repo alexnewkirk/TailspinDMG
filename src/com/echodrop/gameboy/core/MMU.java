@@ -68,6 +68,9 @@ public class MMU {
 	 * 
 	 */
 	
+	/**
+	 * Sets MMU to initial state
+	 */
 	public void initialize() {
 		bios = new MemoryRegion((char)0x0000, (char)0x00ff, "bios");
 		rom = new MemoryRegion((char)0x0000, (char)0x7fff, "rom");
@@ -76,6 +79,9 @@ public class MMU {
 		externalRam = new MemoryRegion((char) 0xa000, (char)0xbfff, "externalRam");
 	}
 	
+	/**
+	 * Loads the DMG bios into memory
+	 */
 	public void loadBios() {
 		Path path = Paths.get("bios.gb");
 		byte[] gbBios = null;
@@ -90,6 +96,10 @@ public class MMU {
 		}
 	}
 	
+	/**
+	 * Loads a rom binary of the specified filename
+	 * into memory
+	 */
 	public void loadRom(String filename) {
 		Path path = Paths.get(filename);
 		byte[] romData = null;
@@ -103,12 +113,14 @@ public class MMU {
 			rom.setMem((char)i, (byte)(romData[i] & 0xFF));
 		}
 	}
-	
-	public byte readByte(char address) {
-		MemoryRegion r = findMemoryRegion(address);
-		return r.getMem(address);
-	}
 
+	/**
+	 * Returns the MemoryRegion that the specified address
+	 * will be located in.
+	 * 
+	 * Based off of the write-up at:
+	 * http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Memory
+	 */
 	public MemoryRegion findMemoryRegion(char address) {
 
 		//mask off the last 4 bits of the address
@@ -181,6 +193,7 @@ public class MMU {
 				} else {
 					//I/O control, unimplemented
 					System.err.println("IO call made");
+					return null;
 				}
 			}
 			
@@ -191,7 +204,18 @@ public class MMU {
 		}
 			
 	}
+	
+	/**
+	 * Reads an 8-bit value from the address specified.
+	 */
+	public byte readByte(char address) {
+		MemoryRegion r = findMemoryRegion(address);
+		return r.getMem(address);
+	}
 
+	/**
+	 * Reads a 16-bit value from the address specified.
+	 */
 	public char readWord(char address) {
 		byte b1 = readByte(address);
 		byte b2 = readByte((char)(address + 1));
@@ -199,11 +223,17 @@ public class MMU {
 		return Util.bytesToWord(b1, b2);
 	}
 
+	/**
+	 * Writes an 8-bit value into the address specified.
+	 */
 	public void writeByte(char address, byte data) {
 		MemoryRegion r = findMemoryRegion(address);
 		r.setMem(address, data);
 	}
 
+	/**
+	 * Writes a 16-bit value into the address specified.
+	 */
 	public void writeWord(char address, char data) {
 		// TODO Auto-generated method stub
 		System.err.println("Attemted write word; not yet implemented");

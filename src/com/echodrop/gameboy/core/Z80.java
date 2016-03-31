@@ -9,6 +9,9 @@ import java.util.HashMap;
  */
 public class Z80 {
 	
+	/**
+	 * An 8 bit register
+	 */
 	class Register {
 		
 		byte value;
@@ -43,16 +46,16 @@ public class Z80 {
 	boolean fullCarryFlag;
 	
 	//Special registers
-	public char pc;
-	char sp;
+	public char pc; //program counter
+	char sp; //stack pointer
 	
 	//Clocks
-	byte clock_t;
-	byte clock_m;
+	Register clock_t;
+	Register clock_m;
 	
 	//Clock registers
-	byte t;
-	byte m;
+	Register t;
+	Register m;
 	
 	//Memory Management Unit
 	MMU mem;
@@ -119,8 +122,8 @@ public class Z80 {
 			
 			//Increment clocks by the amount of time
 			//that passed during the instruction
-			clock_t += t;
-			clock_m += m;
+			clock_t.value += t.value;
+			clock_m.value += m.value;
 		}
 		
 	}
@@ -145,23 +148,34 @@ public class Z80 {
 		pc = 0;
 		sp = 0;
 		
-		t = 0;
-		m = 0;
+		t = new Register((byte)0x0);
+		m = new Register((byte)0x0);
 		
-		clock_t = 0;
-		clock_m = 0;
+		clock_t = new Register((byte)0x0);
+		clock_m = new Register((byte)0x0);
 	}
 	
+	/**
+	 * Writes a 16-bit value to two 8-bit registers
+	 * as if they were a single unit
+	 */
 	private void writeDualRegister(Register r1, Register r2, char value) {
 		byte[] bytes = Util.wordToBytes(value);
 		r1.value = bytes[0];
 		r2.value = bytes[1];
 	}
 	
+	/**
+	 * Reads a 16-bit value from two 8-bit registers
+	 * as if they were a single unit
+	 */
 	private char readDualRegister(Register r1, Register r2) {
 		return Util.bytesToWord(r1.value, r2.value);
 	}
 	
+	/**
+	 * Builds basic opcode table
+	 */
 	private void loadOpcodes() {
 		opCodes.put((byte)0x31, () -> ldSpNn());
 		opCodes.put((byte)0xaf, () -> xorA());
@@ -175,9 +189,19 @@ public class Z80 {
 		opCodes.put((byte)0x3e, () -> ldAn());
 	}
 	
+	/**
+	 * Builds extended opcode table
+	 * (CB prefixed opcodes)
+	 */
 	private void loadCbOpcodes() {
 		cbOpCodes.put((byte)0x7c, () -> bit7h());
 	}
+	
+	/**==========================================================
+	 * From here down you'll find the definitions for each opcode
+	 * listed in the tables above.
+	 * ==========================================================
+	 */
 	
 	//enable interrupts
 	private void eI() {
