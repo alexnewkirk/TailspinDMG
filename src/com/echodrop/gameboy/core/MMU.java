@@ -24,6 +24,10 @@ public class MMU {
 	private MemoryRegion externalRam;
 	private MemoryRegion zeroPage;
 	
+	//An empty block for memory-mapped I/O functions.
+	//This will be removed later as the I/O is implemented.
+	private MemoryRegion io;
+	
 	public MMU(GameBoy system) {
 		this.system = system;
 		this.initialize();
@@ -77,6 +81,8 @@ public class MMU {
 		workingRam = new MemoryRegion((char)0xc000, (char)0xdfff, "workingRam");
 		zeroPage = new MemoryRegion((char)0xff80, (char) 0xffff, "zeroPage");
 		externalRam = new MemoryRegion((char) 0xa000, (char)0xbfff, "externalRam");
+		
+		io = new MemoryRegion((char) 0xFF00, (char)0xFF7F, "IO");
 	}
 	
 	/**
@@ -193,7 +199,8 @@ public class MMU {
 				} else {
 					//I/O control, unimplemented
 					System.err.println("IO call made");
-					return null;
+					System.out.println();
+					return io;
 				}
 			}
 			
