@@ -91,7 +91,7 @@ public class Z80 {
 			//Grab next instruction
 			byte opcode = mem.readByte(pc++);
 			
-			System.out.println("Opcode: 0x" + Integer.toHexString(opcode));
+			System.out.println("Opcode: 0x" + Integer.toHexString(opcode & 0xFF));
 			
 			//mask instruction pointer to 16 bits
 			pc &= 65535;
@@ -102,7 +102,7 @@ public class Z80 {
 			if((opcode & 0xFF) == 0xCB) {
 				System.out.println("CB prefixed opcode detected");
 				opcode = mem.readByte((char)(pc));
-				System.out.println("Opcode: 0x" + Integer.toHexString(opcode));
+				System.out.println("Opcode: 0x" + Integer.toHexString(opcode & 0xFF));
 				instruction = cbOpCodes.get(opcode);
 				pc++;
 			} else {
@@ -155,15 +155,13 @@ public class Z80 {
 	}
 	
 	private void writeDualRegister(Register r1, Register r2, char value) {
-		r2.value = (byte)((value & 0xFF));
-		r1.value = (byte)((value >>> 8) & 0xFF);
-		
-		System.out.print("converted " + Integer.toHexString(value) + " to: ");
-		System.out.println(Integer.toHexString(r1.value & 0xff) + " " + Integer.toHexString(r2.value & 0xFF));
+		byte[] bytes = Util.wordToBytes(value);
+		r1.value = bytes[0];
+		r2.value = bytes[1];
 	}
 	
 	private char readDualRegister(Register r1, Register r2) {
-		return (char) (r1.value << 8 | r2.value & 0xFF);
+		return Util.bytesToWord(r1.value, r2.value);
 	}
 	
 	private void loadOpcodes() {
@@ -184,13 +182,12 @@ public class Z80 {
 	
 	//enable interrupts
 	private void eI() {
-		//for now this is essentially a noop,
-		//it might be important but idk yet what it does
+		//this will be important later, for now it's
+		//essentially a nop
 	}
 
-	private void nop() {
-		//no operation
-	}
+	//no operation
+	private void nop() {}
 
 	//test bit 7 of register H
 	private void bit7h() {
@@ -243,7 +240,9 @@ public class Z80 {
 		
 		address--;
 		
-		System.out.println("And decremented HL to " + Integer.toHexString(address));
+		writeDualRegister(h, l, address);
+		
+		System.out.println("And decremented HL to " + Integer.toHexString(readDualRegister(h, l)));
 	}
 	
 	//Relative jump by signed immediate (single byte) if last result was not zero
@@ -260,6 +259,7 @@ public class Z80 {
 	//load 8-bit immediate into C
 	private void ldCn() {
 		c.value = mem.readByte(pc);
+		System.out.println("Loaded " + Integer.toHexString(c.value & 0xFF) + " into C");
 		pc++;
 	}
 	
