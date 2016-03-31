@@ -11,18 +11,34 @@ import com.echodrop.gameboy.interfaces.IMMU;
  */
 public class Z80 {
 	
+	class Register {
+		
+		byte value;
+		
+		public Register(byte value) {
+			this.value = value;
+		}
+		
+		@Override
+		public String toString() {
+			return Integer.toHexString(value & 0xFF);
+		}
+		
+	}
+	
 	private GameBoy system;
 	
 	//CPU registers
-	Byte a;
-	Byte b; 
-	Byte c;
-	Byte d;
-	Byte e;
-	Byte h;
-	Byte l;
+	Register a;
+	Register b; 
+	Register c;
+	Register d;
+	Register e;
+	Register h;
+	Register l;
 	
-	//Flag register
+	//Flag register, stored as boolean
+	//values for convenience
 	boolean zeroFlag;
 	boolean operationFlag;
 	boolean halfCarryFlag;
@@ -115,13 +131,13 @@ public class Z80 {
 	 * Resets the CPU to its initial state
 	 */
 	public void reset() {
-		a = 9;
-		b = 0;
-		c = 0;
-		d = 0;
-		e = 0;
-		h = 0;
-		l = 0;
+		a = new Register((byte)0x0);
+		b = new Register((byte)0x0);
+		c = new Register((byte)0x0);
+		d = new Register((byte)0x0);
+		e = new Register((byte)0x0);
+		h = new Register((byte)0x0);
+		l = new Register((byte)0x0);
 		
 		zeroFlag = false;
 		operationFlag = false;
@@ -138,16 +154,16 @@ public class Z80 {
 		clock_m = 0;
 	}
 	
-	private void writeDualRegister(Byte r1, Byte r2, char value) {
-		r1 = (byte)((value & 0xFF));
-		r2 = (byte)((value >>> 8) & 0xFF);
+	private void writeDualRegister(Register r1, Register r2, char value) {
+		r2.value = (byte)((value & 0xFF));
+		r1.value = (byte)((value >>> 8) & 0xFF);
 		
 		System.out.print("converted " + Integer.toHexString(value) + " to: ");
-		System.out.println(Integer.toHexString(r1) + " " + Integer.toHexString(r2));
+		System.out.println(Integer.toHexString(r1.value & 0xff) + " " + Integer.toHexString(r2.value & 0xFF));
 	}
 	
-	private char readDualRegister(Byte r1, Byte r2) {
-		return (char) (r1 << 8 | r2 & 0xFF);
+	private char readDualRegister(Register r1, Register r2) {
+		return (char) (r1.value << 8 | r2.value & 0xFF);
 	}
 	
 	private void loadOpcodes() {
@@ -178,7 +194,7 @@ public class Z80 {
 
 	//test bit 7 of register H
 	private void bit7h() {
-		String bin = Integer.toBinaryString(h & 0xFF);
+		String bin = Integer.toBinaryString(h.value & 0xFF);
 		if(bin.toCharArray()[7] == '0') {
 			zeroFlag = true;
 		} else {
@@ -187,7 +203,7 @@ public class Z80 {
 		System.out.println("Testing bit 7 of " + bin + ": zeroFlag = " + zeroFlag);
 		
 		//DEBUG, REMOVE ASAP
-		zeroFlag = true;
+		//zeroFlag = true;
 	}
 
 	//Loads a 16 bit immediate into SP
@@ -200,7 +216,7 @@ public class Z80 {
 	
 	//XOR A against A
 	private void xorA() {
-		a = (byte) (a.byteValue() ^ a.byteValue());
+		a.value ^= a.value;
 		System.out.println("A XOR A. A = " + a);
 	}
 	
@@ -208,8 +224,7 @@ public class Z80 {
 	private void ldHlNn() {
 		char value = mem.readWord((char)pc);
 		
-		l = (byte)((value & 0xFF));
-		h = (byte)((value >>> 8) & 0xFF);
+		writeDualRegister(h, l, value);
 		
 		System.out.println("Loaded value:" + Integer.toHexString(value) + " into HL");
 		
@@ -220,14 +235,9 @@ public class Z80 {
 	private void lddHlA() {
 		
 		char address = readDualRegister(h, l);
-		mem.writeByte(address, a);
+		mem.writeByte(address, a.value);
 		
-		
-		
-		h = (byte)((address & 0xFF));
-		l = (byte)((address >>> 8) & 0xFF);
-		
-		System.out.println("Wrote A (" + Integer.toHexString(a) +
+		System.out.println("Wrote A (" + Integer.toHexString(a.value) +
 				") to address in HL (" + Integer.toHexString(address) +
 				")");
 		
@@ -249,13 +259,13 @@ public class Z80 {
 	
 	//load 8-bit immediate into C
 	private void ldCn() {
-		c = mem.readByte(pc);
+		c.value = mem.readByte(pc);
 		pc++;
 	}
 	
 	//reset bit 3 of A
 	private void res3a() {
-		String bin = Integer.toBinaryString(a & 0xff);
+		String bin = Integer.toBinaryString(a.value & 0xff);
 		System.out.println("Resetting bit 3 of A");
 		System.out.println("A before reset: " + bin);
 		System.out.println("A after reset: ");
