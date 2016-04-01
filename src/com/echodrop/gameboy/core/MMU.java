@@ -153,9 +153,14 @@ public class MMU {
 					
 				} else {
 					
-					//reached the end of the bios
-					biosMapped = false;
+					/**
+					 * 
+					 * This will be important later
+					 * reached the end of the bios
+					 * biosMapped = false;
+					 */
 					
+					return rom;
 				}
 			} 
 			

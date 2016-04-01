@@ -207,8 +207,15 @@ public class Z80 {
 	 * Pops a memory address off the stack
 	 */
 	private char pop() {
-		logger.severe("Pop called, not yet implemented");
-		return 0;
+		
+		byte b2 = mem.readByte(sp);
+		sp++;
+		
+		byte b1 = mem.readByte(sp);
+		sp++;
+		
+		return Util.bytesToWord(b1, b2);
+		
 	}
 
 	/**
@@ -233,7 +240,17 @@ public class Z80 {
 		opCodes.put((byte) 0x1A, new OpCode("LD A,(DE)", () -> ldAde(), (byte) 8));
 		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> callNn(), (byte) 24));
 		opCodes.put((byte) 0x4f, new OpCode("LD C, A", () -> ldCa(), (byte) 4));
-		opCodes.put((byte) 0x06, new OpCode("LD B, nn", () -> ldBnn(), (byte) 8));
+		opCodes.put((byte) 0x06, new OpCode("LD B, n", () -> ldBn(), (byte) 8));
+		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushBc(), (byte) 16));
+		opCodes.put((byte) 0x17, new OpCode("RL A", () -> rlA(), (byte) 4));
+		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popBc(), (byte) 12));
+		opCodes.put((byte) 0x05, new OpCode("DEC B", () -> decB(), (byte) 4));
+		opCodes.put((byte) 0x22, new OpCode("LDI (HL), A", () -> ldiHlA(), (byte) 8));
+		opCodes.put((byte) 0x23, new OpCode("INC HL", () -> incHl(), (byte) 8));
+		opCodes.put((byte) 0xC9, new OpCode("RET", () -> ret(), (byte) 16));
+		opCodes.put((byte) 0x13, new OpCode("INC DE", () -> incDe(), (byte) 8));
+		opCodes.put((byte) 0x7B, new OpCode("LD A, E", () -> ldAe(), (byte) 4));
+		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> cpN(), (byte) 8));
 	}
 
 	/**
@@ -242,6 +259,7 @@ public class Z80 {
 	private void loadCbOpCodes() {
 		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit7h(), (byte) 8));
 		cbOpCodes.put((byte) 0x9F, new OpCode("RES 3 A", () -> res3a(), (byte) 8));
+		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rlC(), (byte) 8));
 	}
 
 	public Logger getLogger() {
@@ -250,16 +268,159 @@ public class Z80 {
 
 	/**
 	 *
-	 * From here down you'll find the definitions for each opcode listed in the
+	 * From here down, you'll find the definitions for each opcode listed in the
 	 * tables above.
 	 *
 	 */
 	
-	//Load 16-bit immediate into B
-	private void ldBnn() {
+	//Compare 8-bit immediate to A
+	private void cpN() {
+		byte immediate = mem.readByte(pc);
+		pc++;
 		
-		logger.severe("LD B, nn called, not yet implemented.");
+		if(a.value == immediate) {
+			zeroFlag = true;
+		} else if (a.value < immediate) {
+			fullCarryFlag = true;
+		}
 		
+		operationFlag = true;
+		
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented
+		 * 
+		 * 
+		 */
+		logger.warning("CP n called, half carry flag not implemented");
+	}
+	
+	//Copy value of E into A
+	private void ldAe() {
+		a.value = e.value;
+		logger.finer("Copied E (" + Integer.toHexString(e.value & 0xFF) + ") into A");
+	}
+	
+	//Increment DE
+	private void incDe() {
+		logger.finer("Incrementing DE (" + Integer.toHexString(readDualRegister(d, e)) + ")");
+		char de = readDualRegister(d, e);
+		writeDualRegister(d, e, (char)(de + 1));
+		logger.finer("de = " + Integer.toHexString(readDualRegister(d, e) & 0xFFFF));
+	}
+	
+	//return
+	private void ret() {
+		char address = pop();
+		logger.fine("RET called, returning to " + Integer.toHexString(address & 0xFFFF));
+		pc = address;
+	}
+	
+	//increment HL
+	private void incHl() {
+		logger.finer("Incrementing HL (" + Integer.toHexString(readDualRegister(h, l)) + ")");
+		char hl = readDualRegister(h, l);
+		writeDualRegister(h, l, (char)(hl + 1));
+		logger.finer("HL = " + Integer.toHexString(readDualRegister(h, l) & 0xFFFF));
+	}
+	
+	//Save A to address pointed to by HL, and increment HL
+	private void ldiHlA() {
+		char hl = readDualRegister(h, l);
+		
+		mem.writeByte(hl, a.value);
+		logger.finer("Wrote A(" + Integer.toHexString(a.value & 0xFF) + ") to HL (" +
+		Integer.toHexString(hl & 0xFFFF) + ")");
+		
+		writeDualRegister(h, l, (char)(hl+1));
+		logger.finer("And incremented HL. HL = " + Integer.toHexString(readDualRegister(h, l) & 0xFFFF));
+	}
+	
+	//Decrement B
+	private void decB() {
+		b.value--;
+		if(b.value == 0) {
+			zeroFlag = true;
+		}
+		operationFlag = true;
+		
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented
+		 * 
+		 * 
+		 */
+		logger.warning("DEC B called, half carry flag not implemented");
+	}
+	
+	//Pop 16-bit value from the stack and store it in BC
+	private void popBc() {
+		char address = pop();
+		
+		writeDualRegister(b, c, address);
+		
+		logger.finer("Popped value: " + Integer.toHexString(address & 0xFFFF) + " from stack and stored in BC");
+	}
+	
+	//rotate A left
+	private void rlA() {
+		logger.finer("Rotating A (" + Integer.toBinaryString(a.value & 0xFF) + ") left");
+		a.value = Util.leftRotate(a.value);
+		logger.finer("A = " + Integer.toBinaryString(a.value & 0xFF));
+		
+		zeroFlag = false;
+		operationFlag = false;
+		halfCarryFlag = false;
+		
+		/**
+		 * 
+		 * 
+		 * Full carry flag not implemented
+		 * 
+		 * 
+		 */
+		logger.warning("RL A called, full carry flag not implemented");
+	}
+	
+	//rotate C left
+	private void rlC() {
+		logger.finer("Rotating C (" + Integer.toBinaryString(c.value & 0xFF) + ") left");
+		c.value = Util.leftRotate(c.value);
+		logger.finer("C = " + Integer.toBinaryString(c.value & 0xFF));
+		
+		if(c.value == 0) {
+			zeroFlag = true;
+		}
+		
+		operationFlag = false;
+		halfCarryFlag = false;
+		
+		/**
+		 * 
+		 * 
+		 * Full carry flag not implemented
+		 * 
+		 * 
+		 */
+		logger.warning("RL C called, full carry flag not implemented");
+	}
+	
+	//push BC onto stack
+	private void pushBc() {
+		char address = readDualRegister(b, c);
+		
+		push(address);
+		
+		logger.finer("Pushed BC (" + Integer.toHexString(address) + ") onto stack");
+	}
+	
+	//Load 8-bit immediate into B
+	private void ldBn() {
+		b.value = mem.readByte(pc);
+		logger.finer("Loaded " + Integer.toHexString(b.value & 0xFF) + " into B");
+		pc++;
 	}
 	
 	//Copy A to C
@@ -449,9 +610,19 @@ public class Z80 {
 	private void jrNzN() {
 		if (!zeroFlag) {
 			byte n = (byte) (mem.readByte(pc) & 0xFF);
+			
+			//we want to jump from the instruction location, not the
+			//location of n. thus, increment pc before jumping. I think.
+			pc++;
+			
+			//...and jump! geronimo!
 			pc += n;
+			
 			logger.finer("Jmping by " + n);
 		} else {
+			
+			//If theres no jump, we still want to skip the immediate
+			pc++;
 			logger.finer("Zero flag set, no jmp");
 		}
 	}
