@@ -156,9 +156,10 @@ public class MMU {
 					/**
 					 * 
 					 * This will be important later
-					 * reached the end of the bios
-					 * biosMapped = false;
+					 *
 					 */
+					//reached the end of the bios
+					//biosMapped = false;
 					
 					return rom;
 				}

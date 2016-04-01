@@ -1,4 +1,4 @@
-package com.echodrop.gameboy;
+package com.echodrop.gameboy.main;
 
 import com.echodrop.gameboy.core.GameBoy;
 

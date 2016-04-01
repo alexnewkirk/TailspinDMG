@@ -1,11 +1,7 @@
 package com.echodrop.gameboy.core;
 
 import java.util.HashMap;
-import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.echodrop.gameboy.logging.CliHandler;
 
 /**
  * Emulation core for Z80 microprocessor
@@ -15,42 +11,24 @@ import com.echodrop.gameboy.logging.CliHandler;
  */
 public class Z80 {
 
-	/**
-	 * An 8 bit register
-	 */
-	class Register {
-
-		byte value;
-
-		public Register(byte value) {
-			this.value = value;
-		}
-
-		@Override
-		public String toString() {
-			return Integer.toHexString(value & 0xFF);
-		}
-
-	}
-
 	private GameBoy system;
 	private static final Logger logger = Logger.getLogger(Z80.class.getName());
 
 	// CPU registers
-	Register a;
-	Register b;
-	Register c;
-	Register d;
-	Register e;
-	Register h;
-	Register l;
+	private Register a;
+	private Register b;
+	private Register c;
+	private Register d;
+	private Register e;
+	private Register h;
+	private Register l;
 
 	// Flag register, stored as boolean
 	// values for convenience
-	boolean zeroFlag;
-	boolean operationFlag;
-	boolean halfCarryFlag;
-	boolean fullCarryFlag;
+	private boolean zeroFlag;
+	private boolean operationFlag;
+	private boolean halfCarryFlag;
+	private boolean fullCarryFlag;
 
 	// This flag is not present in the actual
 	// hardware, it's here for convenience.
@@ -58,28 +36,24 @@ public class Z80 {
 	// is not run, and the op's smaller t value
 	// should be added to the timer. Reset
 	// after each instruction.
-	boolean conditionalNotExecFlag;
+	private boolean conditionalNotExecFlag;
 
 	// Special registers
-	public char pc; // program counter
-	char sp; // stack pointer
+	private char pc; // program counter
+	private char sp; // stack pointer
 
 	// Clocks
-	Register clock_t;
-	Register clock_m;
-
-	// Clock registers
-	Register t;
-	Register m;
+	private Register clock_t;
+	private Register clock_m;
 
 	// Memory Management Unit
-	MMU mem;
+	private MMU mem;
 
-	boolean running;
+	private boolean running;
 
 	// Opcode tables
-	HashMap<Byte, OpCode> opCodes;
-	HashMap<Byte, OpCode> cbOpCodes;
+	private HashMap<Byte, OpCode> opCodes;
+	private HashMap<Byte, OpCode> cbOpCodes;
 
 	public Z80(GameBoy system) {
 		this.initialize();
@@ -127,18 +101,26 @@ public class Z80 {
 
 				// Increment clocks by the amount of time
 				// that passed during the instruction
+
+				byte clockIncrement = 0;
+
 				if (conditionalNotExecFlag) {
-					clock_t.value += instruction.getConditional_time() / 4;
-					clock_m.value += instruction.getConditional_time();
+					clockIncrement = instruction.getConditional_time();
 				} else {
-					clock_t.value += instruction.getM_time() / 4;
-					clock_m.value += instruction.getM_time();
+					clockIncrement = instruction.getM_time();
 				}
+
+				clock_t.value += clockIncrement / 4;
+				clock_m.value += clockIncrement;
+
+				system.getGpu().incrementModeClock(clockIncrement);
 
 			} else {
 				logger.severe("Unimplemented instruction: " + Integer.toHexString(opcode & 0xFF));
 				System.exit(1);
 			}
+
+			system.getGpu().clockStep();
 
 			conditionalNotExecFlag = false;
 			System.out.println();
@@ -164,9 +146,6 @@ public class Z80 {
 
 		pc = 0;
 		sp = 0;
-
-		t = new Register((byte) 0x0);
-		m = new Register((byte) 0x0);
 
 		clock_t = new Register((byte) 0x0);
 		clock_m = new Register((byte) 0x0);
@@ -264,6 +243,11 @@ public class Z80 {
 		opCodes.put((byte) 0x0D, new OpCode("DEC C", () -> decC(), (byte) 4));
 		opCodes.put((byte) 0x2e, new OpCode("LD L, n", () -> ldLn(), (byte) 8));
 		opCodes.put((byte) 0x18, new OpCode("JR n", () -> jrN(), (byte) 12));
+		opCodes.put((byte) 0x67, new OpCode("LD H, A", () -> ldHa(), (byte) 4));
+		opCodes.put((byte) 0x57, new OpCode("LD D, A", () -> ldDa(), (byte) 4));
+		opCodes.put((byte) 0x04, new OpCode("INC B", () -> incB(), (byte) 4));
+		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> ldEn(), (byte) 8));
+		opCodes.put((byte) 0xF0, new OpCode("LDH A,(n)", () -> ldHaN(), (byte) 12));
 	}
 
 	/**
@@ -285,23 +269,73 @@ public class Z80 {
 	 * tables above.
 	 *
 	 */
-	
-	//Relative jmp by signed immediate
+
+	// Load A from address pointed to by 0xFF00 + 8-bit immediate
+	private void ldHaN() {
+		byte immediate = mem.readByte(pc);
+		pc++;
+
+		char address = (char) (0xFF00 + immediate);
+		a.value = mem.readByte(address);
+
+		logger.finer("Loaded " + a + " into A from " + Integer.toHexString(address & 0xFFFF));
+	}
+
+	// Load 8-bit immediate into E
+	private void ldEn() {
+		e.value = mem.readByte(pc);
+		logger.finer("Loaded " + Integer.toHexString(e.value & 0xFF) + " into E");
+		pc++;
+	}
+
+	// Increment B
+	private void incB() {
+		b.value++;
+		if (b.value == 0) {
+			zeroFlag = true;
+		}
+
+		operationFlag = false;
+
+		/**
+		 * 
+		 * HALF CARRY FLAG NOT IMPLEMENTED
+		 * 
+		 * 
+		 * 
+		 */
+		logger.finer("Incremented B");
+		logger.warning("INC B called, half carry flag not implemented");
+	}
+
+	// Copy A into H
+	private void ldHa() {
+		h.value = a.value;
+		logger.finer("Copied A (" + Integer.toHexString(a.value & 0xFF) + ") into H");
+	}
+
+	// Copy A into D
+	private void ldDa() {
+		d.value = a.value;
+		logger.finer("Copied A (" + Integer.toHexString(a.value & 0xFF) + ") into D");
+	}
+
+	// Relative jmp by signed immediate
 	private void jrN() {
 		byte immediate = mem.readByte(pc);
 		pc++;
-		
+
 		pc += immediate;
-		
+
 		logger.fine("Jmping by " + immediate);
 	}
-	
+
 	// Load 8-bit immediate into L
-		private void ldLn() {
-			l.value = mem.readByte(pc);
-			logger.finer("Loaded " + Integer.toHexString(l.value & 0xFF) + " into L");
-			pc++;
-		}
+	private void ldLn() {
+		l.value = mem.readByte(pc);
+		logger.finer("Loaded " + Integer.toHexString(l.value & 0xFF) + " into L");
+		pc++;
+	}
 
 	// Relative jmp by signed immediate if last result was zero
 	private void jrZn() {
@@ -311,8 +345,11 @@ public class Z80 {
 		if (zeroFlag) {
 			pc += immediate;
 			logger.fine("Zero flag set, jmping by " + immediate);
+		} else {
+			//Use the smaller clock duration since the jmp was not executed
+			conditionalNotExecFlag = true;
+			logger.fine("Zero flag not set, no jmp");
 		}
-		logger.fine("Zero flag not set, no jmp");
 	}
 
 	// Decrement A
@@ -710,6 +747,8 @@ public class Z80 {
 
 			logger.finer("Jmping by " + n);
 		} else {
+			// Use the smaller clock duration since the jmp was not executed
+			conditionalNotExecFlag = true;
 
 			// If theres no jump, we still want to skip the immediate
 			pc++;
