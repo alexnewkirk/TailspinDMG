@@ -28,6 +28,9 @@ public class GameBoy {
 		this.initLogging();
 	}
 
+	/**
+	 * Sets up system-wide logging
+	 */
 	public void initLogging() {
 		// disable default handler in root logger
 		Logger globalLogger = Logger.getLogger("");

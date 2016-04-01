@@ -1,7 +1,7 @@
 package com.echodrop.gameboy.core;
 
 /**
- * Contains various utilities that are used throughout
+ * Contains miscellaneous utilities that are used throughout
  * the codebase.
  * 
  * @author echo_drop
@@ -9,9 +9,14 @@ package com.echodrop.gameboy.core;
 public class Util {
 	
 	public static byte[] wordToBytes(char word) {
-		String hex = Integer.toHexString(word & 0xFFFF);
-		byte b2 = (byte)Integer.parseInt(hex.substring(0, 2), 16);
-		byte b1 = (byte)Integer.parseInt(hex.substring(2), 16);
+//		String hex = Integer.toHexString(word & 0xFFFF);
+//		System.out.println(hex);
+//		byte b2 = (byte)Integer.parseInt(hex.substring(0, 2), 16);
+//		byte b1 = (byte)Integer.parseInt(hex.substring(2), 16);
+		
+		byte b2 = (byte)(word >>> 8);
+		byte b1 = (byte)(word & 0xFF);
+		
 		byte[] result = {b1, b2};
 		return result;
 	}

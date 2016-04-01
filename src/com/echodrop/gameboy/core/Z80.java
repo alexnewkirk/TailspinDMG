@@ -99,7 +99,7 @@ public class Z80 {
 
 		while (running) {
 
-			logger.info("Instruction pointer: " + Integer.toHexString(pc));
+			logger.info("Instruction pointer: 0x" + Integer.toHexString(pc));
 
 			// Grab next instruction and increment instruction pointer
 			byte opcode = mem.readByte(pc++);
@@ -186,24 +186,54 @@ public class Z80 {
 	private char readDualRegister(Register r1, Register r2) {
 		return Util.bytesToWord(r1.value, r2.value);
 	}
+	
+	/**
+	 * Pushes a memory address onto the stack
+	 */
+	private void push(char address) {
+		
+		byte[] b = Util.wordToBytes(address);
+		byte b1 = b[0];
+		byte b2 = b[1];
+		
+		sp--;
+		mem.writeByte(sp, b1);
+		
+		sp--;
+		mem.writeByte(sp, b2);
+	}
+	
+	/**
+	 * Pops a memory address off the stack
+	 */
+	private char pop() {
+		logger.severe("Pop called, not yet implemented");
+		return 0;
+	}
 
 	/**
 	 * Builds basic opcode table
 	 */
 	private void loadOpCodes() {
 		opCodes.put((byte) 0x00, new OpCode("NOP", () -> nop(), (byte) 4));
-		opCodes.put((byte) 0x31, new OpCode("LD SP, NN", () -> ldSpNn(), (byte) 12));
+		opCodes.put((byte) 0x31, new OpCode("LD SP, nn", () -> ldSpNn(), (byte) 12));
 		opCodes.put((byte) 0xAF, new OpCode("XOR A", () -> xorA(), (byte) 4));
-		opCodes.put((byte) 0x21, new OpCode("LD HL, NN", () -> ldHlNn(), (byte) 12));
+		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> ldHlNn(), (byte) 12));
 		opCodes.put((byte) 0x32, new OpCode("LDD HL, A", () -> lddHlA(), (byte) 8));
-		opCodes.put((byte) 0x20, new OpCode("JR NZ, N", () -> jrNzN(), (byte) 12, (byte) 8));
+		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> jrNzN(), (byte) 12, (byte) 8));
 		opCodes.put((byte) 0xFB, new OpCode("EI", () -> eI(), (byte) 4));
-		opCodes.put((byte) 0x0E, new OpCode("LDD C, N", () -> ldCn(), (byte) 8));
+		opCodes.put((byte) 0x0E, new OpCode("LDD C, n", () -> ldCn(), (byte) 8));
 		opCodes.put((byte) 0x9F, new OpCode("SBC A, A", () -> sbcAa(), (byte) 8));
-		opCodes.put((byte) 0x3E, new OpCode("LD A, N", () -> ldAn(), (byte) 8));
+		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> ldAn(), (byte) 8));
 		opCodes.put((byte) 0xE2, new OpCode("LDH (C), A", () -> ldhCa(), (byte) 8));
 		opCodes.put((byte) 0x0C, new OpCode("INC C", () -> incC(), (byte) 4));
 		opCodes.put((byte) 0x77, new OpCode("LD (HL),A", () -> ldHlA(), (byte) 8));
+		opCodes.put((byte) 0xE0, new OpCode("LDH (n),A", () -> ldHnA(), (byte) 12));
+		opCodes.put((byte) 0x11, new OpCode("LD DE, nn", () -> ldDeNn(), (byte) 12));
+		opCodes.put((byte) 0x1A, new OpCode("LD A,(DE)", () -> ldAde(), (byte) 8));
+		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> callNn(), (byte) 24));
+		opCodes.put((byte) 0x4f, new OpCode("LD C, A", () -> ldCa(), (byte) 4));
+		opCodes.put((byte) 0x06, new OpCode("LD B, nn", () -> ldBnn(), (byte) 8));
 	}
 
 	/**
@@ -224,12 +254,66 @@ public class Z80 {
 	 * tables above.
 	 *
 	 */
+	
+	//Load 16-bit immediate into B
+	private void ldBnn() {
+		
+		logger.severe("LD B, nn called, not yet implemented.");
+		
+	}
+	
+	//Copy A to C
+	private void ldCa() {
+		c.value = a.value;
+		logger.finer("Copied A (" + Integer.toHexString(a.value & 0xFF) + ") to C");
+	}
+	
+	//Call routine at nn
+	private void callNn() {
+
+		char address = mem.readWord(pc);
+
+		push((char)(pc + 2));
+		logger.fine("Pushed address " + Integer.toHexString((pc + 2) & 0xFFFF) +
+				" to stack");
+		
+		pc = address;
+		logger.fine("Calling subroutine at 0x" + Integer.toHexString(address & 0xFFFF));
+	}
+	
+	//Load A from address pointed to by DE
+	private void ldAde() {
+		char address = readDualRegister(d, e);
+		a.value = mem.readByte(address);
+		logger.finer("Loaded " + Integer.toHexString(a.value & 0xFF) + " into A from " + 
+		"address pointed to by DE (" + Integer.toHexString(address) +")");
+	}
+	
+	//Load 16-bit immediate into DE
+	private void ldDeNn() {
+		char immediate = mem.readWord((char)pc);
+		pc += 2;
+		
+		writeDualRegister(d, e, immediate);
+		
+		logger.finer("Loaded " + Integer.toHexString(immediate) + " into DE");
+	}
+	
+	//Save A at address pointed to by 0xFF00 + 8-bit immediate
+	private void ldHnA() {
+		byte immediate = mem.readByte(pc);
+		pc++;
+		
+		char address = (char)(0xFF00 + immediate);
+		mem.writeByte(address, a.value);
+		logger.finer("Wrote A (" + Integer.toHexString(a.value & 0xFF) + ") to " + Integer.toHexString(address));;
+	}
 
 	// Copy A to address pointed to by HL
 	private void ldHlA() {
 		char address = readDualRegister(h, l);
 		mem.writeByte(address, a.value);
-		logger.finer("Wrote A (" + Integer.toHexString(a.value) + ") to " + Integer.toHexString(address));
+		logger.finer("Wrote A (" + Integer.toHexString(a.value & 0xFF) + ") to " + Integer.toHexString(address));
 	}
 
 	// Increment C
@@ -290,7 +374,8 @@ public class Z80 {
 	private void eI() {
 		// this will be important later, for now it's
 		// essentially a nop
-		logger.finer("Interrupts enabled");
+		logger.finer("Enable interrupts");
+		logger.warning("Interrupts not yet implemented");
 	}
 
 	// no operation
