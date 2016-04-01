@@ -91,7 +91,7 @@ public class Z80 {
 		this.cbOpCodes = new HashMap<Byte, OpCode>();
 		this.loadOpCodes();
 		this.loadCbOpCodes();
-		
+
 		this.running = true;
 	}
 
@@ -127,13 +127,20 @@ public class Z80 {
 
 				// Increment clocks by the amount of time
 				// that passed during the instruction
-				clock_t.value += instruction.getM_time() / 4;
-				clock_m.value += instruction.getM_time();
+				if (conditionalNotExecFlag) {
+					clock_t.value += instruction.getConditional_time() / 4;
+					clock_m.value += instruction.getConditional_time();
+				} else {
+					clock_t.value += instruction.getM_time() / 4;
+					clock_m.value += instruction.getM_time();
+				}
+
 			} else {
 				logger.severe("Unimplemented instruction: " + Integer.toHexString(opcode & 0xFF));
 				System.exit(1);
 			}
 
+			conditionalNotExecFlag = false;
 			System.out.println();
 		}
 	}
@@ -186,36 +193,36 @@ public class Z80 {
 	private char readDualRegister(Register r1, Register r2) {
 		return Util.bytesToWord(r1.value, r2.value);
 	}
-	
+
 	/**
 	 * Pushes a memory address onto the stack
 	 */
 	private void push(char address) {
-		
+
 		byte[] b = Util.wordToBytes(address);
 		byte b1 = b[0];
 		byte b2 = b[1];
-		
+
 		sp--;
 		mem.writeByte(sp, b1);
-		
+
 		sp--;
 		mem.writeByte(sp, b2);
 	}
-	
+
 	/**
 	 * Pops a memory address off the stack
 	 */
 	private char pop() {
-		
+
 		byte b2 = mem.readByte(sp);
 		sp++;
-		
+
 		byte b1 = mem.readByte(sp);
 		sp++;
-		
+
 		return Util.bytesToWord(b1, b2);
-		
+
 	}
 
 	/**
@@ -251,6 +258,12 @@ public class Z80 {
 		opCodes.put((byte) 0x13, new OpCode("INC DE", () -> incDe(), (byte) 8));
 		opCodes.put((byte) 0x7B, new OpCode("LD A, E", () -> ldAe(), (byte) 4));
 		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> cpN(), (byte) 8));
+		opCodes.put((byte) 0xEA, new OpCode("LD nn A", () -> ldNnA(), (byte) 16));
+		opCodes.put((byte) 0x3D, new OpCode("DEC A", () -> decA(), (byte) 4));
+		opCodes.put((byte) 0x28, new OpCode("JR Z, n", () -> jrZn(), (byte) 12, (byte) 8));
+		opCodes.put((byte) 0x0D, new OpCode("DEC C", () -> decC(), (byte) 4));
+		opCodes.put((byte) 0x2e, new OpCode("LD L, n", () -> ldLn(), (byte) 8));
+		opCodes.put((byte) 0x18, new OpCode("JR n", () -> jrN(), (byte) 12));
 	}
 
 	/**
@@ -273,19 +286,86 @@ public class Z80 {
 	 *
 	 */
 	
-	//Compare 8-bit immediate to A
-	private void cpN() {
+	//Relative jmp by signed immediate
+	private void jrN() {
 		byte immediate = mem.readByte(pc);
 		pc++;
 		
-		if(a.value == immediate) {
+		pc += immediate;
+		
+		logger.fine("Jmping by " + immediate);
+	}
+	
+	// Load 8-bit immediate into L
+		private void ldLn() {
+			l.value = mem.readByte(pc);
+			logger.finer("Loaded " + Integer.toHexString(l.value & 0xFF) + " into L");
+			pc++;
+		}
+
+	// Relative jmp by signed immediate if last result was zero
+	private void jrZn() {
+		byte immediate = mem.readByte(pc);
+		pc++;
+
+		if (zeroFlag) {
+			pc += immediate;
+			logger.fine("Zero flag set, jmping by " + immediate);
+		}
+		logger.fine("Zero flag not set, no jmp");
+	}
+
+	// Decrement A
+	private void decA() {
+		logger.finer("Decrementing A (" + Integer.toHexString(a.value & 0xFF) + ")");
+		a.value--;
+		logger.finer("A = " + Integer.toHexString(a.value & 0xFF));
+
+		operationFlag = true;
+		zeroFlag = (a.value == 0);
+
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented
+		 * 
+		 * 
+		 */
+		logger.warning("DEC A called, half carry flag not implemented");
+	}
+
+	// Decrement C
+	private void decC() {
+		logger.finer("Decrementing C (" + Integer.toHexString(c.value & 0xFF) + ")");
+		c.value--;
+		logger.finer("C = " + Integer.toHexString(c.value & 0xFF));
+
+		operationFlag = true;
+		zeroFlag = (c.value == 0);
+
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented
+		 * 
+		 * 
+		 */
+		logger.warning("DEC C called, half carry flag not implemented");
+	}
+
+	// Compare 8-bit immediate to A
+	private void cpN() {
+		byte immediate = mem.readByte(pc);
+		pc++;
+
+		if (a.value == immediate) {
 			zeroFlag = true;
 		} else if (a.value < immediate) {
 			fullCarryFlag = true;
 		}
-		
+
 		operationFlag = true;
-		
+
 		/**
 		 * 
 		 * 
@@ -295,56 +375,66 @@ public class Z80 {
 		 */
 		logger.warning("CP n called, half carry flag not implemented");
 	}
-	
-	//Copy value of E into A
+
+	// save A at given address
+	private void ldNnA() {
+
+		char address = mem.readWord(pc);
+		pc += 2;
+
+		logger.finer("Loaded A (" + Integer.toHexString(a.value & 0xFF) + ") into address "
+				+ Integer.toHexString(address & 0xFFFF));
+	}
+
+	// Copy value of E into A
 	private void ldAe() {
 		a.value = e.value;
 		logger.finer("Copied E (" + Integer.toHexString(e.value & 0xFF) + ") into A");
 	}
-	
-	//Increment DE
+
+	// Increment DE
 	private void incDe() {
 		logger.finer("Incrementing DE (" + Integer.toHexString(readDualRegister(d, e)) + ")");
 		char de = readDualRegister(d, e);
-		writeDualRegister(d, e, (char)(de + 1));
+		writeDualRegister(d, e, (char) (de + 1));
 		logger.finer("de = " + Integer.toHexString(readDualRegister(d, e) & 0xFFFF));
 	}
-	
-	//return
+
+	// return
 	private void ret() {
 		char address = pop();
 		logger.fine("RET called, returning to " + Integer.toHexString(address & 0xFFFF));
 		pc = address;
 	}
-	
-	//increment HL
+
+	// increment HL
 	private void incHl() {
 		logger.finer("Incrementing HL (" + Integer.toHexString(readDualRegister(h, l)) + ")");
 		char hl = readDualRegister(h, l);
-		writeDualRegister(h, l, (char)(hl + 1));
+		writeDualRegister(h, l, (char) (hl + 1));
 		logger.finer("HL = " + Integer.toHexString(readDualRegister(h, l) & 0xFFFF));
 	}
-	
-	//Save A to address pointed to by HL, and increment HL
+
+	// Save A to address pointed to by HL, and increment HL
 	private void ldiHlA() {
 		char hl = readDualRegister(h, l);
-		
+
 		mem.writeByte(hl, a.value);
-		logger.finer("Wrote A(" + Integer.toHexString(a.value & 0xFF) + ") to HL (" +
-		Integer.toHexString(hl & 0xFFFF) + ")");
-		
-		writeDualRegister(h, l, (char)(hl+1));
+		logger.finer("Wrote A(" + Integer.toHexString(a.value & 0xFF) + ") to HL (" + Integer.toHexString(hl & 0xFFFF)
+				+ ")");
+
+		writeDualRegister(h, l, (char) (hl + 1));
 		logger.finer("And incremented HL. HL = " + Integer.toHexString(readDualRegister(h, l) & 0xFFFF));
 	}
-	
-	//Decrement B
+
+	// Decrement B
 	private void decB() {
 		b.value--;
-		if(b.value == 0) {
+		if (b.value == 0) {
 			zeroFlag = true;
 		}
 		operationFlag = true;
-		
+
 		/**
 		 * 
 		 * 
@@ -354,26 +444,26 @@ public class Z80 {
 		 */
 		logger.warning("DEC B called, half carry flag not implemented");
 	}
-	
-	//Pop 16-bit value from the stack and store it in BC
+
+	// Pop 16-bit value from the stack and store it in BC
 	private void popBc() {
 		char address = pop();
-		
+
 		writeDualRegister(b, c, address);
-		
+
 		logger.finer("Popped value: " + Integer.toHexString(address & 0xFFFF) + " from stack and stored in BC");
 	}
-	
-	//rotate A left
+
+	// rotate A left
 	private void rlA() {
 		logger.finer("Rotating A (" + Integer.toBinaryString(a.value & 0xFF) + ") left");
 		a.value = Util.leftRotate(a.value);
 		logger.finer("A = " + Integer.toBinaryString(a.value & 0xFF));
-		
+
 		zeroFlag = false;
 		operationFlag = false;
 		halfCarryFlag = false;
-		
+
 		/**
 		 * 
 		 * 
@@ -383,20 +473,20 @@ public class Z80 {
 		 */
 		logger.warning("RL A called, full carry flag not implemented");
 	}
-	
-	//rotate C left
+
+	// rotate C left
 	private void rlC() {
 		logger.finer("Rotating C (" + Integer.toBinaryString(c.value & 0xFF) + ") left");
 		c.value = Util.leftRotate(c.value);
 		logger.finer("C = " + Integer.toBinaryString(c.value & 0xFF));
-		
-		if(c.value == 0) {
+
+		if (c.value == 0) {
 			zeroFlag = true;
 		}
-		
+
 		operationFlag = false;
 		halfCarryFlag = false;
-		
+
 		/**
 		 * 
 		 * 
@@ -406,68 +496,68 @@ public class Z80 {
 		 */
 		logger.warning("RL C called, full carry flag not implemented");
 	}
-	
-	//push BC onto stack
+
+	// push BC onto stack
 	private void pushBc() {
 		char address = readDualRegister(b, c);
-		
+
 		push(address);
-		
+
 		logger.finer("Pushed BC (" + Integer.toHexString(address) + ") onto stack");
 	}
-	
-	//Load 8-bit immediate into B
+
+	// Load 8-bit immediate into B
 	private void ldBn() {
 		b.value = mem.readByte(pc);
 		logger.finer("Loaded " + Integer.toHexString(b.value & 0xFF) + " into B");
 		pc++;
 	}
-	
-	//Copy A to C
+
+	// Copy A to C
 	private void ldCa() {
 		c.value = a.value;
 		logger.finer("Copied A (" + Integer.toHexString(a.value & 0xFF) + ") to C");
 	}
-	
-	//Call routine at nn
+
+	// Call routine at nn
 	private void callNn() {
 
 		char address = mem.readWord(pc);
 
-		push((char)(pc + 2));
-		logger.fine("Pushed address " + Integer.toHexString((pc + 2) & 0xFFFF) +
-				" to stack");
-		
+		push((char) (pc + 2));
+		logger.fine("Pushed address " + Integer.toHexString((pc + 2) & 0xFFFF) + " to stack");
+
 		pc = address;
 		logger.fine("Calling subroutine at 0x" + Integer.toHexString(address & 0xFFFF));
 	}
-	
-	//Load A from address pointed to by DE
+
+	// Load A from address pointed to by DE
 	private void ldAde() {
 		char address = readDualRegister(d, e);
 		a.value = mem.readByte(address);
-		logger.finer("Loaded " + Integer.toHexString(a.value & 0xFF) + " into A from " + 
-		"address pointed to by DE (" + Integer.toHexString(address) +")");
+		logger.finer("Loaded " + Integer.toHexString(a.value & 0xFF) + " into A from " + "address pointed to by DE ("
+				+ Integer.toHexString(address) + ")");
 	}
-	
-	//Load 16-bit immediate into DE
+
+	// Load 16-bit immediate into DE
 	private void ldDeNn() {
-		char immediate = mem.readWord((char)pc);
+		char immediate = mem.readWord((char) pc);
 		pc += 2;
-		
+
 		writeDualRegister(d, e, immediate);
-		
+
 		logger.finer("Loaded " + Integer.toHexString(immediate) + " into DE");
 	}
-	
-	//Save A at address pointed to by 0xFF00 + 8-bit immediate
+
+	// Save A at address pointed to by 0xFF00 + 8-bit immediate
 	private void ldHnA() {
 		byte immediate = mem.readByte(pc);
 		pc++;
-		
-		char address = (char)(0xFF00 + immediate);
+
+		char address = (char) (0xFF00 + immediate);
 		mem.writeByte(address, a.value);
-		logger.finer("Wrote A (" + Integer.toHexString(a.value & 0xFF) + ") to " + Integer.toHexString(address));;
+		logger.finer("Wrote A (" + Integer.toHexString(a.value & 0xFF) + ") to " + Integer.toHexString(address));
+		;
 	}
 
 	// Copy A to address pointed to by HL
@@ -610,18 +700,18 @@ public class Z80 {
 	private void jrNzN() {
 		if (!zeroFlag) {
 			byte n = (byte) (mem.readByte(pc) & 0xFF);
-			
-			//we want to jump from the instruction location, not the
-			//location of n. thus, increment pc before jumping. I think.
+
+			// we want to jump from the instruction location, not the
+			// location of n. thus, increment pc before jumping.
 			pc++;
-			
-			//...and jump! geronimo!
+
+			// ...and jump! geronimo!
 			pc += n;
-			
+
 			logger.finer("Jmping by " + n);
 		} else {
-			
-			//If theres no jump, we still want to skip the immediate
+
+			// If theres no jump, we still want to skip the immediate
 			pc++;
 			logger.finer("Zero flag set, no jmp");
 		}
