@@ -10,7 +10,7 @@ import com.echodrop.gameboy.core.GameBoy;
  * @author echo_drop
  *
  */
-public class Driver {
+public class ConsoleDriver {
 	
 	public static void main(String[] args) {
 		
