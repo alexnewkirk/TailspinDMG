@@ -238,10 +238,10 @@ public class MMU {
 	 * Writes an 8-bit value into the address specified.
 	 */
 	public void writeByte(char address, byte data) {
-		MemoryRegion r = findMemoryRegion(address);
 		if (address >= 0xFF00 && address <= 0xFF7F) {
 			system.getGpu().writeByte(address, data);
 		} else {
+			MemoryRegion r = findMemoryRegion(address);
 			r.setMem(address, data);
 		}
 	}

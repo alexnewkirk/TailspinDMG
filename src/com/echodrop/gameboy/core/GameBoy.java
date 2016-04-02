@@ -44,6 +44,7 @@ public class GameBoy {
 		
 		mem.initLogging();
 		processor.initLogging();
+		gpu.initLogging();
 	}
 
 	public void reset() {

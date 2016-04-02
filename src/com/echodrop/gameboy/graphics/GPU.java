@@ -2,6 +2,7 @@ package com.echodrop.gameboy.graphics;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.echodrop.gameboy.core.GameBoy;
 import com.echodrop.gameboy.core.MemoryRegion;
@@ -52,6 +53,8 @@ public class GPU {
 	private Register modeClock;
 
 	private List<IGraphicsObserver> observers;
+	
+	private static final Logger logger = Logger.getLogger(GPU.class.getName());
 
 	public GPU(GameBoy system) {
 		this.system = system;
@@ -86,6 +89,10 @@ public class GPU {
 				frameBuffer[i][j] = 0;
 			}
 		}
+	}
+	
+	public void initLogging() {
+		logger.setParent(system.getLogger());
 	}
 
 	/**
@@ -157,6 +164,7 @@ public class GPU {
 	}
 
 	public byte readByte(char address) {
+		logger.info("GPU memory access: " + Integer.toHexString(address & 0xFFFF));
 		switch (address) {
 
 		// LCD control register
@@ -175,7 +183,7 @@ public class GPU {
 		case 0xFF44:
 			return line.value;
 		}
-		System.err.println("Invalid memory access in GPU: " + Integer.toHexString(address));
+		logger.severe("Invalid memory access in GPU: " + Integer.toHexString(address));
 		return 0;
 	}
 
