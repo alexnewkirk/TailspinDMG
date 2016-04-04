@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import com.echodrop.gameboy.core.GameBoy;
 import com.echodrop.gameboy.core.MemoryRegion;
 import com.echodrop.gameboy.core.Register;
+import com.echodrop.gameboy.exceptions.MemoryAccessException;
 import com.echodrop.gameboy.interfaces.IGraphicsObserver;
 
 /**
@@ -112,7 +113,7 @@ public class GPU {
 					// Change mode to VBLANK
 					mode = 1;
 
-					// update screen
+					// update screen after last HBLANK
 					notifyAllObservers();
 
 				} else {
@@ -159,8 +160,9 @@ public class GPU {
 				renderScanLine();
 
 			}
+			break;
 		}
-
+		
 	}
 
 	public byte readByte(char address) {
@@ -184,7 +186,7 @@ public class GPU {
 			return line.value;
 		}
 		logger.severe("Invalid memory access in GPU: " + Integer.toHexString(address));
-		return 0;
+		throw new MemoryAccessException(address);
 	}
 
 	public char readWord(char address) {

@@ -33,8 +33,8 @@ public class Z80 {
 	// This flag is not present in the actual
 	// hardware, it's here for convenience.
 	// Set to true if a conditional instruction
-	// is not run, and the op's smaller t value
-	// should be added to the timer. Reset
+	// is not run, and the op's smaller time value
+	// should be added to the clock. Reset
 	// after each instruction.
 	private boolean conditionalNotExecFlag;
 
@@ -346,7 +346,7 @@ public class Z80 {
 			pc += immediate;
 			logger.fine("Zero flag set, jmping by " + immediate);
 		} else {
-			//Use the smaller clock duration since the jmp was not executed
+			// Use the smaller clock duration since the jmp was not executed
 			conditionalNotExecFlag = true;
 			logger.fine("Zero flag not set, no jmp");
 		}
