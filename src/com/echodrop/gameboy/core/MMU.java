@@ -195,7 +195,7 @@ public class MMU {
 				} else {
 					// I/O. This should never happen
 					logger.severe("I/O read or write attempted by MMU at " + Integer.toHexString(address & 0xFFFF));
-					//throw new MemoryAccessException(address);
+					// throw new MemoryAccessException(address);
 				}
 			}
 
@@ -214,7 +214,7 @@ public class MMU {
 		if (address >= 0xFF00 && address <= 0xFF7F) {
 			return system.getGpu().readByte(address);
 		}
-		
+
 		MemoryRegion r = findMemoryRegion(address);
 		return r.getMem(address);
 	}

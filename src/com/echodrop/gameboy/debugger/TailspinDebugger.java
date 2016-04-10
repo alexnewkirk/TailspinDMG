@@ -26,7 +26,6 @@ public class TailspinDebugger {
 	private static void init() {
 		breakpoints = new ArrayList<Character>();
 		running = true;
-
 		system.reset();
 	}
 
@@ -72,8 +71,7 @@ public class TailspinDebugger {
 					System.out.println(SPACER);
 				}
 				char breakpoint = system.getProcessor().getPc();
-				System.out.println("Reached breakpoint: "
-						+ Integer.toHexString(breakpoint & 0xFFFF).toUpperCase());
+				System.out.println("Reached breakpoint: " + Integer.toHexString(breakpoint & 0xFFFF).toUpperCase());
 				breakpoints.remove(new Character(breakpoint));
 				break;
 			case REGDUMP:
@@ -103,11 +101,24 @@ public class TailspinDebugger {
 			case LOADROM:
 				system.getMem().loadRom(getRomFilename());
 				break;
+			case FRAMEDUMP:
+				framedump();
+				break;
 
 			}
 
 		}
 
+	}
+
+	private static void framedump() {
+		byte[][] fb = system.getGpu().getFrameBuffer();
+		for(int i = 0; i < fb.length; i++){
+			for(int j = 0; j < fb[0].length; j++) {
+				System.out.print(Util.zeroLeftPad(String.valueOf(fb[i][j]), 2) + " ");
+			}
+			System.out.println();
+		}
 	}
 
 	private static String getRomFilename() {
@@ -134,11 +145,11 @@ public class TailspinDebugger {
 		System.out.println("lsbreak: list all breakpoints");
 		System.out.println("regdump: display values of all registers");
 		System.out.println("memdump: display memory dump of emulator's current state");
-		
+		System.out.println("framedump: display the current framebuffer state");
 	}
 
 	private static void memDump() {
-		
+
 		ArrayList<String> options = new ArrayList<String>();
 		options.add("[0] BIOS");
 		options.add("[1] Working RAM");
@@ -147,26 +158,25 @@ public class TailspinDebugger {
 		options.add("[4] ROM");
 		options.add("[5] OAM");
 		options.add("[6] VRAM");
-		
+
 		int choice = -1;
 		MemoryRegion selected = null;
-		
-		while(choice < 0 || choice > options.size()) {
-			for(String s : options) {
+
+		while (choice < 0 || choice > options.size()) {
+			for (String s : options) {
 				System.out.println(s);
 			}
-			
+
 			try {
 				choice = sc.nextInt();
 			} catch (InputMismatchException e) {
 				System.out.println("Invalid selection, try again.");
 			}
-			
+			sc.nextLine();
+
 		}
-		
-		//sc.next();
-		
-		switch(choice) {
+
+		switch (choice) {
 		case 0:
 			selected = system.getMem().getBios();
 			break;
@@ -189,11 +199,11 @@ public class TailspinDebugger {
 			selected = system.getGpu().getVram();
 			break;
 		}
-		
-		if(selected != null) {
+
+		if (selected != null) {
 			System.out.println(selected);
 		}
-		
+
 	}
 
 	private static void regDump() {
@@ -216,12 +226,13 @@ public class TailspinDebugger {
 		System.out.println("GPU ScrollX: " + Util.byteToReadableHex(system.getGpu().getScrollX().value));
 		System.out.println("GPU ScrollY: " + Util.byteToReadableHex(system.getGpu().getScrollY().value));
 		System.out.println("GPU Scanline: " + Util.byteToReadableHex(system.getGpu().getLine().value));
-		System.out.println("GPU Background Palette: " + Util.byteToReadableHex(system.getGpu().getBackgroundPalette().value));
+		System.out.println(
+				"GPU Background Palette: " + Util.byteToReadableHex(system.getGpu().getBackgroundPalette().value));
 		System.out.println("GPU LCD Control: " + Util.byteToReadableHex(system.getGpu().getLcdControl().value));
 		System.out.println("GPU ScrollY: " + Util.byteToReadableHex(system.getGpu().getScrollY().value));
 		System.out.println("GPU Mode: " + Util.byteToReadableHex(system.getGpu().getMode().value));
 		System.out.println("GPU Modeclock: " + system.getGpu().getModeClock());
-		
+
 	}
 
 	private static DebugCommand readCommand() {

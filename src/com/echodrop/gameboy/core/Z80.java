@@ -72,7 +72,7 @@ public class Z80 {
 	}
 
 	public void beginDispatch() {
-		
+
 		this.running = true;
 
 		while (running) {
@@ -227,10 +227,10 @@ public class Z80 {
 		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> ldAn(), (byte) 8));
 		opCodes.put((byte) 0xE2, new OpCode("LDH (C), A", () -> ldhCa(), (byte) 8));
 		opCodes.put((byte) 0x0C, new OpCode("INC C", () -> incC(), (byte) 4));
-		opCodes.put((byte) 0x77, new OpCode("LD (HL),A", () -> ldHlA(), (byte) 8));
-		opCodes.put((byte) 0xE0, new OpCode("LDH (n),A", () -> ldHnA(), (byte) 12));
+		opCodes.put((byte) 0x77, new OpCode("LD (HL), A", () -> ldHlA(), (byte) 8));
+		opCodes.put((byte) 0xE0, new OpCode("LDH (n), A", () -> ldHnA(), (byte) 12));
 		opCodes.put((byte) 0x11, new OpCode("LD DE, nn", () -> ldDeNn(), (byte) 12));
-		opCodes.put((byte) 0x1A, new OpCode("LD A,(DE)", () -> ldAde(), (byte) 8));
+		opCodes.put((byte) 0x1A, new OpCode("LD A, (DE)", () -> ldAde(), (byte) 8));
 		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> callNn(), (byte) 24));
 		opCodes.put((byte) 0x4f, new OpCode("LD C, A", () -> ldCa(), (byte) 4));
 		opCodes.put((byte) 0x06, new OpCode("LD B, n", () -> ldBn(), (byte) 8));
@@ -254,7 +254,7 @@ public class Z80 {
 		opCodes.put((byte) 0x57, new OpCode("LD D, A", () -> ldDa(), (byte) 4));
 		opCodes.put((byte) 0x04, new OpCode("INC B", () -> incB(), (byte) 4));
 		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> ldEn(), (byte) 8));
-		opCodes.put((byte) 0xF0, new OpCode("LDH A,(n)", () -> ldHaN(), (byte) 12));
+		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> ldHaN(), (byte) 12));
 	}
 
 	/**
@@ -262,18 +262,18 @@ public class Z80 {
 	 */
 	private void loadCbOpCodes() {
 		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit7h(), (byte) 8));
-		cbOpCodes.put((byte) 0x9F, new OpCode("RES 3 A", () -> res3a(), (byte) 8));
+//		cbOpCodes.put((byte) 0x9F, new OpCode("RES 3 A", () -> res3a(), (byte) 8));
 		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rlC(), (byte) 8));
 	}
 
 	public Logger getLogger() {
 		return logger;
 	}
-	
+
 	public char getPc() {
 		return this.pc;
 	}
-	
+
 	public char getSp() {
 		return this.sp;
 	}
@@ -584,8 +584,8 @@ public class Z80 {
 		char hl = readDualRegister(getH(), getL());
 
 		mem.writeByte(hl, getA().value);
-		logger.finer("Wrote A(" + Integer.toHexString(getA().value & 0xFF) + ") to HL (" + Integer.toHexString(hl & 0xFFFF)
-				+ ")");
+		logger.finer("Wrote A(" + Integer.toHexString(getA().value & 0xFF) + ") to HL ("
+				+ Integer.toHexString(hl & 0xFFFF) + ")");
 
 		writeDualRegister(getH(), getL(), (char) (hl + 1));
 		logger.finer("And incremented HL. HL = " + Integer.toHexString(readDualRegister(getH(), getL()) & 0xFFFF));
@@ -699,8 +699,8 @@ public class Z80 {
 	private void ldAde() {
 		char address = readDualRegister(getD(), getE());
 		getA().value = mem.readByte(address);
-		logger.finer("Loaded " + Integer.toHexString(getA().value & 0xFF) + " into A from " + "address pointed to by DE ("
-				+ Integer.toHexString(address) + ")");
+		logger.finer("Loaded " + Integer.toHexString(getA().value & 0xFF) + " into A from "
+				+ "address pointed to by DE (" + Integer.toHexString(address) + ")");
 	}
 
 	// Load 16-bit immediate into DE
@@ -849,8 +849,8 @@ public class Z80 {
 		char address = readDualRegister(getH(), getL());
 		mem.writeByte(address, getA().value);
 
-		logger.finer("Wrote A (" + Integer.toHexString(getA().value) + ") to address in HL (" + Integer.toHexString(address)
-				+ ")");
+		logger.finer("Wrote A (" + Integer.toHexString(getA().value) + ") to address in HL ("
+				+ Integer.toHexString(address) + ")");
 
 		address--;
 
@@ -897,19 +897,19 @@ public class Z80 {
 		pc++;
 	}
 
-	// reset bit 3 of A
-	private void res3a() {
-		String bin = Integer.toBinaryString(getA().value & 0xff);
-		logger.finer("Resetting bit 3 of A");
-		logger.finer("A before reset: " + bin);
-		logger.finer("A after reset: ");
-		/***
-		 * 
-		 * NOT IMPLEMENTED
-		 * 
-		 * 
-		 */
-		logger.warning("RES 3 A called, not implemented");
-	}
+//	// reset bit 3 of A
+//	private void res3a() {
+//		String bin = Integer.toBinaryString(getA().value & 0xff);
+//		logger.finer("Resetting bit 3 of A");
+//		logger.finer("A before reset: " + bin);
+//		logger.finer("A after reset: ");
+//		/***
+//		 * 
+//		 * NOT IMPLEMENTED
+//		 * 
+//		 * 
+//		 */
+//		logger.warning("RES 3 A called, not implemented");
+//	}
 
 }

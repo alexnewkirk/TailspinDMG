@@ -13,6 +13,7 @@ public enum DebugCommandType {
 	HELP,
 	STOPLOG,
 	STARTLOG,
-	LOADROM;
+	LOADROM,
+	FRAMEDUMP;
 
 }

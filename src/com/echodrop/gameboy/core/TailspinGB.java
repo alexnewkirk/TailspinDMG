@@ -41,7 +41,7 @@ public class TailspinGB {
 
 		logger.setLevel(Level.ALL);
 		logger.addHandler(new CliHandler());
-		
+
 		mem.initLogging();
 		processor.initLogging();
 		gpu.initLogging();
@@ -78,7 +78,7 @@ public class TailspinGB {
 	public void setProcessor(Z80 processor) {
 		this.processor = processor;
 	}
-	
+
 	public Logger getLogger() {
 		return logger;
 	}
