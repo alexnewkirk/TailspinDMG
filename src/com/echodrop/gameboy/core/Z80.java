@@ -113,14 +113,14 @@ public class Z80 {
 
 			byte clockIncrement = 0;
 
-			if (conditionalNotExecFlag) {
+			if (isConditionalNotExecFlag()) {
 				clockIncrement = instruction.getConditional_time();
 			} else {
 				clockIncrement = instruction.getM_time();
 			}
 
-			clockT.value += clockIncrement / 4;
-			clockM.value += clockIncrement;
+			getClockT().value += clockIncrement / 4;
+			getClockM().value += clockIncrement;
 
 			system.getGpu().incrementModeClock(clockIncrement);
 
@@ -131,7 +131,7 @@ public class Z80 {
 
 		system.getGpu().clockStep();
 
-		conditionalNotExecFlag = false;
+		setConditionalNotExecFlag(false);
 	}
 
 	/**
@@ -146,16 +146,16 @@ public class Z80 {
 		setH(new Register((byte) 0x0));
 		setL(new Register((byte) 0x0));
 
-		zeroFlag = false;
-		operationFlag = false;
-		halfCarryFlag = false;
-		fullCarryFlag = false;
+		setZeroFlag(false);
+		setOperationFlag(false);
+		setHalfCarryFlag(false);
+		setFullCarryFlag(false);
 
 		pc = 0;
 		sp = 0;
 
-		clockT = new Register((byte) 0x0);
-		clockM = new Register((byte) 0x0);
+		setClockT(new Register((byte) 0x0));
+		setClockM(new Register((byte) 0x0));
 	}
 
 	public void initLogging() {
@@ -306,6 +306,62 @@ public class Z80 {
 		return l;
 	}
 
+	public boolean isZeroFlag() {
+		return zeroFlag;
+	}
+
+	public boolean isOperationFlag() {
+		return operationFlag;
+	}
+
+	public boolean isHalfCarryFlag() {
+		return halfCarryFlag;
+	}
+
+	public boolean isFullCarryFlag() {
+		return fullCarryFlag;
+	}
+
+	public boolean isConditionalNotExecFlag() {
+		return conditionalNotExecFlag;
+	}
+
+	public Register getClockM() {
+		return clockM;
+	}
+
+	private void setClockM(Register clockM) {
+		this.clockM = clockM;
+	}
+
+	public Register getClockT() {
+		return clockT;
+	}
+
+	private void setClockT(Register clockT) {
+		this.clockT = clockT;
+	}
+
+	private void setConditionalNotExecFlag(boolean conditionalNotExecFlag) {
+		this.conditionalNotExecFlag = conditionalNotExecFlag;
+	}
+
+	private void setFullCarryFlag(boolean fullCarryFlag) {
+		this.fullCarryFlag = fullCarryFlag;
+	}
+
+	private void setHalfCarryFlag(boolean halfCarryFlag) {
+		this.halfCarryFlag = halfCarryFlag;
+	}
+
+	private void setOperationFlag(boolean operationFlag) {
+		this.operationFlag = operationFlag;
+	}
+
+	private void setZeroFlag(boolean zeroFlag) {
+		this.zeroFlag = zeroFlag;
+	}
+
 	private void setL(Register l) {
 		this.l = l;
 	}
@@ -363,10 +419,10 @@ public class Z80 {
 	private void incB() {
 		getB().value++;
 		if (getB().value == 0) {
-			zeroFlag = true;
+			setZeroFlag(true);
 		}
 
-		operationFlag = false;
+		setOperationFlag(false);
 
 		/**
 		 * 
@@ -413,12 +469,12 @@ public class Z80 {
 		byte immediate = mem.readByte(pc);
 		pc++;
 
-		if (zeroFlag) {
+		if (isZeroFlag()) {
 			pc += immediate;
 			logger.fine("Zero flag set, jmping by " + immediate);
 		} else {
 			// Use the smaller clock duration since the jmp was not executed
-			conditionalNotExecFlag = true;
+			setConditionalNotExecFlag(true);
 			logger.fine("Zero flag not set, no jmp");
 		}
 	}
@@ -429,8 +485,8 @@ public class Z80 {
 		getA().value--;
 		logger.finer("A = " + Integer.toHexString(getA().value & 0xFF));
 
-		operationFlag = true;
-		zeroFlag = (getA().value == 0);
+		setOperationFlag(true);
+		setZeroFlag((getA().value == 0));
 
 		/**
 		 * 
@@ -448,8 +504,8 @@ public class Z80 {
 		getC().value--;
 		logger.finer("C = " + Integer.toHexString(getC().value & 0xFF));
 
-		operationFlag = true;
-		zeroFlag = (getC().value == 0);
+		setOperationFlag(true);
+		setZeroFlag((getC().value == 0));
 
 		/**
 		 * 
@@ -467,12 +523,12 @@ public class Z80 {
 		pc++;
 
 		if (getA().value == immediate) {
-			zeroFlag = true;
+			setZeroFlag(true);
 		} else if (getA().value < immediate) {
-			fullCarryFlag = true;
+			setFullCarryFlag(true);
 		}
 
-		operationFlag = true;
+		setOperationFlag(true);
 
 		/**
 		 * 
@@ -539,9 +595,9 @@ public class Z80 {
 	private void decB() {
 		getB().value--;
 		if (getB().value == 0) {
-			zeroFlag = true;
+			setZeroFlag(true);
 		}
-		operationFlag = true;
+		setOperationFlag(true);
 
 		/**
 		 * 
@@ -568,9 +624,9 @@ public class Z80 {
 		getA().value = Util.leftRotate(getA().value);
 		logger.finer("A = " + Integer.toBinaryString(getA().value & 0xFF));
 
-		zeroFlag = false;
-		operationFlag = false;
-		halfCarryFlag = false;
+		setZeroFlag(false);
+		setOperationFlag(false);
+		setHalfCarryFlag(false);
 
 		/**
 		 * 
@@ -589,11 +645,11 @@ public class Z80 {
 		logger.finer("C = " + Integer.toBinaryString(getC().value & 0xFF));
 
 		if (getC().value == 0) {
-			zeroFlag = true;
+			setZeroFlag(true);
 		}
 
-		operationFlag = false;
-		halfCarryFlag = false;
+		setOperationFlag(false);
+		setHalfCarryFlag(false);
 
 		/**
 		 * 
@@ -679,10 +735,10 @@ public class Z80 {
 	private void incC() {
 		getC().value++;
 		if (getC().value == 0) {
-			zeroFlag = true;
+			setZeroFlag(true);
 		}
 
-		operationFlag = false;
+		setOperationFlag(false);
 
 		/**
 		 * 
@@ -710,9 +766,9 @@ public class Z80 {
 
 		getA().value -= getA().value;
 		if (getA().value == 0) {
-			zeroFlag = true;
+			setZeroFlag(true);
 		}
-		operationFlag = true;
+		setOperationFlag(true);
 
 		/**
 		 * 
@@ -724,7 +780,7 @@ public class Z80 {
 		logger.warning("SBC A, A called, half carry flag not implemented");
 
 		if (getA().value < 0) {
-			fullCarryFlag = true;
+			setFullCarryFlag(true);
 		}
 
 	}
@@ -746,11 +802,11 @@ public class Z80 {
 	private void bit7h() {
 		String bin = Integer.toBinaryString(getH().value & 0xFF);
 		if (bin.toCharArray()[7] == '0') {
-			zeroFlag = true;
+			setZeroFlag(true);
 		} else {
-			zeroFlag = false;
+			setZeroFlag(false);
 		}
-		logger.finer("Testing bit 7 of " + bin + ": zeroFlag = " + zeroFlag);
+		logger.finer("Testing bit 7 of " + bin + ": zeroFlag = " + isZeroFlag());
 	}
 
 	// Loads a 16 bit immediate into SP
@@ -766,12 +822,12 @@ public class Z80 {
 		getA().value ^= getA().value;
 
 		if (getA().value == 0) {
-			zeroFlag = true;
+			setZeroFlag(true);
 		}
 
-		halfCarryFlag = false;
-		fullCarryFlag = false;
-		operationFlag = false;
+		setHalfCarryFlag(false);
+		setFullCarryFlag(false);
+		setOperationFlag(false);
 
 		logger.finer("A = " + getA());
 	}
@@ -806,7 +862,7 @@ public class Z80 {
 	// Relative jump by signed immediate (single byte) if last result was not
 	// zero
 	private void jrNzN() {
-		if (!zeroFlag) {
+		if (!isZeroFlag()) {
 			byte n = (byte) (mem.readByte(pc) & 0xFF);
 
 			// we want to jump from the instruction location, not the
@@ -819,7 +875,7 @@ public class Z80 {
 			logger.finer("Jmping by " + n);
 		} else {
 			// Use the smaller clock duration since the jmp was not executed
-			conditionalNotExecFlag = true;
+			setConditionalNotExecFlag(true);
 
 			// If theres no jump, we still want to skip the immediate
 			pc++;

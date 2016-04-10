@@ -45,5 +45,13 @@ public class Util {
 		String shifted = bin.substring(1) + bin.charAt(0);
 		return (byte)Integer.parseInt(shifted, 2);
 	}
+	
+	public static String byteToReadableHex(byte b) {
+		return "0x" + Integer.toHexString(b & 0xFF).toUpperCase();
+	}
+	
+	public static String charToReadableHex(char c) {
+		return "0x" + Integer.toHexString(c & 0xFFFF).toUpperCase();
+	}
 
 }

@@ -109,7 +109,7 @@ public class MMU {
 		for (int i = 0; i < romData.length - 1; i++) {
 			rom.setMem((char) i, (byte) (romData[i] & 0xFF));
 		}
-		logger.info("ROM loaded: " + filename + " : " + romData.length + " bytes\n");
+		logger.info("ROM loaded: " + filename + " : " + romData.length + " bytes");
 	}
 
 	/**

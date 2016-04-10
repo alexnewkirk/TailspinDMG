@@ -27,7 +27,6 @@ public class CliHandler extends Handler {
 			System.out.println(record.getMessage());
 			
 		}
-		System.out.println();
 	}
 
 }

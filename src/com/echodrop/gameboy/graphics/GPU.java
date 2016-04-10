@@ -48,7 +48,7 @@ public class GPU {
 	private byte[][] frameBuffer;
 
 	// GPU state
-	private byte mode;
+	private Register mode;
 
 	// advanced after each CPU instruction with the Z80 clock_t
 	private int modeClock;
@@ -69,15 +69,15 @@ public class GPU {
 
 		this.observers = new ArrayList<IGraphicsObserver>();
 
-		this.mode = 0;
-		this.line = new Register((byte) 0);
-		this.modeClock = 0;
+		this.setMode(new Register((byte) 0));
+		this.setLine(new Register((byte) 0));
+		this.setModeClock(0);
 
-		this.backgroundPalette = new Register((byte) 0x010B);
+		this.setBackgroundPalette(new Register((byte) 0x010B));
 
-		this.scrollX = new Register((byte) 0);
-		this.scrollY = new Register((byte) 0);
-		this.lcdControl = new Register((byte) 0);
+		this.setScrollX(new Register((byte) 0));
+		this.setScrollY(new Register((byte) 0));
+		this.setLcdControl(new Register((byte) 0));
 
 		this.setVram(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "vram"));
 		this.setOam(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "oam"));
@@ -99,28 +99,28 @@ public class GPU {
 	 */
 	public void clockStep() {
 
-		logger.info("GPU Clock Step: line:" + line + " mode:" + mode + " modeClock: " + modeClock);
+		logger.info("GPU Clock Step: line:" + getLine() + " mode:" + getMode() + " modeClock: " + getModeClock());
 
-		switch (mode) {
+		switch (getMode().value) {
 
 		// HBLANK
 		case 0:
-			if (modeClock >= 204) {
-				modeClock = 0;
-				line.value++;
+			if (getModeClock() >= 204) {
+				setModeClock(0);
+				getLine().value++;
 
-				if (line.value == 143) {
+				if (getLine().value == 143) {
 					// Change mode to VBLANK
 					logger.info("[!] GPU MODE SWITCHING TO VBLANK (mode 1)");
-					mode = 1;
+					mode.value = 1;
 
 					// update screen after last HBLANK
 					notifyAllObservers();
 
 				} else {
 					// Change mode to OAM read
-					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 3)");
-					mode = 2;
+					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 2)");
+					mode.value = 2;
 				}
 			}
 
@@ -128,16 +128,16 @@ public class GPU {
 
 		// VBLANK
 		case 1:
-			if (modeClock >= 456) {
-				modeClock = 0;
-				line.value++;
+			if (getModeClock() >= 456) {
+				setModeClock(0);
+				getLine().value++;
 				;
 
-				if (line.value > 153) {
+				if (getLine().value > 153) {
 					// change mode to OAM read
 					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 2)");
-					mode = 2;
-					line.value = 0;
+					mode.value = 2;
+					getLine().value = 0;
 				}
 			}
 
@@ -145,10 +145,10 @@ public class GPU {
 
 		// OAM read
 		case 2:
-			if (modeClock >= 80) {
-				modeClock = 0;
+			if (getModeClock() >= 80) {
+				setModeClock(0);
 				// change to vram read mode
-				mode = 3;
+				mode.value = 3;
 				logger.info("[!] GPU MODE SWITCHING TO VRAM READ (mode 3)");
 			}
 
@@ -156,11 +156,11 @@ public class GPU {
 
 		// VRAM read
 		case 3:
-			if (modeClock >= 172) {
+			if (getModeClock() >= 172) {
 				// change mode to HBLANK
-				modeClock = 0;
+				setModeClock(0);
 				logger.info("\n[!] GPU MODE SWITCHING TO HBLANK (mode 0)\n");
-				mode = 0;
+				mode.value = 0;
 
 				// Write scanline to framebuffer
 				renderScanLine();
@@ -177,21 +177,21 @@ public class GPU {
 
 		// LCD control register
 		case 0xFF00:
-			return lcdControl.value;
+			return getLcdControl().value;
 
 		// SCY register
 		case 0xFF42:
-			return scrollY.value;
+			return getScrollY().value;
 
 		// SCX register
 		case 0xFF43:
-			return scrollX.value;
+			return getScrollX().value;
 
 		// Current scanline register
 		case 0xFF44:
-			return line.value;
+			return getLine().value;
 		}
-		
+
 		logger.severe("Invalid memory access in GPU: " + Integer.toHexString(address));
 		throw new MemoryAccessException(address);
 	}
@@ -210,17 +210,17 @@ public class GPU {
 
 		// SCY register
 		case 0xFF42:
-			scrollY.value = data;
+			getScrollY().value = data;
 			break;
 
 		// SCX register
 		case 0xFF43:
-			scrollX.value = data;
+			getScrollX().value = data;
 			break;
 
 		// current scanline register
 		case 0xFF44:
-			line.value = data;
+			getLine().value = data;
 			break;
 
 		}
@@ -237,16 +237,12 @@ public class GPU {
 	}
 
 	private void renderScanLine() {
-		logger.info("[!] renderScanLine() called"); 
-		
-		
-		
-		
-		
+		logger.info("[!] renderScanLine() called");
+
 	}
 
 	public void incrementModeClock(byte time) {
-		this.modeClock += time;
+		this.setModeClock(this.getModeClock() + time);
 	}
 
 	public MemoryRegion getVram() {
@@ -268,9 +264,65 @@ public class GPU {
 	private void setFrameBuffer(byte[][] frameBuffer) {
 		this.frameBuffer = frameBuffer;
 	}
-	
+
 	public byte[][] getFrameBuffer() {
 		return this.frameBuffer;
+	}
+
+	public Register getScrollX() {
+		return scrollX;
+	}
+
+	private void setScrollX(Register scrollX) {
+		this.scrollX = scrollX;
+	}
+
+	public Register getScrollY() {
+		return scrollY;
+	}
+
+	private void setScrollY(Register scrollY) {
+		this.scrollY = scrollY;
+	}
+
+	public Register getLine() {
+		return line;
+	}
+
+	private void setLine(Register line) {
+		this.line = line;
+	}
+
+	public Register getBackgroundPalette() {
+		return backgroundPalette;
+	}
+
+	private void setBackgroundPalette(Register backgroundPalette) {
+		this.backgroundPalette = backgroundPalette;
+	}
+
+	public Register getLcdControl() {
+		return lcdControl;
+	}
+
+	private void setLcdControl(Register lcdControl) {
+		this.lcdControl = lcdControl;
+	}
+
+	public int getModeClock() {
+		return modeClock;
+	}
+
+	private void setModeClock(int modeClock) {
+		this.modeClock = modeClock;
+	}
+
+	public Register getMode() {
+		return mode;
+	}
+
+	private void setMode(Register mode) {
+		this.mode = mode;
 	}
 
 }

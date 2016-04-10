@@ -1,6 +1,6 @@
 package com.echodrop.gameboy.main;
 
-import com.echodrop.gameboy.core.GameBoy;
+import com.echodrop.gameboy.core.TailspinGB;
 
 /**
  * Creates an instance of the emulator, initializes it's 
@@ -14,7 +14,7 @@ public class ConsoleDriver {
 	
 	public static void main(String[] args) {
 		
-		GameBoy g = new GameBoy();
+		TailspinGB g = new TailspinGB();
 		
 		g.reset();
 		
