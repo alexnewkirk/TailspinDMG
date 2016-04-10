@@ -51,7 +51,7 @@ public class GPU {
 	private byte mode;
 
 	// advanced after each CPU instruction with the Z80 clock_t
-	private Register modeClock;
+	private int modeClock;
 
 	private List<IGraphicsObserver> observers;
 	
@@ -70,13 +70,13 @@ public class GPU {
 		this.observers = new ArrayList<IGraphicsObserver>();
 
 		this.mode = 0;
-		this.modeClock = new Register((byte) 0);
+		this.line = new Register((byte) 0);
+		this.modeClock = 0;
 
 		this.backgroundPalette = new Register((byte) 0x010B);
 
 		this.scrollX = new Register((byte) 0);
 		this.scrollY = new Register((byte) 0);
-		this.line = new Register((byte) 0);
 		this.lcdControl = new Register((byte) 0);
 
 		this.setVram(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "vram"));
@@ -100,13 +100,15 @@ public class GPU {
 	 * Called after each CPU instruction
 	 */
 	public void clockStep() {
+		
+		logger.info("GPU Clock Step: line:" + line + " mode:" + mode + " modeClock: " + modeClock);
 
 		switch (mode) {
 
 		// HBLANK
 		case 0:
-			if (modeClock.value >= 204) {
-				modeClock.value = 0;
+			if (modeClock >= 204) {
+				modeClock = 0;
 				line.value++;
 
 				if (line.value == 143) {
@@ -126,9 +128,9 @@ public class GPU {
 
 		// VBLANK
 		case 1:
-			if (modeClock.value >= 456) {
-				modeClock.value = 0;
-				line.value++;
+			if (modeClock >= 456) {
+				modeClock = 0;
+				line.value++;;
 
 				if (line.value > 153) {
 					// change mode to OAM read
@@ -141,8 +143,8 @@ public class GPU {
 
 		// OAM read
 		case 2:
-			if (modeClock.value >= 80) {
-				modeClock.value = 0;
+			if (modeClock >= 80) {
+				modeClock = 0;
 				// change to vram read mode
 				mode = 3;
 			}
@@ -151,9 +153,9 @@ public class GPU {
 
 		// VRAM read
 		case 3:
-			if (modeClock.value >= 172) {
+			if (modeClock >= 172) {
 				// change mode to HBLANK
-				modeClock.value = 0;
+				modeClock = 0;
 				mode = 0;
 
 				// Write scanline to framebuffer
@@ -234,7 +236,7 @@ public class GPU {
 	}
 
 	public void incrementModeClock(byte time) {
-		this.modeClock.value += time;
+		this.modeClock += time;
 	}
 
 	public MemoryRegion getVram() {
