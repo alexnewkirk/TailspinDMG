@@ -25,7 +25,9 @@ public class CliHandler extends Handler {
 			System.err.println(record.getMessage());
 		} else {
 			System.out.println(record.getMessage());
+			
 		}
+		System.out.println();
 	}
 
 }

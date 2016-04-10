@@ -72,59 +72,62 @@ public class Z80 {
 	public void beginDispatch() {
 
 		while (running) {
-
-			logger.info("Instruction pointer: 0x" + Integer.toHexString(pc));
-
-			// Grab next instruction and increment instruction pointer
-			byte opcode = mem.readByte(pc++);
-
-			logger.fine("Opcode: 0x" + Integer.toHexString(opcode & 0xFF));
-
-			// mask instruction pointer to 16 bits
-			pc &= 65535;
-
-			// Execute the instruction
-			OpCode instruction;
-			if ((opcode & 0xFF) == 0xCB) {
-				logger.fine("CB prefixed opcode detected");
-				opcode = mem.readByte((char) (pc));
-				logger.fine("Opcode: 0x" + Integer.toHexString(opcode & 0xFF));
-				instruction = cbOpCodes.get(opcode);
-				pc++;
-			} else {
-				instruction = opCodes.get(opcode);
-			}
-
-			if (instruction != null) {
-				logger.fine(instruction.getDisassembly());
-				instruction.exec();
-
-				// Increment clocks by the amount of time
-				// that passed during the instruction
-
-				byte clockIncrement = 0;
-
-				if (conditionalNotExecFlag) {
-					clockIncrement = instruction.getConditional_time();
-				} else {
-					clockIncrement = instruction.getM_time();
-				}
-
-				clock_t.value += clockIncrement / 4;
-				clock_m.value += clockIncrement;
-
-				system.getGpu().incrementModeClock(clockIncrement);
-
-			} else {
-				logger.severe("Unimplemented instruction: " + Integer.toHexString(opcode & 0xFF));
-				System.exit(1);
-			}
-
-			system.getGpu().clockStep();
-
-			conditionalNotExecFlag = false;
-			System.out.println();
+			step();
 		}
+	}
+
+	public void step() {
+
+		logger.info("Instruction pointer: 0x" + Integer.toHexString(pc));
+
+		// Grab next instruction and increment instruction pointer
+		byte opcode = mem.readByte(pc++);
+
+		logger.fine("Opcode: 0x" + Integer.toHexString(opcode & 0xFF));
+
+		// mask instruction pointer to 16 bits
+		pc &= 65535;
+
+		// Execute the instruction
+		OpCode instruction;
+		if ((opcode & 0xFF) == 0xCB) {
+			logger.fine("CB prefixed opcode detected");
+			opcode = mem.readByte((char) (pc));
+			logger.fine("Opcode: 0x" + Integer.toHexString(opcode & 0xFF));
+			instruction = cbOpCodes.get(opcode);
+			pc++;
+		} else {
+			instruction = opCodes.get(opcode);
+		}
+
+		if (instruction != null) {
+			logger.fine(instruction.getDisassembly());
+			instruction.exec();
+
+			// Increment clocks by the amount of time
+			// that passed during the instruction
+
+			byte clockIncrement = 0;
+
+			if (conditionalNotExecFlag) {
+				clockIncrement = instruction.getConditional_time();
+			} else {
+				clockIncrement = instruction.getM_time();
+			}
+
+			clock_t.value += clockIncrement / 4;
+			clock_m.value += clockIncrement;
+
+			system.getGpu().incrementModeClock(clockIncrement);
+
+		} else {
+			logger.severe("Unimplemented instruction: " + Integer.toHexString(opcode & 0xFF));
+			System.exit(1);
+		}
+
+		system.getGpu().clockStep();
+
+		conditionalNotExecFlag = false;
 	}
 
 	/**

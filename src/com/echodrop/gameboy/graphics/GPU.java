@@ -14,17 +14,18 @@ import com.echodrop.gameboy.interfaces.IGraphicsObserver;
  * Emulation core for GameBoy GPU
  * 
  * 
- * Tiles are 8x8px
+ * Tiles are 8x8 pixels
  * 
- * 0x9800-9BFF is tilemap 0 0x9C00-9FFF is tilemap 1
+ * 0x9800-9BFF is tilemap 0, 0x9C00-9FFF is tilemap 1
  * 
- * 9000-97FF tileset 0, tiles 0-127
+ * 0x9000-0x97FF is tileset 0, tiles 0-127
  * 
- * 8800-8FFF tileset 0, -1 to -127 which are also tileset 1, tiles 128-255
+ * 0x8800-0x8FFF is tileset 0, -1 to -127 - which are shared with tileset 1 as
+ * tiles 128-255
  * 
- * 8000-87FF tileset 1, tiles 0-127
+ * 0x8000-0x87FF is tileset 1, tiles 0-127
  * 
- * tilemaps are 32 x 32 tiles
+ * Tilemaps are 32 x 32 tiles
  * 
  * 
  * @author echo_drop
@@ -44,7 +45,6 @@ public class GPU {
 
 	private Register lcdControl;
 
-	private byte[][] screen;
 	private byte[][] frameBuffer;
 
 	// GPU state
@@ -54,7 +54,7 @@ public class GPU {
 	private int modeClock;
 
 	private List<IGraphicsObserver> observers;
-	
+
 	private static final Logger logger = Logger.getLogger(GPU.class.getName());
 
 	public GPU(GameBoy system) {
@@ -82,16 +82,14 @@ public class GPU {
 		this.setVram(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "vram"));
 		this.setOam(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "oam"));
 
-		this.setScreen(new byte[160][144]);
 		this.setFrameBuffer(new byte[160][144]);
 		for (int i = 0; i < 160; i++) {
 			for (int j = 0; j < 144; j++) {
-				screen[i][j] = 0;
 				frameBuffer[i][j] = 0;
 			}
 		}
 	}
-	
+
 	public void initLogging() {
 		logger.setParent(system.getLogger());
 	}
@@ -100,7 +98,7 @@ public class GPU {
 	 * Called after each CPU instruction
 	 */
 	public void clockStep() {
-		
+
 		logger.info("GPU Clock Step: line:" + line + " mode:" + mode + " modeClock: " + modeClock);
 
 		switch (mode) {
@@ -113,6 +111,7 @@ public class GPU {
 
 				if (line.value == 143) {
 					// Change mode to VBLANK
+					logger.info("[!] GPU MODE SWITCHING TO VBLANK (mode 1)");
 					mode = 1;
 
 					// update screen after last HBLANK
@@ -120,6 +119,7 @@ public class GPU {
 
 				} else {
 					// Change mode to OAM read
+					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 3)");
 					mode = 2;
 				}
 			}
@@ -130,10 +130,12 @@ public class GPU {
 		case 1:
 			if (modeClock >= 456) {
 				modeClock = 0;
-				line.value++;;
+				line.value++;
+				;
 
 				if (line.value > 153) {
 					// change mode to OAM read
+					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 2)");
 					mode = 2;
 					line.value = 0;
 				}
@@ -147,6 +149,7 @@ public class GPU {
 				modeClock = 0;
 				// change to vram read mode
 				mode = 3;
+				logger.info("[!] GPU MODE SWITCHING TO VRAM READ (mode 3)");
 			}
 
 			break;
@@ -156,6 +159,7 @@ public class GPU {
 			if (modeClock >= 172) {
 				// change mode to HBLANK
 				modeClock = 0;
+				logger.info("\n[!] GPU MODE SWITCHING TO HBLANK (mode 0)\n");
 				mode = 0;
 
 				// Write scanline to framebuffer
@@ -164,7 +168,7 @@ public class GPU {
 			}
 			break;
 		}
-		
+
 	}
 
 	public byte readByte(char address) {
@@ -173,7 +177,7 @@ public class GPU {
 
 		// LCD control register
 		case 0xFF00:
-			break;
+			return lcdControl.value;
 
 		// SCY register
 		case 0xFF42:
@@ -187,6 +191,7 @@ public class GPU {
 		case 0xFF44:
 			return line.value;
 		}
+		
 		logger.severe("Invalid memory access in GPU: " + Integer.toHexString(address));
 		throw new MemoryAccessException(address);
 	}
@@ -220,7 +225,7 @@ public class GPU {
 
 		}
 	}
-	
+
 	public void registerObserver(IGraphicsObserver o) {
 		observers.add(o);
 	}
@@ -232,7 +237,7 @@ public class GPU {
 	}
 
 	private void renderScanLine() {
-		// todo
+		logger.info("[!] renderScanLine() called"); 
 	}
 
 	public void incrementModeClock(byte time) {
@@ -255,16 +260,12 @@ public class GPU {
 		this.oam = oam;
 	}
 
-	public byte[][] getScreen() {
-		return screen;
-	}
-
-	private void setScreen(byte[][] screen) {
-		this.screen = screen;
-	}
-
 	private void setFrameBuffer(byte[][] frameBuffer) {
 		this.frameBuffer = frameBuffer;
+	}
+	
+	public byte[][] getFrameBuffer() {
+		return this.frameBuffer;
 	}
 
 }
