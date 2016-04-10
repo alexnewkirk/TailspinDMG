@@ -63,11 +63,11 @@ public class MMU {
 	 * Sets MMU to initial state
 	 */
 	public void initialize() {
-		bios = new MemoryRegion((char) 0x0000, (char) 0x00ff, "bios");
-		rom = new MemoryRegion((char) 0x0000, (char) 0x7fff, "rom");
-		workingRam = new MemoryRegion((char) 0xc000, (char) 0xdfff, "workingRam");
-		zeroPage = new MemoryRegion((char) 0xff80, (char) 0xffff, "zeroPage");
-		externalRam = new MemoryRegion((char) 0xa000, (char) 0xbfff, "externalRam");
+		setBios(new MemoryRegion((char) 0x0000, (char) 0x00ff, "bios"));
+		setRom(new MemoryRegion((char) 0x0000, (char) 0x7fff, "rom"));
+		setWorkingRam(new MemoryRegion((char) 0xc000, (char) 0xdfff, "workingRam"));
+		setZeroPage(new MemoryRegion((char) 0xff80, (char) 0xffff, "zeroPage"));
+		setExternalRam(new MemoryRegion((char) 0xa000, (char) 0xbfff, "externalRam"));
 	}
 
 	public void initLogging() {
@@ -87,7 +87,7 @@ public class MMU {
 		}
 
 		for (int i = 0; i < gbBios.length - 1; i++) {
-			bios.setMem((char) i, (byte) (gbBios[i] & 0xFF));
+			getBios().setMem((char) i, (byte) (gbBios[i] & 0xFF));
 		}
 
 		logger.info("BIOS loaded: " + gbBios.length + " bytes");
@@ -107,7 +107,7 @@ public class MMU {
 		}
 
 		for (int i = 0; i < romData.length - 1; i++) {
-			rom.setMem((char) i, (byte) (romData[i] & 0xFF));
+			getRom().setMem((char) i, (byte) (romData[i] & 0xFF));
 		}
 		logger.info("ROM loaded: " + filename + " : " + romData.length + " bytes");
 	}
@@ -129,7 +129,7 @@ public class MMU {
 
 				if (address < 0x100) {
 
-					return bios;
+					return getBios();
 
 				} else {
 
@@ -144,20 +144,20 @@ public class MMU {
 				}
 			}
 
-			return rom;
+			return getRom();
 
 		// ROM Bank 0
 		case 0x1000:
 		case 0x2000:
 		case 0x3000:
-			return rom;
+			return getRom();
 
 		// ROM bank 1
 		case 0x4000:
 		case 0x5000:
 		case 0x6000:
 		case 0x7000:
-			return rom;
+			return getRom();
 
 		// VRAM
 		case 0x8000:
@@ -167,16 +167,16 @@ public class MMU {
 		// External RAM
 		case 0xA000:
 		case 0xB000:
-			return externalRam;
+			return getExternalRam();
 
 		// Working RAM
 		case 0xC000:
 		case 0xD000:
-			return workingRam;
+			return getWorkingRam();
 
 		// WRAM shadow
 		case 0xE000:
-			return workingRam;
+			return getWorkingRam();
 
 		// WRAM shadow, I/O, OAM, Zero-page
 		case 0xF000:
@@ -191,7 +191,7 @@ public class MMU {
 				// Zero-page
 			case 0xF00:
 				if (address >= 0xFF80) {
-					return zeroPage;
+					return getZeroPage();
 				} else {
 					// I/O. This should never happen
 					logger.severe("I/O read or write attempted by MMU at " + Integer.toHexString(address & 0xFFFF));
@@ -201,7 +201,7 @@ public class MMU {
 
 			// wram shadow. should be called for 0x000 - 0xD00
 		default:
-			return workingRam;
+			return getWorkingRam();
 
 		}
 
@@ -244,6 +244,46 @@ public class MMU {
 			MemoryRegion r = findMemoryRegion(address);
 			r.setMem(address, data);
 		}
+	}
+
+	public MemoryRegion getBios() {
+		return bios;
+	}
+
+	private void setBios(MemoryRegion bios) {
+		this.bios = bios;
+	}
+
+	public MemoryRegion getRom() {
+		return rom;
+	}
+
+	public MemoryRegion getWorkingRam() {
+		return workingRam;
+	}
+
+	public MemoryRegion getExternalRam() {
+		return externalRam;
+	}
+
+	public MemoryRegion getZeroPage() {
+		return zeroPage;
+	}
+
+	private void setZeroPage(MemoryRegion zeroPage) {
+		this.zeroPage = zeroPage;
+	}
+
+	private void setExternalRam(MemoryRegion externalRam) {
+		this.externalRam = externalRam;
+	}
+
+	private void setWorkingRam(MemoryRegion workingRam) {
+		this.workingRam = workingRam;
+	}
+
+	private void setRom(MemoryRegion rom) {
+		this.rom = rom;
 	}
 
 }

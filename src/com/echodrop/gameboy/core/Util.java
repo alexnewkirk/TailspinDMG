@@ -53,5 +53,13 @@ public class Util {
 	public static String charToReadableHex(char c) {
 		return "0x" + Integer.toHexString(c & 0xFFFF).toUpperCase();
 	}
+	
+	public static String zeroLeftPad(String s, int size) {
+		String result = s;
+		while(result.length() < size) {
+			result = "0" + result;
+		}
+		return result;
+	}
 
 }

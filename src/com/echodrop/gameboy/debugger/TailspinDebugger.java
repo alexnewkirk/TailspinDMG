@@ -1,9 +1,11 @@
 package com.echodrop.gameboy.debugger;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.logging.Level;
 
+import com.echodrop.gameboy.core.MemoryRegion;
 import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.core.Util;
 
@@ -69,8 +71,10 @@ public class TailspinDebugger {
 					system.getProcessor().step();
 					System.out.println(SPACER);
 				}
+				char breakpoint = system.getProcessor().getPc();
 				System.out.println("Reached breakpoint: "
-						+ Integer.toHexString(system.getProcessor().getPc() & 0xFFFF).toUpperCase());
+						+ Integer.toHexString(breakpoint & 0xFFFF).toUpperCase());
+				breakpoints.remove(new Character(breakpoint));
 				break;
 			case REGDUMP:
 				System.out.println(SPACER);
@@ -78,9 +82,7 @@ public class TailspinDebugger {
 				System.out.println(SPACER);
 				break;
 			case MEMDUMP:
-				System.out.println(SPACER);
 				memDump();
-				System.out.println(SPACER);
 				break;
 			case LSBREAK:
 				System.out.println(SPACER);
@@ -136,7 +138,62 @@ public class TailspinDebugger {
 	}
 
 	private static void memDump() {
-		System.out.println("[!] Memdump not yet implemented.");
+		
+		ArrayList<String> options = new ArrayList<String>();
+		options.add("[0] BIOS");
+		options.add("[1] Working RAM");
+		options.add("[2] External RAM");
+		options.add("[3] Zero-page memory");
+		options.add("[4] ROM");
+		options.add("[5] OAM");
+		options.add("[6] VRAM");
+		
+		int choice = -1;
+		MemoryRegion selected = null;
+		
+		while(choice < 0 || choice > options.size()) {
+			for(String s : options) {
+				System.out.println(s);
+			}
+			
+			try {
+				choice = sc.nextInt();
+			} catch (InputMismatchException e) {
+				System.out.println("Invalid selection, try again.");
+			}
+			
+		}
+		
+		//sc.next();
+		
+		switch(choice) {
+		case 0:
+			selected = system.getMem().getBios();
+			break;
+		case 1:
+			selected = system.getMem().getWorkingRam();
+			break;
+		case 2:
+			selected = system.getMem().getExternalRam();
+			break;
+		case 3:
+			selected = system.getMem().getZeroPage();
+			break;
+		case 4:
+			selected = system.getMem().getRom();
+			break;
+		case 5:
+			selected = system.getGpu().getOam();
+			break;
+		case 6:
+			selected = system.getGpu().getVram();
+			break;
+		}
+		
+		if(selected != null) {
+			System.out.println(selected);
+		}
+		
 	}
 
 	private static void regDump() {
