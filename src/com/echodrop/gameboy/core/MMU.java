@@ -15,7 +15,7 @@ import com.echodrop.gameboy.exceptions.MemoryAccessException;
  */
 public class MMU {
 
-	private GameBoy system;
+	private TailspinGB system;
 
 	private static final Logger logger = Logger.getLogger(MMU.class.getName());
 
@@ -29,7 +29,7 @@ public class MMU {
 	private MemoryRegion externalRam;
 	private MemoryRegion zeroPage;
 
-	public MMU(GameBoy system) {
+	public MMU(TailspinGB system) {
 		this.system = system;
 		this.initialize();
 	}

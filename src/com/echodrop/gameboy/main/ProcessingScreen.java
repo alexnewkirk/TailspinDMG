@@ -1,6 +1,6 @@
 package com.echodrop.gameboy.main;
 
-import com.echodrop.gameboy.core.GameBoy;
+import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.graphics.GPU;
 import com.echodrop.gameboy.interfaces.IGraphicsObserver;
 
@@ -25,7 +25,7 @@ public class ProcessingScreen extends PApplet implements IGraphicsObserver {
 
 		background(255, 255, 255);
 
-		GameBoy system = new GameBoy();
+		TailspinGB system = new TailspinGB();
 		setGpu(system.getGpu());
 
 		gpu.registerObserver(this);

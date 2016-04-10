@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.echodrop.gameboy.core.GameBoy;
+import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.core.MemoryRegion;
 import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.exceptions.MemoryAccessException;
@@ -32,7 +32,7 @@ import com.echodrop.gameboy.interfaces.IGraphicsObserver;
  */
 public class GPU {
 
-	private GameBoy system;
+	private TailspinGB system;
 	private MemoryRegion vram;
 	private MemoryRegion oam;
 	private Register scrollX;
@@ -57,7 +57,7 @@ public class GPU {
 
 	private static final Logger logger = Logger.getLogger(GPU.class.getName());
 
-	public GPU(GameBoy system) {
+	public GPU(TailspinGB system) {
 		this.system = system;
 		this.initialize();
 	}
@@ -238,6 +238,11 @@ public class GPU {
 
 	private void renderScanLine() {
 		logger.info("[!] renderScanLine() called"); 
+		
+		
+		
+		
+		
 	}
 
 	public void incrementModeClock(byte time) {
