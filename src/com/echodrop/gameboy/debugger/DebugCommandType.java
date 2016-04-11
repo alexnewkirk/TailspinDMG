@@ -14,6 +14,8 @@ public enum DebugCommandType {
 	STOPLOG,
 	STARTLOG,
 	LOADROM,
-	FRAMEDUMP;
+	FRAMEDUMP,
+	RMBREAK,
+	CONDBREAK;
 
 }

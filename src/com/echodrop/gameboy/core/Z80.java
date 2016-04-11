@@ -71,6 +71,9 @@ public class Z80 {
 		this.running = false;
 	}
 
+	/**
+	 * Emulation loop
+	 */
 	public void beginDispatch() {
 
 		this.running = true;
@@ -80,6 +83,9 @@ public class Z80 {
 		}
 	}
 
+	/**
+	 * Advances the emulation state by one instruction
+	 */
 	public void step() {
 
 		logger.info("Instruction pointer: 0x" + Integer.toHexString(pc));
@@ -126,7 +132,7 @@ public class Z80 {
 
 		} else {
 			logger.severe("Unimplemented instruction: " + Integer.toHexString(opcode & 0xFF));
-			throw new InstructionNotImplementedException(opcode, pc);
+			throw new InstructionNotImplementedException(opcode, (char) (pc - 1));
 		}
 
 		system.getGpu().clockStep();
@@ -255,6 +261,12 @@ public class Z80 {
 		opCodes.put((byte) 0x04, new OpCode("INC B", () -> incB(), (byte) 4));
 		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> ldEn(), (byte) 8));
 		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> ldHaN(), (byte) 12));
+		opCodes.put((byte) 0x1D, new OpCode("DEC E", () -> decE(), (byte) 4));
+		opCodes.put((byte) 0x24, new OpCode("INC H", () -> incH(), (byte) 4));
+		opCodes.put((byte) 0x7C, new OpCode("LD (HL), E", () -> ldHlE(), (byte) 8));
+		opCodes.put((byte) 0x90, new OpCode("SUB B", () -> subB(), (byte) 4));
+		opCodes.put((byte) 0x15, new OpCode("DEC D", () -> decD(), (byte) 4));
+		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> ldDn(), (byte) 8));
 	}
 
 	/**
@@ -262,7 +274,6 @@ public class Z80 {
 	 */
 	private void loadCbOpCodes() {
 		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit7h(), (byte) 8));
-//		cbOpCodes.put((byte) 0x9F, new OpCode("RES 3 A", () -> res3a(), (byte) 8));
 		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rlC(), (byte) 8));
 	}
 
@@ -396,6 +407,96 @@ public class Z80 {
 	 * tables above.
 	 *
 	 */
+	
+	// Load 8-bit immediate into D
+		private void ldDn() {
+			getD().value = mem.readByte(pc);
+			logger.finer("Loaded " + Integer.toHexString(getD().value & 0xFF) + " into D");
+			pc++;
+		}
+
+	// Subtract B from A
+	private void subB() {
+
+		getA().value -= getB().value;
+		if (getA().value == 0) {
+			zeroFlag = true;
+		}
+		operationFlag = true;
+
+		logger.finer("Subtracted B from A");
+
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented Full carry flag not implemented
+		 * 
+		 */
+
+	}
+
+	// Copy E to address pointed to by HL
+	private void ldHlE() {
+		char address = readDualRegister(getH(), getL());
+		mem.writeByte(address, getE().value);
+		logger.finer("Wrote E (" + Integer.toHexString(getE().value & 0xFF) + ") to " + Integer.toHexString(address));
+	}
+
+	// Increment H
+	private void incH() {
+		getH().value++;
+		if (getH().value == 0) {
+			setZeroFlag(true);
+		}
+
+		setOperationFlag(false);
+
+		/**
+		 * 
+		 * HALF CARRY FLAG NOT IMPLEMENTED
+		 * 
+		 * 
+		 * 
+		 */
+		logger.finer("Incremented H");
+		logger.warning("INC H called, half carry flag not implemented");
+	}
+
+	// Decrement E
+	private void decE() {
+		getE().value--;
+		if (getE().value == 0) {
+			setZeroFlag(true);
+		}
+		setOperationFlag(true);
+
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented
+		 * 
+		 * 
+		 */
+		logger.warning("DEC E called, half carry flag not implemented");
+	}
+
+	// Decrement D
+	private void decD() {
+		getD().value--;
+		if (getD().value == 0) {
+			setZeroFlag(true);
+		}
+		setOperationFlag(true);
+
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented
+		 * 
+		 * 
+		 */
+		logger.warning("DEC D called, half carry flag not implemented");
+	}
 
 	// Load A from address pointed to by 0xFF00 + 8-bit immediate
 	private void ldHaN() {
@@ -664,9 +765,7 @@ public class Z80 {
 	// push BC onto stack
 	private void pushBc() {
 		char address = readDualRegister(getB(), getC());
-
 		push(address);
-
 		logger.finer("Pushed BC (" + Integer.toHexString(address) + ") onto stack");
 	}
 
@@ -685,12 +784,9 @@ public class Z80 {
 
 	// Call routine at nn
 	private void callNn() {
-
 		char address = mem.readWord(pc);
-
 		push((char) (pc + 2));
 		logger.fine("Pushed address " + Integer.toHexString((pc + 2) & 0xFFFF) + " to stack");
-
 		pc = address;
 		logger.fine("Calling subroutine at 0x" + Integer.toHexString(address & 0xFFFF));
 	}
@@ -896,20 +992,5 @@ public class Z80 {
 		logger.finer("Loaded " + Integer.toHexString(getA().value & 0xFF) + " into A");
 		pc++;
 	}
-
-//	// reset bit 3 of A
-//	private void res3a() {
-//		String bin = Integer.toBinaryString(getA().value & 0xff);
-//		logger.finer("Resetting bit 3 of A");
-//		logger.finer("A before reset: " + bin);
-//		logger.finer("A after reset: ");
-//		/***
-//		 * 
-//		 * NOT IMPLEMENTED
-//		 * 
-//		 * 
-//		 */
-//		logger.warning("RES 3 A called, not implemented");
-//	}
 
 }

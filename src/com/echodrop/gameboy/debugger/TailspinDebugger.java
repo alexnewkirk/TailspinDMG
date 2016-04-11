@@ -6,6 +6,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 
 import com.echodrop.gameboy.core.MemoryRegion;
+import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.core.Util;
 
@@ -17,14 +18,15 @@ import com.echodrop.gameboy.core.Util;
  */
 public class TailspinDebugger {
 
-	private static ArrayList<Character> breakpoints;
+	private static ArrayList<Breakpoint> breakpoints;
 	private static Scanner sc = new Scanner(System.in);
 	private static TailspinGB system = new TailspinGB();
 	private static boolean running;
 	private static final String SPACER = "------------------------------";
+	private static ArrayList<Register> availableRegisters = new ArrayList<Register>();
 
 	private static void init() {
-		breakpoints = new ArrayList<Character>();
+		breakpoints = new ArrayList<Breakpoint>();
 		running = true;
 		system.reset();
 	}
@@ -32,6 +34,7 @@ public class TailspinDebugger {
 	public static void main(String[] args) {
 
 		init();
+		loadRegisters();
 
 		while (running) {
 
@@ -59,12 +62,15 @@ public class TailspinDebugger {
 				} else {
 					bp = currentCommand.getArg();
 				}
-				breakpoints.add(bp);
+				breakpoints.add(new Breakpoint(false, null, (byte)0, bp));
 				System.out.println(SPACER);
 				System.out.println("[!] Breakpoint added at 0x" + Integer.toHexString(bp & 0xFFFF).toUpperCase());
 				System.out.println(SPACER);
 				break;
 			case CONTINUE:
+				if(atBreakPoint()) {
+					system.getProcessor().step();
+				}
 				while (!atBreakPoint()) {
 					System.out.println(SPACER);
 					system.getProcessor().step();
@@ -72,7 +78,6 @@ public class TailspinDebugger {
 				}
 				char breakpoint = system.getProcessor().getPc();
 				System.out.println("Reached breakpoint: " + Integer.toHexString(breakpoint & 0xFFFF).toUpperCase());
-				breakpoints.remove(new Character(breakpoint));
 				break;
 			case REGDUMP:
 				System.out.println(SPACER);
@@ -84,8 +89,8 @@ public class TailspinDebugger {
 				break;
 			case LSBREAK:
 				System.out.println(SPACER);
-				for (Character c : breakpoints) {
-					System.out.println("0x" + Integer.toHexString(c & 0xFFFF).toUpperCase());
+				for (Breakpoint b : breakpoints) {
+					System.out.println(b);
 				}
 				System.out.println(SPACER);
 				break;
@@ -104,18 +109,36 @@ public class TailspinDebugger {
 			case FRAMEDUMP:
 				framedump();
 				break;
-
+			case RMBREAK:
+				breakpoints.remove(new Character(system.getProcessor().getPc()));
+				break;
+			case CONDBREAK:
+				Breakpoint cBreak = readCondBreakpoint();
+				breakpoints.add(cBreak);
+				System.out.println("[+] Added breakpoint: ");
+				System.out.println(cBreak);
+				break;
 			}
 
 		}
 
 	}
 
+	private static void loadRegisters() {
+		availableRegisters.add(system.getProcessor().getA());
+		availableRegisters.add(system.getProcessor().getB());
+		availableRegisters.add(system.getProcessor().getC());
+		availableRegisters.add(system.getProcessor().getD());
+		availableRegisters.add(system.getProcessor().getE());
+		availableRegisters.add(system.getProcessor().getH());
+		availableRegisters.add(system.getProcessor().getL());
+	}
+
 	private static void framedump() {
 		byte[][] fb = system.getGpu().getFrameBuffer();
-		for(int i = 0; i < fb.length; i++){
-			for(int j = 0; j < fb[0].length; j++) {
-				System.out.print(Util.zeroLeftPad(String.valueOf(fb[i][j]), 2) + " ");
+		for (int i = 0; i < fb.length; i++) {
+			for (int j = 0; j < fb[0].length; j++) {
+				System.out.print(Integer.toUnsignedString((fb[i][j]), 16) + " ");
 			}
 			System.out.println();
 		}
@@ -146,35 +169,24 @@ public class TailspinDebugger {
 		System.out.println("regdump: display values of all registers");
 		System.out.println("memdump: display memory dump of emulator's current state");
 		System.out.println("framedump: display the current framebuffer state");
+		System.out.println("rmbreak: removes current instruction pointer from breakpoints");
 	}
 
 	private static void memDump() {
 
 		ArrayList<String> options = new ArrayList<String>();
-		options.add("[0] BIOS");
-		options.add("[1] Working RAM");
-		options.add("[2] External RAM");
-		options.add("[3] Zero-page memory");
-		options.add("[4] ROM");
-		options.add("[5] OAM");
-		options.add("[6] VRAM");
+		options.add("BIOS");
+		options.add("Working RAM");
+		options.add("External RAM");
+		options.add("Zero-page memory");
+		options.add("ROM");
+		options.add("OAM");
+		options.add("VRAM");
 
-		int choice = -1;
+		
 		MemoryRegion selected = null;
 
-		while (choice < 0 || choice > options.size()) {
-			for (String s : options) {
-				System.out.println(s);
-			}
-
-			try {
-				choice = sc.nextInt();
-			} catch (InputMismatchException e) {
-				System.out.println("Invalid selection, try again.");
-			}
-			sc.nextLine();
-
-		}
+		int choice = getMenuSelection(options);
 
 		switch (choice) {
 		case 0:
@@ -265,9 +277,7 @@ public class TailspinDebugger {
 							argument = (char) Integer.parseInt(remaining, 16);
 
 						} catch (NumberFormatException e) {
-
 							// invalid or no argument
-
 						}
 
 					}
@@ -280,15 +290,87 @@ public class TailspinDebugger {
 			}
 
 		}
-
 	}
+	
+	private static Breakpoint readCondBreakpoint() {
+		
+		boolean valid = false;
+		
+		Breakpoint result = new Breakpoint();
+		
+		result.setConditional(true);
+		
+		while(!valid) {
+			
+			System.out.print("[breakpoint address in hex]> ");
+			try {
+				String input = sc.nextLine().toUpperCase();
+				input = input.replace("0X", "");
+				input = input.trim();
+				result.setAddress((char)Integer.parseInt(input, 16));
+			} catch(NumberFormatException e) {
+				continue;
+			}
+			
+			ArrayList<String> options = new ArrayList<String>();
+			options.add("A");
+			options.add("B");
+			options.add("C");
+			options.add("D");
+			options.add("E");
+			options.add("H");
+			options.add("L");
+			
+			int registerSelected = getMenuSelection(options);
+			
+			result.setWatched(availableRegisters.get(registerSelected));
+			
+			Byte targetValue = null;
+			
+			while(targetValue == null) {
+				System.out.print("[target value for register " + options.get(registerSelected) + "]> ");
+				try {
+					targetValue = (byte)Integer.parseInt(sc.nextLine(), 16);
+				} catch (NumberFormatException e){
+					System.out.println("Invalid input, try again.");
+				}
+			}
+			result.setTargetValue(targetValue);
+			valid = true;
+		}
+		
+		return result;
+	}
+	
+	private static int getMenuSelection(ArrayList<String> options) {
+		int choice = -1;
+		
+		while(choice < 0 || choice > options.size() - 1) {
+			for(String s : options) {
+				System.out.println("[" + options.indexOf(s) + "] " + s);
+			}
+			
+			System.out.print("> ");
+			
+			try {
+				choice = sc.nextInt();
+			} catch(NumberFormatException e) {
+				System.out.println("[!] Invalid input, try again.");
+			} finally {
+				sc.nextLine();
+			}
+		}
+		
+		return choice;
+	}
+
 
 	private static boolean atBreakPoint() {
 
-		for (Character c : breakpoints) {
+		for (Breakpoint b : breakpoints) {
 			char pc = (char) (system.getProcessor().getPc() & 0xFFFF);
 
-			if ((c.charValue() & 0xFFFF) == (pc)) {
+			if (b.trigger(pc)) {
 				return true;
 			}
 		}
