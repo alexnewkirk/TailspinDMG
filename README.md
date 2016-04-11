@@ -4,7 +4,7 @@ An interpreting GameBoy emulator written in Java
 
 
 ###Project status
-The emulator is currently capable of executing the entire GameBoy BIOS successfully. Graphics capabilities will be implemented next, then likely sound capabilities.
+The emulator is currently capable of executing the entire GameBoy BIOS successfully. Graphics capabilities will be implemented next, then likely input and sound capabilities.
 
 
 ###Resources

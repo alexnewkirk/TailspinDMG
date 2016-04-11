@@ -163,7 +163,7 @@ public class TailspinDebugger {
 		byte[][] fb = system.getGpu().getFrameBuffer();
 		for (int i = 0; i < fb.length; i++) {
 			for (int j = 0; j < fb[0].length; j++) {
-				System.out.print(Integer.toUnsignedString((fb[i][j]), 16) + " ");
+				System.out.print((fb[i][j]) & 7);
 			}
 			System.out.println();
 		}

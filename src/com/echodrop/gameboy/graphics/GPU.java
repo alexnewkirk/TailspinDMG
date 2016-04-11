@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.echodrop.gameboy.core.TailspinGB;
+import com.echodrop.gameboy.core.Util;
 import com.echodrop.gameboy.core.MemoryRegion;
 import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.exceptions.MemoryAccessException;
@@ -105,7 +106,7 @@ public class GPU {
 			if (getModeClock() >= 204) {
 				setModeClock(0);
 				getLine().setValue(getLine().getValue() + 1);
-				if (getLine().getValue() == 143) {
+				if ((getLine().getValue() & 0xFF) == 143) {
 
 					// Change mode to VBLANK
 					logger.info("[!] GPU MODE SWITCHING TO VBLANK (mode 1)");
@@ -129,7 +130,7 @@ public class GPU {
 			if (getModeClock() >= 456) {
 				setModeClock(0);
 				getLine().setValue(getLine().getValue() + 1);
-				if (getLine().getValue() > 153) {
+				if ((getLine().getValue() & 0xFF) > 153) {
 
 					// change mode to OAM read
 					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 2)");
@@ -171,7 +172,7 @@ public class GPU {
 		switch (address) {
 
 		// LCD control register
-		case 0xFF00:
+		case 0xFF40:
 			return getLcdControl().getValue();
 
 		// SCY register
@@ -185,6 +186,10 @@ public class GPU {
 		// Current scanline register
 		case 0xFF44:
 			return getLine().getValue();
+
+		// Background palette
+		case 0xFF47:
+			return getBackgroundPalette().getValue();
 		}
 
 		logger.severe("Invalid memory access in GPU: " + Integer.toHexString(address));
@@ -200,7 +205,7 @@ public class GPU {
 		switch (address) {
 
 		// LCD control register
-		case 0xFF00:
+		case 0xFF40:
 			getLcdControl().setValue(data);
 			break;
 
@@ -218,6 +223,11 @@ public class GPU {
 		case 0xFF44:
 			getLine().setValue(data);
 			break;
+
+		// current scanline register
+		case 0xFF47:
+			getBackgroundPalette().setValue(data);
+			break;
 		}
 	}
 
@@ -229,10 +239,39 @@ public class GPU {
 		for (IGraphicsObserver o : observers) {
 			o.update();
 		}
+		logger.severe("[!] VBLANK, notifying observers");
 	}
 
 	private void renderScanLine() {
 		logger.info("[!] renderScanLine() called");
+
+		GPU gpu = system.getGpu();
+		char mapOffset = (char) (Util.readBit(3, gpu.getLcdControl().getValue()) ? 0x9c00 : 0x9800);
+		mapOffset += ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 0xFF) >> 3;
+
+		byte lineOffset = (byte) (gpu.getScrollX().getValue() >> 3);
+
+		byte y = (byte) ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 7);
+
+		byte x = (byte) (gpu.getScrollX().getValue() & 7);
+
+		byte tile = system.getMem().readByte((char) (mapOffset + lineOffset));
+
+		char baseAddress = (char) ((Util.readBit(4, gpu.getLcdControl().getValue())) ? 0x8000 : 0x9000);
+
+		for (int i = 0; i < 160; i++) {
+			byte color = (byte) (system.getMem().readByte((char) (baseAddress + tile))
+					+ system.getMem().readByte((char) (baseAddress + tile + 1)));
+
+			frameBuffer[x & 0xFF][y & 0xFF] = color;
+
+			x++;
+			if (x == 8) {
+				lineOffset = (byte) ((lineOffset + 1) & 31);
+				tile = system.getMem().readByte((char) (mapOffset + lineOffset));
+			}
+		}
+
 	}
 
 	public void incrementModeClock(byte time) {

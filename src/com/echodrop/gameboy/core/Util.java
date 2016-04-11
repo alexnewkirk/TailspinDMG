@@ -76,5 +76,11 @@ public class Util {
 		}
 		return result;
 	}
+	
+	public static boolean readBit(int bit, byte data) {
+		//XXX needs error checking
+		String bin = zeroLeftPad(Integer.toBinaryString(data & 0xFF), 8);
+		return bin.charAt(bit) == '1';
+	}
 
 }
