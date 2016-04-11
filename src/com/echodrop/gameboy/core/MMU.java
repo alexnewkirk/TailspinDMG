@@ -33,8 +33,6 @@ public class MMU {
 	}
 
 	/**
-	 * ========================== GameBoy Memory Regions: ] [ 16-bit address
-	 * space ] [ 0x0000 to 0xFFFF ] ==========================
 	 * 
 	 * [0x0000 - 0x00FF] BIOS, while its mapped into memory. After the BIOS runs
 	 * it is removed from memory (first instruction after 0x00FF)

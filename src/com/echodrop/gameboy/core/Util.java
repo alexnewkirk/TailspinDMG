@@ -7,7 +7,7 @@ package com.echodrop.gameboy.core;
  */
 public class Util {
 
-	//splits a 16 bit value into two bytes
+	// splits a 16 bit value into two bytes
 	public static byte[] wordToBytes(char word) {
 		byte b2 = (byte) (word >>> 8);
 		byte b1 = (byte) (word & 0xFF);
@@ -15,7 +15,7 @@ public class Util {
 		return result;
 	}
 
-	//combines two bytes into a word
+	// combines two bytes into a word
 	public static char bytesToWord(byte b1, byte b2) {
 		String hex1 = Integer.toHexString(b2 & 0xFF);
 

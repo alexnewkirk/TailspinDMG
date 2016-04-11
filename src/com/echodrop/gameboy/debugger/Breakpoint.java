@@ -10,15 +10,16 @@ public class Breakpoint {
 	private IInternalByteValue watched;
 	private byte targetValue;
 	private char address;
-	
+
 	public Breakpoint(boolean conditional, Register watched, byte targetValue, char address) {
 		this.conditional = conditional;
 		this.watched = watched;
 		this.targetValue = targetValue;
 		this.setAddress(address);
 	}
-	
-	public Breakpoint() {}
+
+	public Breakpoint() {
+	}
 
 	public boolean isConditional() {
 		return conditional;
@@ -43,12 +44,12 @@ public class Breakpoint {
 	public void setTargetValue(byte targetValue) {
 		this.targetValue = targetValue;
 	}
-	
+
 	public boolean trigger(char pc) {
-		if(getAddress() == pc) {
-			
-			if(isConditional()) {
-				if(watched.getValue() == targetValue) {
+		if (getAddress() == pc) {
+
+			if (isConditional()) {
+				if (watched.getValue() == targetValue) {
 					return true;
 				}
 			} else {
@@ -65,11 +66,11 @@ public class Breakpoint {
 	public void setAddress(char address) {
 		this.address = address;
 	}
-	
+
 	@Override
 	public String toString() {
 		String result = Util.charToReadableHex(getAddress());
-		if(isConditional()) {
+		if (isConditional()) {
 			result += "\n";
 			result += "Register: " + getWatched() + "\n";
 			result += "Target value: " + Util.byteToReadableHex(getTargetValue());
