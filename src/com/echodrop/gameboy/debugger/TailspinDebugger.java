@@ -75,13 +75,21 @@ public class TailspinDebugger {
 					system.getProcessor().step();
 				}
 				long start = System.currentTimeMillis();
+				boolean spacer = system.getLogger().getLevel() != Level.OFF;
 				while (!atBreakPoint()) {
-					System.out.println(SPACER);
+					if(spacer) {
+						System.out.println(SPACER);
+					}
+					
 					system.getProcessor().step();
-					System.out.println(SPACER);
+					
+					if(spacer) {
+						System.out.println(SPACER);
+					}
 				}
 				char breakpoint = system.getProcessor().getPc();
-				System.out.println("Reached breakpoint: 0x" + Integer.toHexString(breakpoint & 0xFFFF).toUpperCase() + 
+				System.out.println(SPACER);
+				System.out.println("[!] Reached breakpoint: 0x" + Integer.toHexString(breakpoint & 0xFFFF).toUpperCase() + 
 						" in " + (System.currentTimeMillis() - start) / 1000f + " seconds." );
 				System.out.println(SPACER);
 				break;
@@ -104,12 +112,17 @@ public class TailspinDebugger {
 				breakpoints.clear();
 				init();
 				break;
-			case STARTLOG:
+			case LOGALL:
 				system.getLogger().setLevel(Level.ALL);
+				System.out.println("[~] Log level: All");
 				break;
-			case STOPLOG:
+			case LOGNONE:
+				system.getLogger().setLevel(Level.OFF);
+				System.out.println("[~] Log level: Off");
+				break;
+			case LOGINFO:
 				system.getLogger().setLevel(Level.INFO);
-				break;
+				System.out.println("[~] Log level: Info");
 			case LOADROM:
 				system.getMem().loadRom(getRomFilename());
 				break;
@@ -126,6 +139,7 @@ public class TailspinDebugger {
 				break;
 			case CLRBRK:
 				breakpoints.clear();
+				System.out.println("[!] Cleared all breakpoints");
 				break;
 			}
 
@@ -171,8 +185,9 @@ public class TailspinDebugger {
 		System.out.println("setbrk: set a new breakpoint at the current memory address");
 		System.out.println("continue: run emulator until next breakpoint is reached");
 		System.out.println("exit: quit tdbg");
-		System.out.println("startlog: set emulator logging mode to Level.ALL");
-		System.out.println("stoplog: set emulator logging mode to Level.INFO");
+		System.out.println("logall: set emulator logging mode to Level.ALL");
+		System.out.println("loginfo: set emulator logging mode to Level.INFO");
+		System.out.println("lognone: set emulator logging mode to Level.OFF");
 		System.out.println("reset: initialize emulator");
 		System.out.println("loadrom: load a new gameboy rom into the emulator");
 		System.out.println("lsbrk: list all breakpoints");
