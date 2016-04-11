@@ -1,16 +1,27 @@
+/**
+ * OpCode.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.core;
 
+/**
+ * Represents a GameBoy Z80 CPU instruction
+ */
 public class OpCode {
 	
 	private Runnable instruction;
 	private String disassembly;
-	private byte m_time;
+	private byte mTime;
 	private byte conditionalTime;
 	
 	public OpCode(String disassembly, Runnable instruction, byte m_time) {
 		this.setDisassembly(disassembly);
 		this.setInstruction(instruction);
-		this.setM_time(m_time);
+		this.setMTime(m_time);
 	}
 	
 	public OpCode(String disassembly, Runnable instruction, byte m_time, byte conditional_time) {
@@ -18,7 +29,9 @@ public class OpCode {
 		this.setConditionalTime(conditionalTime);
 	}
 	
-	
+	/**
+	 * Executes the CPU instruction
+	 */
 	public void exec() {
 		instruction.run();
 	}
@@ -39,12 +52,12 @@ public class OpCode {
 		this.disassembly = disassembly;
 	}
 
-	public byte getM_time() {
-		return m_time;
+	public byte getMTime() {
+		return mTime;
 	}
 
-	public void setM_time(byte m_time) {
-		this.m_time = m_time;
+	public void setMTime(byte mTime) {
+		this.mTime = mTime;
 	}
 
 	public byte getConditional_time() {

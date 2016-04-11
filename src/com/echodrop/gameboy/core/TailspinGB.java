@@ -1,3 +1,11 @@
+/**
+ * TailspinGB.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.core;
 
 import java.util.logging.Handler;
@@ -10,16 +18,13 @@ import com.echodrop.gameboy.logging.CliHandler;
 /**
  * This class represents a combination of the components required for the
  * emulator to run
- * 
- * @author echo_drop
  */
 public class TailspinGB {
 
+	private static final Logger logger = Logger.getLogger(TailspinGB.class.getName());
 	private Z80 processor;
 	private GPU gpu;
 	private MMU mem;
-
-	private static final Logger logger = Logger.getLogger(TailspinGB.class.getName());
 
 	public TailspinGB() {
 		this.setMem(new MMU(this));
@@ -35,6 +40,7 @@ public class TailspinGB {
 		// disable default handler in root logger
 		Logger globalLogger = Logger.getLogger("");
 		Handler[] handlers = globalLogger.getHandlers();
+
 		for (Handler handler : handlers) {
 			globalLogger.removeHandler(handler);
 		}
@@ -47,11 +53,13 @@ public class TailspinGB {
 		gpu.initLogging();
 	}
 
+	/**
+	 * Initilaize each component of the emulator
+	 */
 	public void reset() {
 		processor.initialize();
 		gpu.initialize();
 		mem.initialize();
-
 		mem.loadBios();
 	}
 

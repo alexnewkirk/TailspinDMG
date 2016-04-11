@@ -1,13 +1,21 @@
+/**
+ * Util.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.core;
 
 /**
  * Contains miscellaneous utilities that are used throughout the codebase.
- * 
- * @author echo_drop
  */
 public class Util {
 
-	// splits a 16 bit value into two bytes
+	/**
+	 * Splits a 16 bit value into two bytes
+	 */
 	public static byte[] wordToBytes(char word) {
 		byte b2 = (byte) (word >>> 8);
 		byte b1 = (byte) (word & 0xFF);
@@ -15,7 +23,9 @@ public class Util {
 		return result;
 	}
 
-	// combines two bytes into a word
+	/**
+	 * Combines two bytes into a word
+	 */
 	public static char bytesToWord(byte b1, byte b2) {
 		String hex1 = Integer.toHexString(b2 & 0xFF);
 
@@ -33,22 +43,32 @@ public class Util {
 		return result;
 	}
 
-	// left circular bit shift
-	// This method might be the worst piece of code I've ever written
+	/**
+	 * Left circular bit shift
+	 */
 	public static byte leftRotate(byte b) {
 		String bin = Integer.toBinaryString(b & 0xFF);
 		String shifted = bin.substring(1) + bin.charAt(0);
 		return (byte) Integer.parseInt(shifted, 2);
 	}
 
+	/**
+	 * Converts a byte value to a human-readable hexadecimal representation
+	 */
 	public static String byteToReadableHex(byte b) {
-		return "0x" + Integer.toHexString(b & 0xFF).toUpperCase();
+		return "0x" + zeroLeftPad(Integer.toHexString(b & 0xFF).toUpperCase(), 2);
 	}
 
+	/**
+	 * Converts a char value to a human-readable hexadecimal representation
+	 */
 	public static String charToReadableHex(char c) {
-		return "0x" + Integer.toHexString(c & 0xFFFF).toUpperCase();
+		return "0x" + zeroLeftPad(Integer.toHexString(c & 0xFFFF).toUpperCase(), 4);
 	}
 
+	/**
+	 * Left-pads a string with zeros until it is of length size
+	 */
 	public static String zeroLeftPad(String s, int size) {
 		String result = s;
 		while (result.length() < size) {

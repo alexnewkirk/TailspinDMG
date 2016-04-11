@@ -1,3 +1,11 @@
+/**
+ * MMU.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.core;
 
 import java.io.IOException;
@@ -7,17 +15,18 @@ import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 /**
- * Emulation core for GameBoy MMU.
+ * Emulation core for GameBoy Memory Management Unit.
  * 
- * @author echo_drop
  */
 public class MMU {
 
+	private static final Logger logger = Logger.getLogger(MMU.class.getName());
 	private TailspinGB system;
 
-	private static final Logger logger = Logger.getLogger(MMU.class.getName());
-
-	// After the bios runs, it unmaps itself from memory
+	/*
+	 * After the bios runs, it is unmapped from memory by setting this flag to
+	 * false
+	 */
 	private boolean biosMapped = true;
 
 	// Memory map
@@ -33,6 +42,8 @@ public class MMU {
 	}
 
 	/**
+	 * 
+	 * Memory map reference:
 	 * 
 	 * [0x0000 - 0x00FF] BIOS, while its mapped into memory. After the BIOS runs
 	 * it is removed from memory (first instruction after 0x00FF)
@@ -109,10 +120,11 @@ public class MMU {
 	}
 
 	/**
-	 * Returns the MemoryRegion that the specified address will be located in.
 	 * 
 	 * Based off of the write-up at:
 	 * http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Memory
+	 * 
+	 * @return the MemoryRegion that the specified address will be located in.
 	 */
 	public MemoryRegion findMemoryRegion(char address) {
 
@@ -200,11 +212,10 @@ public class MMU {
 			return getWorkingRam();
 
 		}
-
 	}
 
 	/**
-	 * Reads an 8-bit value from the address specified.
+	 * @return an 8-bit value from the address specified.
 	 */
 	public byte readByte(char address) {
 		if (address >= 0xFF00 && address <= 0xFF7F) {
@@ -216,7 +227,7 @@ public class MMU {
 	}
 
 	/**
-	 * Reads a 16-bit value from the address specified.
+	 * @return a 16-bit value from the address specified.
 	 */
 	public char readWord(char address) {
 
@@ -236,9 +247,10 @@ public class MMU {
 	public void writeByte(char address, byte data) {
 		if (address >= 0xFF00 && address <= 0xFF7F) {
 			system.getGpu().writeByte(address, data);
-		} else if(address == 0xFF50 && data == 0x01) {
+		} else if (address == 0xFF50 && data == 0x01) {
 			biosMapped = false;
-		}else {
+			logger.info("[!] BIOS unmapped from memory!");
+		} else {
 			MemoryRegion r = findMemoryRegion(address);
 			r.setMem(address, data);
 		}

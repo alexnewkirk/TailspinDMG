@@ -1,5 +1,16 @@
+/**
+ * DebugCommand.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.debugger;
 
+/**
+ * Represents a command for the Tailspin debugger to execute.
+ */
 public class DebugCommand {
 
 	private DebugCommandType command;

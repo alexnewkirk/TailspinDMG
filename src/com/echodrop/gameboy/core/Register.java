@@ -1,9 +1,17 @@
+/**
+ * Register.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.core;
 
 import com.echodrop.gameboy.interfaces.IInternalByteValue;
 
 /**
- * An 8 bit register
+ * Represents ann 8-bit internal register
  */
 public class Register implements IInternalByteValue {
 

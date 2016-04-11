@@ -1,3 +1,11 @@
+/**
+ * CliHandler.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.logging;
 
 import java.util.logging.Handler;
@@ -8,14 +16,12 @@ public class CliHandler extends Handler {
 
 	@Override
 	public void close() throws SecurityException {
-		// TODO Auto-generated method stub
-
+		//Implementing Handler
 	}
 
 	@Override
 	public void flush() {
-		// TODO Auto-generated method stub
-
+		//Implementing Handler
 	}
 
 	@Override

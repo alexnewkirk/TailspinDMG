@@ -1,3 +1,11 @@
+/**
+ * TailspinDebugger.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.debugger;
 
 import java.util.ArrayList;
@@ -11,9 +19,6 @@ import com.echodrop.gameboy.core.Util;
 
 /**
  * A simple command line debugger for the Tailspin emulator
- * 
- * @author echo_drop
- *
  */
 public class TailspinDebugger {
 
@@ -24,6 +29,9 @@ public class TailspinDebugger {
 	private static final String SPACER = "------------------------------";
 	private static ArrayList<Register> availableRegisters = new ArrayList<Register>();
 
+	/**
+	 * Initializes debugger
+	 */
 	private static void init() {
 		breakpoints = new ArrayList<Breakpoint>();
 		running = true;
@@ -31,20 +39,16 @@ public class TailspinDebugger {
 	}
 
 	public static void main(String[] args) {
-
 		System.out.println("[Tailspin Debugger]");
 		System.out.println("Type 'help' for a list of commands.");
 		System.out.println("hint: begin by loading a ROM.\n\n");
-
 		init();
 		loadRegisters();
 
 		while (running) {
-
 			DebugCommand currentCommand = readCommand();
 
 			switch (currentCommand.getCommand()) {
-
 			case HELP:
 				System.out.println(SPACER);
 				showHelp();
@@ -77,20 +81,20 @@ public class TailspinDebugger {
 				long start = System.currentTimeMillis();
 				boolean spacer = system.getLogger().getLevel() != Level.OFF;
 				while (!atBreakPoint()) {
-					if(spacer) {
+					if (spacer) {
 						System.out.println(SPACER);
 					}
-					
+
 					system.getProcessor().step();
-					
-					if(spacer) {
+
+					if (spacer) {
 						System.out.println(SPACER);
 					}
 				}
 				char breakpoint = system.getProcessor().getPc();
 				System.out.println(SPACER);
-				System.out.println("[!] Reached breakpoint: 0x" + Integer.toHexString(breakpoint & 0xFFFF).toUpperCase() + 
-						" in " + (System.currentTimeMillis() - start) / 1000f + " seconds." );
+				System.out.println("[!] Reached breakpoint: 0x" + Integer.toHexString(breakpoint & 0xFFFF).toUpperCase()
+						+ " in " + (System.currentTimeMillis() - start) / 1000f + " seconds.");
 				System.out.println(SPACER);
 				break;
 			case REGDMP:
@@ -142,9 +146,7 @@ public class TailspinDebugger {
 				System.out.println("[!] Cleared all breakpoints");
 				break;
 			}
-
 		}
-
 	}
 
 	private static void loadRegisters() {
@@ -272,13 +274,11 @@ public class TailspinDebugger {
 	}
 
 	private static DebugCommand readCommand() {
-
 		DebugCommand c = null;
 
 		while (true) {
 			System.out.print("\n[tdbg@" + Util.charToReadableHex(system.getProcessor().getPc()) + "]> ");
 			String input = sc.nextLine().toUpperCase();
-
 			DebugCommandType commandType = null;
 			Character argument = null;
 
@@ -308,32 +308,23 @@ public class TailspinDebugger {
 
 					c = new DebugCommand(commandType, argument);
 					return c;
-
 				}
-
 			}
-
 		}
 	}
 
 	private static Breakpoint readCondBreakpoint() {
-
 		boolean valid = false;
-
 		Breakpoint result = new Breakpoint();
-
 		result.setConditional(true);
 
 		while (!valid) {
-
 			result.setAddress(readHexAddress());
-
 			ArrayList<String> breakpointOptions = new ArrayList<String>();
 			breakpointOptions.add("Watch register...");
 			breakpointOptions.add("Watch memory address...");
 
 			switch (getMenuSelection(breakpointOptions)) {
-
 			case 0:
 				ArrayList<String> registerOptions = new ArrayList<String>();
 				registerOptions.add("A");
@@ -343,19 +334,15 @@ public class TailspinDebugger {
 				registerOptions.add("E");
 				registerOptions.add("H");
 				registerOptions.add("L");
-
 				int registerSelected = getMenuSelection(registerOptions);
-
 				result.setWatched(availableRegisters.get(registerSelected));
 				break;
 			case 1:
 				result.setWatched(new MemoryBlock(system, readHexAddress()));
 				break;
-
 			}
 
 			Byte targetValue = null;
-
 			while (targetValue == null) {
 				System.out.print("[target value]> ");
 				try {
@@ -367,7 +354,6 @@ public class TailspinDebugger {
 			result.setTargetValue(targetValue);
 			valid = true;
 		}
-
 		return result;
 	}
 
@@ -378,9 +364,7 @@ public class TailspinDebugger {
 			for (String s : options) {
 				System.out.println("[" + options.indexOf(s) + "] " + s);
 			}
-
 			System.out.print("> ");
-
 			try {
 				choice = sc.nextInt();
 			} catch (NumberFormatException e) {
@@ -389,12 +373,10 @@ public class TailspinDebugger {
 				sc.nextLine();
 			}
 		}
-
 		return choice;
 	}
 
 	private static boolean atBreakPoint() {
-
 		for (Breakpoint b : breakpoints) {
 			char pc = (char) (system.getProcessor().getPc() & 0xFFFF);
 
@@ -406,23 +388,16 @@ public class TailspinDebugger {
 	}
 
 	private static char readHexAddress() {
-
 		Character result = null;
 
 		while (result == null) {
-
 			System.out.print("[memory address in hex]> ");
 			String input = sc.nextLine().toUpperCase();
 			input = input.replace("0X", "");
-
 			input = input.trim();
-
 			if (!input.isEmpty()) {
-
 				try {
-
 					result = (char) Integer.parseInt(input, 16);
-
 				} catch (NumberFormatException e) {
 					// invalid or no argument
 				}

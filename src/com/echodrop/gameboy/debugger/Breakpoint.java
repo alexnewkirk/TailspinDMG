@@ -1,14 +1,41 @@
+/**
+ * Breakpoint.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.debugger;
 
 import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.Util;
 import com.echodrop.gameboy.interfaces.IInternalByteValue;
 
+/**
+ * Represents a breakpoint for the Tailspin debugger
+ */
 public class Breakpoint {
 
+	/**
+	 * Set to true if the breakpoint will trigger based on an equality condition
+	 */
 	private boolean conditional;
+
+	/**
+	 * If the breakpoint is conditional, this is the InternalByteValue that it
+	 * will check its target value against.
+	 */
 	private IInternalByteValue watched;
+
+	/**
+	 * The target value to compare watched against
+	 */
 	private byte targetValue;
+
+	/**
+	 * The memory address at which the breakpoint will be triggered
+	 */
 	private char address;
 
 	public Breakpoint(boolean conditional, Register watched, byte targetValue, char address) {
@@ -45,9 +72,11 @@ public class Breakpoint {
 		this.targetValue = targetValue;
 	}
 
+	/**
+	 * @return true if conditions are met for this breakpoint to trigger
+	 */
 	public boolean trigger(char pc) {
 		if (getAddress() == pc) {
-
 			if (isConditional()) {
 				if (watched.getValue() == targetValue) {
 					return true;

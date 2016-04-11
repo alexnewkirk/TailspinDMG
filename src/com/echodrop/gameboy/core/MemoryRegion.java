@@ -1,31 +1,62 @@
+/**
+ * MemoryRegion.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.core;
 
+/**
+ * Represents a logical block of memory in the emulator's RAM
+ */
 public class MemoryRegion {
 
-	char start;
-	char end;
-	public int size; // in bytes
-	byte[] contents;
-	String name;
+	// Size of memory region in bytes
+	public int size;
+	private char start;
+	private byte[] contents;
+	private String name;
 
+	/**
+	 * @param start
+	 *            The address in emulated ram where the MemoryRegion begins.
+	 * @param end
+	 *            The address in emulated ram where the MemoryRegion begins.
+	 * @param name
+	 *            A human readable name for the memory region
+	 */
 	public MemoryRegion(char start, char end, String name) {
-		this.name = name;
+		this.setName(name);
 		this.start = start;
-		this.end = end;
 		this.size = end - start + 1;
 		this.contents = new byte[size];
 	}
 
+	/**
+	 * @return byte value at the specified address
+	 */
 	public byte getMem(char addr) {
 		return contents[addr - start];
 	}
 
+	/**
+	 * Sets the specified address to the value of content
+	 */
 	public void setMem(char addr, byte content) {
-		// System.out.print("Writing " + Integer.toHexString(content & 0xFF) + "
-		// to ");
-		// System.out.println(Integer.toHexString(addr) + " in " + name);
-		// System.out.println("Size of " + name + " is: " + size);
 		contents[addr - start] = content;
+	}
+
+	/**
+	 * @return Human-readable name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	@Override
@@ -43,7 +74,7 @@ public class MemoryRegion {
 			table += "\n";
 		}
 
-		return table;
+		return name + "\n" + table;
 	}
 
 }

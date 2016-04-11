@@ -1,3 +1,11 @@
+/**
+ * Z80.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.core;
 
 import java.util.HashMap;
@@ -7,8 +15,6 @@ import com.echodrop.gameboy.exceptions.InstructionNotImplementedException;
 
 /**
  * Emulation core for Z80 microprocessor
- * 
- * @author echo_drop
  *
  */
 public class Z80 {
@@ -16,7 +22,7 @@ public class Z80 {
 	private TailspinGB system;
 	private static final Logger logger = Logger.getLogger(Z80.class.getName());
 
-	// CPU registers
+	/* CPU registers */
 	private Register a;
 	private Register b;
 	private Register c;
@@ -25,57 +31,54 @@ public class Z80 {
 	private Register h;
 	private Register l;
 
-	// Flag register, stored as boolean
-	// values for convenience
+	/*
+	 * Flag register, stored as boolean values for convenience
+	 */
 	private boolean zeroFlag;
 	private boolean operationFlag;
 	private boolean halfCarryFlag;
 	private boolean fullCarryFlag;
 
-	// This flag is not present in the actual
-	// hardware, it's here for convenience.
-	// Set to true if a conditional instruction
-	// is not run, and the op's smaller time value
-	// should be added to the clock. Reset
-	// after each instruction.
+	/**
+	 * This flag is not present in the actual hardware, it's here for
+	 * convenience. Set to true if a conditional instruction is not run, and the
+	 * op's smaller time value should be added to the clock. Reset after each
+	 * instruction.
+	 */
 	private boolean conditionalNotExecFlag;
 
-	// Special registers
+	/* Special registers */
 	private char pc; // program counter
 	private char sp; // stack pointer
 
-	// Clocks
+	/* Clocks */
 	private Register clockT;
 	private Register clockM;
 
-	// Memory Management Unit
+	/* Memory Management Unit */
 	private MMU mem;
 
 	private boolean running;
 
-	// Opcode tables
+	/* Opcode tables */
 	private HashMap<Byte, OpCode> opCodes;
 	private HashMap<Byte, OpCode> cbOpCodes;
 
 	public Z80(TailspinGB system) {
 		this.initialize();
-
 		this.system = system;
 		this.mem = system.getMem();
-
 		this.opCodes = new HashMap<Byte, OpCode>();
 		this.cbOpCodes = new HashMap<Byte, OpCode>();
 		this.loadOpCodes();
 		this.loadCbOpCodes();
-
 		this.running = false;
 	}
 
 	/**
-	 * Emulation loop
+	 * Start emulation loop
 	 */
 	public void beginDispatch() {
-
 		this.running = true;
 
 		while (running) {
@@ -87,7 +90,6 @@ public class Z80 {
 	 * Advances the emulation state by one instruction
 	 */
 	public void step() {
-
 		logger.info("Instruction pointer: 0x" + Integer.toHexString(pc));
 
 		// Grab next instruction and increment instruction pointer
@@ -122,7 +124,7 @@ public class Z80 {
 			if (isConditionalNotExecFlag()) {
 				clockIncrement = instruction.getConditional_time();
 			} else {
-				clockIncrement = instruction.getM_time();
+				clockIncrement = instruction.getMTime();
 			}
 
 			getClockT().setValue(getClockT().getValue() + clockIncrement / 4);
@@ -136,7 +138,6 @@ public class Z80 {
 		}
 
 		system.getGpu().clockStep();
-
 		setConditionalNotExecFlag(false);
 	}
 
@@ -190,14 +191,11 @@ public class Z80 {
 	 * Pushes a memory address onto the stack
 	 */
 	private void push(char address) {
-
 		byte[] b = Util.wordToBytes(address);
 		byte b1 = b[0];
 		byte b2 = b[1];
-
 		sp--;
 		mem.writeByte(sp, b1);
-
 		sp--;
 		mem.writeByte(sp, b2);
 	}
@@ -206,15 +204,11 @@ public class Z80 {
 	 * Pops a memory address off the stack
 	 */
 	private char pop() {
-
 		byte b2 = mem.readByte(sp);
 		sp++;
-
 		byte b1 = mem.readByte(sp);
 		sp++;
-
 		return Util.bytesToWord(b1, b2);
-
 	}
 
 	/**
@@ -407,66 +401,71 @@ public class Z80 {
 	}
 
 	/**
-	 *
 	 * From here down, you'll find the definitions for each opcode listed in the
 	 * tables above.
-	 *
 	 */
-	
-	//Add value pointed to by HL to Am, 
+
+	/**
+	 * Add value pointed to by HL to Am,
+	 */
 	private void addAhL() {
 		operationFlag = false;
 		getA().setValue(getA().getValue() + mem.readByte(readDualRegister(h, l)));
 		zeroFlag = (getA().getValue() == 0);
-		
+
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented Full carry flag not implemented
-		 * 
+		 * XXX Full carry and half carry flags not implemented
 		 */
 	}
 
-	// Compare A to address pointed to by HL
+	/**
+	 * Compare A to address pointed to by HL
+	 */
 	private void cpHl() {
 		operationFlag = true;
-
 		zeroFlag = (getA().getValue() == mem.readByte(readDualRegister(h, l)));
 
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented Full carry flag not implemented
-		 * 
+		 * XXX Full carry and half carry flags not implemented
 		 */
 	}
 
-	// Copy H into A
+	/**
+	 * Copy H into A
+	 */
 	private void ldAh() {
 		getA().setValue(getH().getValue());
 		logger.finer("Copied H (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
 	}
 
-	// Copy B into A
+	/**
+	 * Copy B into A
+	 */
 	private void ldAb() {
 		getA().setValue(getB().getValue());
 		logger.finer("Copied B (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
 	}
 
-	// Copy L into A
+	/**
+	 * Copy L into A
+	 */
 	private void ldAl() {
 		getA().setValue(getL().getValue());
 		logger.finer("Copied L (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
 	}
 
-	// Load 8-bit immediate into D
+	/**
+	 * Load 8-bit immediate into D
+	 */
 	private void ldDn() {
 		getD().setValue(mem.readByte(pc));
 		logger.finer("Loaded " + Integer.toHexString(getD().getValue() & 0xFF) + " into D");
 		pc++;
 	}
 
-	// Subtract B from A
+	/**
+	 * Subtract B from A
+	 */
 	private void subB() {
 
 		getA().setValue(getA().getValue() - getB().getValue());
@@ -476,15 +475,13 @@ public class Z80 {
 		logger.finer("Subtracted B from A");
 
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented Full carry flag not implemented
-		 * 
+		 * XXX Full carry and half carry flags not implemented
 		 */
-
 	}
 
-	// Copy E to address pointed to by HL
+	/**
+	 * Copy E to address pointed to by HL
+	 */
 	private void ldHlE() {
 		char address = readDualRegister(getH(), getL());
 		mem.writeByte(address, getE().getValue());
@@ -492,75 +489,72 @@ public class Z80 {
 				"Wrote E (" + Integer.toHexString(getE().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
 	}
 
-	// Increment H
+	/**
+	 * Increment H
+	 */
 	private void incH() {
 		getH().setValue(getH().getValue() + 1);
 		setZeroFlag(getH().getValue() == 0);
-
 		setOperationFlag(false);
 
 		/**
-		 * 
-		 * HALF CARRY FLAG NOT IMPLEMENTED
-		 * 
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.finer("Incremented H");
 		logger.warning("INC H called, half carry flag not implemented");
 	}
 
-	// Decrement E
+	/**
+	 * Decrement E
+	 */
 	private void decE() {
 		getE().setValue(getE().getValue() - 1);
 		setZeroFlag(getE().getValue() == 0);
 		setOperationFlag(true);
 
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.warning("DEC E called, half carry flag not implemented");
 	}
 
-	// Decrement D
+	/**
+	 * Decrement D
+	 */
 	private void decD() {
 		getD().setValue(getD().getValue() - 1);
 		setZeroFlag(getD().getValue() == 0);
 		setOperationFlag(true);
 
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.warning("DEC D called, half carry flag not implemented");
 	}
 
-	// Load A from address pointed to by 0xFF00 + 8-bit immediate
+	/**
+	 * Load A from address pointed to by 0xFF00 + 8-bit immediate
+	 */
 	private void ldHaN() {
 		byte immediate = mem.readByte(pc);
 		pc++;
-
 		char address = (char) (0xFF00 + immediate);
 		getA().setValue(mem.readByte(address));
-
 		logger.finer("Loaded " + getA() + " into A from " + Integer.toHexString(address & 0xFFFF));
 	}
 
-	// Load 8-bit immediate into E
+	/**
+	 * Load 8-bit immediate into E
+	 */
 	private void ldEn() {
 		getE().setValue(mem.readByte(pc));
 		logger.finer("Loaded " + Integer.toHexString(getE().getValue() & 0xFF) + " into E");
 		pc++;
 	}
 
-	// Increment B
+	/**
+	 * Increment B
+	 */
 	private void incB() {
 		getB().setValue(getB().getValue() + 1);
 		setZeroFlag(getB().getValue() == 0);
@@ -568,46 +562,50 @@ public class Z80 {
 		setOperationFlag(false);
 
 		/**
-		 * 
-		 * HALF CARRY FLAG NOT IMPLEMENTED
-		 * 
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.finer("Incremented B");
 		logger.warning("INC B called, half carry flag not implemented");
 	}
 
-	// Copy A into H
+	/**
+	 * Copy A into H
+	 */
 	private void ldHa() {
 		getH().setValue(getA().getValue());
 		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into H");
 	}
 
-	// Copy A into D
+	/**
+	 * Copy A into D
+	 */
 	private void ldDa() {
 		getD().setValue(getA().getValue());
 		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into D");
 	}
 
-	// Relative jmp by signed immediate
+	/**
+	 * Relative jmp by signed immediate
+	 */
 	private void jrN() {
 		byte immediate = mem.readByte(pc);
 		pc++;
-
 		pc += immediate;
-
 		logger.fine("Jmping by " + immediate);
 	}
 
-	// Load 8-bit immediate into L
+	/**
+	 * Load 8-bit immediate into L
+	 */
 	private void ldLn() {
 		getL().setValue(mem.readByte(pc));
 		logger.finer("Loaded " + Integer.toHexString(getL().getValue() & 0xFF) + " into L");
 		pc++;
 	}
 
-	// Relative jmp by signed immediate if last result was zero
+	/**
+	 * Relative jmp by signed immediate if last result was zero
+	 */
 	private void jrZn() {
 		byte immediate = mem.readByte(pc);
 		pc++;
@@ -622,7 +620,9 @@ public class Z80 {
 		}
 	}
 
-	// Decrement A
+	/**
+	 * Decrement A
+	 */
 	private void decA() {
 		logger.finer("Decrementing A (" + Integer.toHexString(getA().getValue() & 0xFF) + ")");
 		getA().setValue(getA().getValue() - 1);
@@ -632,16 +632,14 @@ public class Z80 {
 		setZeroFlag((getA().getValue() == 0));
 
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.warning("DEC A called, half carry flag not implemented");
 	}
 
-	// Decrement C
+	/**
+	 * Decrement C
+	 */
 	private void decC() {
 		logger.finer("Decrementing C (" + Integer.toHexString(getC().getValue() & 0xFF) + ")");
 		getC().setValue(getC().getValue() - 1);
@@ -651,61 +649,55 @@ public class Z80 {
 		setZeroFlag((getC().getValue() == 0));
 
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.warning("DEC C called, half carry flag not implemented");
 	}
 
-	// Compare 8-bit immediate to A
+	/**
+	 * Compare 8-bit immediate to A
+	 */
 	private void cpN() {
 		byte immediate = mem.readByte(pc);
 		pc++;
+		setOperationFlag(true);
 
 		if (getA().getValue() == immediate) {
 			setZeroFlag(true);
 		} else {
-
 			setZeroFlag(false);
-
 			if (getA().getValue() < immediate) {
 				setFullCarryFlag(true);
 			}
-
 		}
 
-		setOperationFlag(true);
-
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.warning("CP n called, half carry flag not implemented");
 	}
 
-	// save A at given address
+	/**
+	 * save A at given address
+	 */
 	private void ldNnA() {
-
 		char address = mem.readWord(pc);
 		pc += 2;
-
 		logger.finer("Loaded A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into address "
 				+ Integer.toHexString(address & 0xFFFF));
 	}
 
-	// Copy value of E into A
+	/**
+	 * Copy value of E into A
+	 */
 	private void ldAe() {
 		getA().setValue(getE().getValue());
 		logger.finer("Copied E (" + Integer.toHexString(getE().getValue() & 0xFF) + ") into A");
 	}
 
-	// Increment DE
+	/**
+	 * Increment DE
+	 */
 	private void incDe() {
 		logger.finer("Incrementing DE (" + Integer.toHexString(readDualRegister(getD(), getE())) + ")");
 		char de = readDualRegister(getD(), getE());
@@ -713,14 +705,18 @@ public class Z80 {
 		logger.finer("de = " + Integer.toHexString(readDualRegister(getD(), getE()) & 0xFFFF));
 	}
 
-	// return
+	/**
+	 * return
+	 */
 	private void ret() {
 		char address = pop();
 		logger.fine("RET called, returning to " + Integer.toHexString(address & 0xFFFF));
 		pc = address;
 	}
 
-	// increment HL
+	/**
+	 * increment HL
+	 */
 	private void incHl() {
 		logger.finer("Incrementing HL (" + Integer.toHexString(readDualRegister(getH(), getL())) + ")");
 		char hl = readDualRegister(getH(), getL());
@@ -728,7 +724,9 @@ public class Z80 {
 		logger.finer("HL = " + Integer.toHexString(readDualRegister(getH(), getL()) & 0xFFFF));
 	}
 
-	// Save A to address pointed to by HL, and increment HL
+	/**
+	 * Save A to address pointed to by HL, and increment HL
+	 */
 	private void ldiHlA() {
 		char hl = readDualRegister(getH(), getL());
 
@@ -740,93 +738,92 @@ public class Z80 {
 		logger.finer("And incremented HL. HL = " + Integer.toHexString(readDualRegister(getH(), getL()) & 0xFFFF));
 	}
 
-	// Decrement B
+	/**
+	 * Decrement B
+	 */
 	private void decB() {
 		getB().setValue(getB().getValue() - 1);
 		setZeroFlag(getB().getValue() == 0);
 		setOperationFlag(true);
 
 		/**
-		 * 
-		 * 
-		 * Half carry flag not implemented
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.warning("DEC B called, half carry flag not implemented");
 	}
 
-	// Pop 16-bit value from the stack and store it in BC
+	/**
+	 * Pop 16-bit value from the stack and store it in BC
+	 */
 	private void popBc() {
 		char address = pop();
-
 		writeDualRegister(getB(), getC(), address);
-
 		logger.finer("Popped value: " + Integer.toHexString(address & 0xFFFF) + " from stack and stored in BC");
 	}
 
-	// rotate A left
+	/**
+	 * rotate A left
+	 */
 	private void rlA() {
 		logger.finer("Rotating A (" + Integer.toBinaryString(getA().getValue() & 0xFF) + ") left");
 		getA().setValue(Util.leftRotate(getA().getValue()));
 		logger.finer("A = " + Integer.toBinaryString(getA().getValue() & 0xFF));
-
 		setZeroFlag(false);
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
 
 		/**
-		 * 
-		 * 
-		 * Full carry flag not implemented
-		 * 
-		 * 
+		 * XXX Full carry flag not implemented
 		 */
 		logger.warning("RL A called, full carry flag not implemented");
 	}
 
-	// rotate C left
+	/**
+	 * rotate C left
+	 */
 	private void rlC() {
 		logger.finer("Rotating C (" + Integer.toBinaryString(getC().getValue() & 0xFF) + ") left");
 		getC().setValue(Util.leftRotate(getC().getValue()));
 		logger.finer("C = " + Integer.toBinaryString(getC().getValue() & 0xFF));
-
 		setZeroFlag(getC().getValue() == 0);
-
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
 
 		/**
-		 * 
-		 * 
-		 * Full carry flag not implemented
-		 * 
-		 * 
+		 * XXX Full carry flag not implemented
 		 */
 		logger.warning("RL C called, full carry flag not implemented");
 	}
 
-	// push BC onto stack
+	/**
+	 * push BC onto stack
+	 */
 	private void pushBc() {
 		char address = readDualRegister(getB(), getC());
 		push(address);
 		logger.finer("Pushed BC (" + Integer.toHexString(address) + ") onto stack");
 	}
 
-	// Load 8-bit immediate into B
+	/**
+	 * Load 8-bit immediate into B
+	 */
 	private void ldBn() {
 		getB().setValue(mem.readByte(pc));
 		logger.finer("Loaded " + Integer.toHexString(getB().getValue() & 0xFF) + " into B");
 		pc++;
 	}
 
-	// Copy A to C
+	/**
+	 * Copy A to C
+	 */
 	private void ldCa() {
 		getC().setValue(getA().getValue());
 		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to C");
 	}
 
-	// Call routine at nn
+	/**
+	 * Call routine at nn
+	 */
 	private void callNn() {
 		char address = mem.readWord(pc);
 		push((char) (pc + 2));
@@ -835,7 +832,9 @@ public class Z80 {
 		logger.fine("Calling subroutine at 0x" + Integer.toHexString(address & 0xFFFF));
 	}
 
-	// Load A from address pointed to by DE
+	/**
+	 * Load A from address pointed to by DE
+	 */
 	private void ldAde() {
 		char address = readDualRegister(getD(), getE());
 		getA().setValue(mem.readByte(address));
@@ -843,29 +842,31 @@ public class Z80 {
 				+ "address pointed to by DE (" + Integer.toHexString(address) + ")");
 	}
 
-	// Load 16-bit immediate into DE
+	/**
+	 * Load 16-bit immediate into DE
+	 */
 	private void ldDeNn() {
 		char immediate = mem.readWord((char) pc);
 		pc += 2;
-
 		writeDualRegister(getD(), getE(), immediate);
-
 		logger.finer("Loaded " + Integer.toHexString(immediate) + " into DE");
 	}
 
-	// Save A at address pointed to by 0xFF00 + 8-bit immediate
+	/**
+	 * Save A at address pointed to by 0xFF00 + 8-bit immediate
+	 */
 	private void ldHnA() {
 		byte immediate = mem.readByte(pc);
 		pc++;
-
 		char address = (char) (0xFF00 + immediate);
 		mem.writeByte(address, getA().getValue());
 		logger.finer(
 				"Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
-		;
 	}
 
-	// Copy A to address pointed to by HL
+	/**
+	 * Copy A to address pointed to by HL
+	 */
 	private void ldHlA() {
 		char address = readDualRegister(getH(), getL());
 		mem.writeByte(address, getA().getValue());
@@ -873,70 +874,68 @@ public class Z80 {
 				"Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
 	}
 
-	// Increment C
+	/**
+	 * Increment C
+	 */
 	private void incC() {
 		getC().setValue(getC().getValue() + 1);
 		setZeroFlag(getC().getValue() == 0);
-
 		setOperationFlag(false);
 
 		/**
-		 * 
-		 * HALF CARRY FLAG NOT IMPLEMENTED
-		 * 
-		 * 
-		 * 
+		 * XXX Half carry flag not implemented
 		 */
 		logger.finer("Incremented C");
 		logger.warning("INC C called, half carry flag not implemented");
 	}
 
-	// Save A at address pointed to by
-	// 0xFF00 + C
+	/**
+	 * Save A at address pointed to by 0xFF00 + C
+	 */
 	private void ldhCa() {
 		char address = (char) (0xFF00 + getC().getValue());
 		mem.writeByte(address, getA().getValue());
 		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue()) + ") to " + Integer.toHexString(address));
 	}
 
-	// Subtract A and carry flag from A
+	/**
+	 * Subtract A and carry flag from A
+	 */
 	private void sbcAa() {
 		String hex = Integer.toHexString(getA().getValue());
 		logger.finer("Subtracted " + hex + " from " + hex);
-
 		getA().setValue(getA().getValue() - getA().getValue());
 		setZeroFlag(getA().getValue() == 0);
 		setOperationFlag(true);
-
-		/**
-		 * 
-		 * HALF CARRY FLAG NOT IMPLEMENTED
-		 * 
-		 * 
-		 * 
-		 */
-		logger.warning("SBC A, A called, half carry flag not implemented");
-
 		if (getA().getValue() < 0) {
 			setFullCarryFlag(true);
 		}
 
+		/**
+		 * XXX Half carry flag not implemented
+		 */
+		logger.warning("SBC A, A called, half carry flag not implemented");
 	}
 
-	// enable interrupts
+	/**
+	 * Enable interrupts
+	 */
 	private void eI() {
-		// this will be important later, for now it's
-		// essentially a nop
+		/* this will be important later, for now it's essentially a nop */
 		logger.finer("Enable interrupts");
 		logger.warning("Interrupts not yet implemented");
 	}
 
-	// no operation
+	/**
+	 * No operation
+	 */
 	private void nop() {
 		logger.finer("no op");
 	}
 
-	// test bit 7 of register H
+	/**
+	 * Test bit 7 of register H
+	 */
 	private void bit7h() {
 		String bin = Integer.toBinaryString(getH().getValue() & 0xFF);
 		if (bin.toCharArray()[7] == '0') {
@@ -947,67 +946,66 @@ public class Z80 {
 		logger.finer("Testing bit 7 of " + bin + ": zeroFlag = " + isZeroFlag());
 	}
 
-	// Loads a 16 bit immediate into SP
+	/**
+	 * Loads a 16 bit immediate into SP
+	 */
 	private void ldSpNn() {
 		sp = mem.readWord((char) (pc));
 		logger.finer("Loaded value: " + Integer.toHexString(sp) + " into SP");
-
 		pc += 2;
 	}
 
-	// XOR A against A
+	/**
+	 * XOR A against A
+	 */
 	private void xorA() {
 		getA().setValue(getA().getValue() ^ getA().getValue());
-
 		setZeroFlag(getA().getValue() == 0);
-
 		setHalfCarryFlag(false);
 		setFullCarryFlag(false);
 		setOperationFlag(false);
-
 		logger.finer("A = " + getA());
 	}
 
-	// Loads a 16 bit immediate into HL
+	/**
+	 * Loads a 16 bit immediate into HL
+	 */
 	private void ldHlNn() {
 		char value = mem.readWord((char) pc);
-
 		writeDualRegister(getH(), getL(), value);
-
 		logger.finer("Loaded value:" + Integer.toHexString(value) + " into HL");
-
 		pc += 2;
 	}
 
-	// Save A to address pointed to by HL, and decrement HL
+	/**
+	 * Save A to address pointed to by HL, and decrement HL
+	 */
 	private void lddHlA() {
-
 		char address = readDualRegister(getH(), getL());
 		mem.writeByte(address, getA().getValue());
-
 		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue()) + ") to address in HL ("
 				+ Integer.toHexString(address) + ")");
-
 		address--;
-
 		writeDualRegister(getH(), getL(), address);
-
 		logger.finer("and decremented HL to " + Integer.toHexString(readDualRegister(getH(), getL())));
 	}
 
-	// Relative jump by signed immediate (single byte) if last result was not
-	// zero
+	/**
+	 * Relative jump by signed immediate (single byte) if last result was not
+	 * zero
+	 */
 	private void jrNzN() {
 		if (!isZeroFlag()) {
 			byte n = (byte) (mem.readByte(pc) & 0xFF);
 
-			// we want to jump from the instruction location, not the
-			// location of n. thus, increment pc before jumping.
+			/*
+			 * we want to jump from the instruction location, not the location
+			 * of n. thus, increment pc before jumping.
+			 */
 			pc++;
 
-			// ...and jump! geronimo!
+			// geronimo!
 			pc += n;
-
 			logger.finer("Jmping by " + n);
 		} else {
 			// Use the smaller clock duration since the jmp was not executed
@@ -1019,14 +1017,18 @@ public class Z80 {
 		}
 	}
 
-	// load 8-bit immediate into C
+	/**
+	 * load 8-bit immediate into C
+	 */
 	private void ldCn() {
 		getC().setValue(mem.readByte(pc));
 		logger.finer("Loaded " + Integer.toHexString(getC().getValue() & 0xFF) + " into C");
 		pc++;
 	}
 
-	// load 8-bit immediate into A
+	/**
+	 * load 8-bit immediate into A
+	 */
 	private void ldAn() {
 		getA().setValue(mem.readByte(pc));
 		logger.finer("Loaded " + Integer.toHexString(getA().getValue() & 0xFF) + " into A");

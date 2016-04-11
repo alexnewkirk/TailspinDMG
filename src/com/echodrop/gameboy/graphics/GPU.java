@@ -1,3 +1,11 @@
+/**
+ * GPU.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.graphics;
 
 import java.util.ArrayList;
@@ -11,51 +19,48 @@ import com.echodrop.gameboy.exceptions.MemoryAccessException;
 import com.echodrop.gameboy.interfaces.IGraphicsObserver;
 
 /**
- * Emulation core for GameBoy GPU
  * 
+ * Notes:
  * 
  * Tiles are 8x8 pixels
- * 
- * 0x9800-9BFF is tilemap 0, 0x9C00-9FFF is tilemap 1
- * 
+ * Tilemaps are 32 x 32 tiles
+ * 0x8000-0x87FF is tileset 1, tiles 0-127
+ * 0x9800-0x9BFF is tilemap 0, 0x9C00-9FFF is tilemap 1
  * 0x9000-0x97FF is tileset 0, tiles 0-127
- * 
  * 0x8800-0x8FFF is tileset 0, -1 to -127 - which are shared with tileset 1 as
  * tiles 128-255
- * 
- * 0x8000-0x87FF is tileset 1, tiles 0-127
- * 
- * Tilemaps are 32 x 32 tiles
- * 
- * 
- * @author echo_drop
+ */
+
+/**
+ * Emulation core for GameBoy Graphics Processing Units
  */
 public class GPU {
 
+	private static final Logger logger = Logger.getLogger(GPU.class.getName());
 	private TailspinGB system;
 	private MemoryRegion vram;
 	private MemoryRegion oam;
 	private Register scrollX;
 	private Register scrollY;
 
-	// Current scanline (there are 144 total, plus 10 vblank)
+	/**
+	 * Current scanline (there are 144 total, plus 10 vblank)
+	 */
 	private Register line;
-
 	private Register backgroundPalette;
-
 	private Register lcdControl;
-
 	private byte[][] frameBuffer;
 
-	// GPU state
+	/**
+	 * GPU state
+	 */
 	private Register mode;
 
-	// advanced after each CPU instruction with the Z80 clock_t
+	/**
+	 * Advanced after each CPU instruction with the Z80 clock_t
+	 */
 	private int modeClock;
-
 	private List<IGraphicsObserver> observers;
-
-	private static final Logger logger = Logger.getLogger(GPU.class.getName());
 
 	public GPU(TailspinGB system) {
 		this.system = system;
@@ -66,22 +71,16 @@ public class GPU {
 	 * Sets the GPU to its initial state
 	 */
 	public void initialize() {
-
 		this.observers = new ArrayList<IGraphicsObserver>();
-
 		this.setMode(new Register((byte) 0));
 		this.setLine(new Register((byte) 0));
 		this.setModeClock(0);
-
 		this.setBackgroundPalette(new Register((byte) 0x010B));
-
 		this.setScrollX(new Register((byte) 0));
 		this.setScrollY(new Register((byte) 0));
 		this.setLcdControl(new Register((byte) 0));
-
 		this.setVram(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "vram"));
 		this.setOam(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "oam"));
-
 		this.setFrameBuffer(new byte[160][144]);
 		for (int i = 0; i < 160; i++) {
 			for (int j = 0; j < 144; j++) {
@@ -98,9 +97,7 @@ public class GPU {
 	 * Called after each CPU instruction
 	 */
 	public void clockStep() {
-
 		logger.info("GPU Clock Step: line:" + getLine() + " mode:" + getMode() + " modeClock: " + getModeClock());
-
 		switch (getMode().getValue()) {
 
 		// HBLANK
@@ -108,8 +105,8 @@ public class GPU {
 			if (getModeClock() >= 204) {
 				setModeClock(0);
 				getLine().setValue(getLine().getValue() + 1);
-
 				if (getLine().getValue() == 143) {
+
 					// Change mode to VBLANK
 					logger.info("[!] GPU MODE SWITCHING TO VBLANK (mode 1)");
 					mode.setValue(1);
@@ -118,6 +115,7 @@ public class GPU {
 					notifyAllObservers();
 
 				} else {
+
 					// Change mode to OAM read
 					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 2)");
 					mode.setValue(2);
@@ -131,32 +129,31 @@ public class GPU {
 			if (getModeClock() >= 456) {
 				setModeClock(0);
 				getLine().setValue(getLine().getValue() + 1);
-				;
-
 				if (getLine().getValue() > 153) {
+
 					// change mode to OAM read
 					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 2)");
 					mode.setValue(2);
 					getLine().setValue(0);
 				}
 			}
-
 			break;
 
 		// OAM read
 		case 2:
 			if (getModeClock() >= 80) {
 				setModeClock(0);
+
 				// change to vram read mode
 				mode.setValue(3);
 				logger.info("[!] GPU MODE SWITCHING TO VRAM READ (mode 3)");
 			}
-
 			break;
 
 		// VRAM read
 		case 3:
 			if (getModeClock() >= 172) {
+
 				// change mode to HBLANK
 				setModeClock(0);
 				logger.info("\n[!] GPU MODE SWITCHING TO HBLANK (mode 0)\n");
@@ -164,11 +161,9 @@ public class GPU {
 
 				// Write scanline to framebuffer
 				renderScanLine();
-
 			}
 			break;
 		}
-
 	}
 
 	public byte readByte(char address) {
@@ -197,8 +192,8 @@ public class GPU {
 	}
 
 	public char readWord(char address) {
-		// TODO Auto-generated method stub
-		return 0;
+		// TODO
+		throw new RuntimeException();
 	}
 
 	public void writeByte(char address, byte data) {
@@ -223,7 +218,6 @@ public class GPU {
 		case 0xFF44:
 			getLine().setValue(data);
 			break;
-
 		}
 	}
 
@@ -239,7 +233,6 @@ public class GPU {
 
 	private void renderScanLine() {
 		logger.info("[!] renderScanLine() called");
-
 	}
 
 	public void incrementModeClock(byte time) {
