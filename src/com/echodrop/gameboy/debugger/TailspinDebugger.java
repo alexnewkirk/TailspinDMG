@@ -201,13 +201,13 @@ public class TailspinDebugger {
 	private static void memDump() {
 
 		ArrayList<String> options = new ArrayList<String>();
-		options.add("BIOS");
-		options.add("Working RAM");
+		options.add("BIOS (0x0000 - 0x00FF)");
+		options.add("Working RAM (0xC000 - 0xDFFF)");
 		options.add("External RAM");
-		options.add("Zero-page memory");
-		options.add("ROM");
-		options.add("OAM");
-		options.add("VRAM");
+		options.add("Zero-page memory (0xFF80 - 0xFFFF)");
+		options.add("ROM (0x0000 - 0x3FFF)");
+		options.add("OAM (0xFE00 - 0xFE9F");
+		options.add("VRAM (0x8000 - 0x9FFF)");
 
 		MemoryRegion selected = null;
 
