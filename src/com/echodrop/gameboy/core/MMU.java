@@ -6,8 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
-import com.echodrop.gameboy.exceptions.MemoryAccessException;
-
 /**
  * Emulation core for GameBoy MMU.
  * 

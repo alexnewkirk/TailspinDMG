@@ -1,7 +1,6 @@
 package com.echodrop.gameboy.debugger;
 
 import java.util.ArrayList;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.logging.Level;
 
@@ -99,6 +98,7 @@ public class TailspinDebugger {
 				System.out.println(SPACER);
 				break;
 			case RESET:
+				breakpoints.clear();
 				init();
 				break;
 			case STARTLOG:
@@ -119,8 +119,10 @@ public class TailspinDebugger {
 			case CONDBREAK:
 				Breakpoint cBreak = readCondBreakpoint();
 				breakpoints.add(cBreak);
+				System.out.println(SPACER);
 				System.out.println("[+] Added breakpoint: ");
 				System.out.println(cBreak);
+				System.out.println(SPACER);
 				break;
 			case CLEARBREAKS:
 				breakpoints.clear();
@@ -163,7 +165,7 @@ public class TailspinDebugger {
 	}
 
 	private static void showHelp() {
-		System.out.println("help: show this help info");
+		System.out.println("help: show this command list");
 		System.out.println("step: advance emulator by one instruction");
 		System.out.println("setbreak [memory address in hexadecimal]: set a new breakpoint at the specified address");
 		System.out.println("setbreak: set a new breakpoint at the current memory address");
@@ -250,7 +252,6 @@ public class TailspinDebugger {
 		System.out.println(
 				"GPU Background Palette: " + Util.byteToReadableHex(system.getGpu().getBackgroundPalette().getValue()));
 		System.out.println("GPU LCD Control: " + Util.byteToReadableHex(system.getGpu().getLcdControl().getValue()));
-		System.out.println("GPU ScrollY: " + Util.byteToReadableHex(system.getGpu().getScrollY().getValue()));
 		System.out.println("GPU Mode: " + Util.byteToReadableHex(system.getGpu().getMode().getValue()));
 		System.out.println("GPU Modeclock: " + system.getGpu().getModeClock());
 
