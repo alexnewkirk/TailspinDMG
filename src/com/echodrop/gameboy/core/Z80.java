@@ -128,7 +128,7 @@ public class Z80 {
 			getClockT().setValue(getClockT().getValue() + clockIncrement / 4);
 			getClockM().setValue(getClockM().getValue() + clockIncrement);
 
-			system.getGpu().incrementModeClock(clockIncrement);
+			system.getGpu().incrementModeClock((byte)(clockIncrement / 4));
 
 		} else {
 			logger.severe("Unimplemented instruction: " + Integer.toHexString(opcode & 0xFF));
@@ -174,8 +174,8 @@ public class Z80 {
 	 */
 	private void writeDualRegister(Register r1, Register r2, char value) {
 		byte[] bytes = Util.wordToBytes(value);
-		r1.setValue(bytes[0]);
-		r2.setValue(bytes[1]);
+		r2.setValue(bytes[0]);
+		r1.setValue(bytes[1]);
 	}
 
 	/**
@@ -183,7 +183,7 @@ public class Z80 {
 	 * unit
 	 */
 	private char readDualRegister(Register r1, Register r2) {
-		return Util.bytesToWord(r1.getValue(), r2.getValue());
+		return Util.bytesToWord(r2.getValue(), r1.getValue());
 	}
 
 	/**
@@ -263,10 +263,11 @@ public class Z80 {
 		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> ldHaN(), (byte) 12));
 		opCodes.put((byte) 0x1D, new OpCode("DEC E", () -> decE(), (byte) 4));
 		opCodes.put((byte) 0x24, new OpCode("INC H", () -> incH(), (byte) 4));
-		opCodes.put((byte) 0x7C, new OpCode("LD (HL), E", () -> ldHlE(), (byte) 8));
+		opCodes.put((byte) 0x73, new OpCode("LD (HL), E", () -> ldHlE(), (byte) 8));
 		opCodes.put((byte) 0x90, new OpCode("SUB B", () -> subB(), (byte) 4));
 		opCodes.put((byte) 0x15, new OpCode("DEC D", () -> decD(), (byte) 4));
 		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> ldDn(), (byte) 8));
+		opCodes.put((byte) 0x7C, new OpCode("LD A,H", () -> ldAh(), (byte) 4));
 	}
 
 	/**
@@ -408,20 +409,24 @@ public class Z80 {
 	 *
 	 */
 	
-	// Load 8-bit immediate into D
-		private void ldDn() {
-			getD().setValue(mem.readByte(pc));
-			logger.finer("Loaded " + Integer.toHexString(getD().getValue() & 0xFF) + " into D");
-			pc++;
+	// Copy H into A
+		private void ldAh() {
+			getA().setValue(getH().getValue());
+			logger.finer("Copied H (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
 		}
+
+	// Load 8-bit immediate into D
+	private void ldDn() {
+		getD().setValue(mem.readByte(pc));
+		logger.finer("Loaded " + Integer.toHexString(getD().getValue() & 0xFF) + " into D");
+		pc++;
+	}
 
 	// Subtract B from A
 	private void subB() {
 
 		getA().setValue(getA().getValue() - getB().getValue());
-		if (getA().getValue() == 0) {
-			zeroFlag = true;
-		}
+		setZeroFlag(getA().getValue() == 0);
 		operationFlag = true;
 
 		logger.finer("Subtracted B from A");
@@ -439,15 +444,14 @@ public class Z80 {
 	private void ldHlE() {
 		char address = readDualRegister(getH(), getL());
 		mem.writeByte(address, getE().getValue());
-		logger.finer("Wrote E (" + Integer.toHexString(getE().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
+		logger.finer(
+				"Wrote E (" + Integer.toHexString(getE().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
 	}
 
 	// Increment H
 	private void incH() {
 		getH().setValue(getH().getValue() + 1);
-		if (getH().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getH().getValue() == 0);
 
 		setOperationFlag(false);
 
@@ -465,9 +469,7 @@ public class Z80 {
 	// Decrement E
 	private void decE() {
 		getE().setValue(getE().getValue() - 1);
-		if (getE().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getE().getValue() == 0);
 		setOperationFlag(true);
 
 		/**
@@ -483,9 +485,7 @@ public class Z80 {
 	// Decrement D
 	private void decD() {
 		getD().setValue(getD().getValue() - 1);
-		if (getD().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getD().getValue() == 0);
 		setOperationFlag(true);
 
 		/**
@@ -519,9 +519,7 @@ public class Z80 {
 	// Increment B
 	private void incB() {
 		getB().setValue(getB().getValue() + 1);
-		if (getB().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getB().getValue() == 0);
 
 		setOperationFlag(false);
 
@@ -625,8 +623,14 @@ public class Z80 {
 
 		if (getA().getValue() == immediate) {
 			setZeroFlag(true);
-		} else if (getA().getValue() < immediate) {
-			setFullCarryFlag(true);
+		} else {
+			
+			setZeroFlag(false);
+			
+			if (getA().getValue() < immediate) {
+				setFullCarryFlag(true);
+			}
+			
 		}
 
 		setOperationFlag(true);
@@ -695,9 +699,7 @@ public class Z80 {
 	// Decrement B
 	private void decB() {
 		getB().setValue(getB().getValue() - 1);
-		if (getB().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getB().getValue() == 0);
 		setOperationFlag(true);
 
 		/**
@@ -745,9 +747,7 @@ public class Z80 {
 		getC().setValue(Util.leftRotate(getC().getValue()));
 		logger.finer("C = " + Integer.toBinaryString(getC().getValue() & 0xFF));
 
-		if (getC().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getC().getValue() == 0);
 
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
@@ -816,7 +816,8 @@ public class Z80 {
 
 		char address = (char) (0xFF00 + immediate);
 		mem.writeByte(address, getA().getValue());
-		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
+		logger.finer(
+				"Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
 		;
 	}
 
@@ -824,15 +825,14 @@ public class Z80 {
 	private void ldHlA() {
 		char address = readDualRegister(getH(), getL());
 		mem.writeByte(address, getA().getValue());
-		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
+		logger.finer(
+				"Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
 	}
 
 	// Increment C
 	private void incC() {
 		getC().setValue(getC().getValue() + 1);
-		if (getC().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getC().getValue() == 0);
 
 		setOperationFlag(false);
 
@@ -861,9 +861,7 @@ public class Z80 {
 		logger.finer("Subtracted " + hex + " from " + hex);
 
 		getA().setValue(getA().getValue() - getA().getValue());
-		if (getA().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getA().getValue() == 0);
 		setOperationFlag(true);
 
 		/**
@@ -917,9 +915,7 @@ public class Z80 {
 	private void xorA() {
 		getA().setValue(getA().getValue() ^ getA().getValue());
 
-		if (getA().getValue() == 0) {
-			setZeroFlag(true);
-		}
+		setZeroFlag(getA().getValue() == 0);
 
 		setHalfCarryFlag(false);
 		setFullCarryFlag(false);

@@ -206,6 +206,7 @@ public class GPU {
 
 		// LCD control register
 		case 0xFF00:
+			getLcdControl().setValue(data);
 			break;
 
 		// SCY register

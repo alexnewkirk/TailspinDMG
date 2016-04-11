@@ -2,21 +2,20 @@ package com.echodrop.gameboy.debugger;
 
 public enum DebugCommandType {
 	
-	SETBREAK,
+	SETBRK,
 	STEP,
 	MEMDUMP,
 	CONTINUE,
 	REGDUMP,
 	EXIT,
-	LSBREAK,
+	LSBRK,
 	RESET,
 	HELP,
 	STOPLOG,
 	STARTLOG,
 	LOADROM,
 	FRAMEDUMP,
-	RMBREAK,
-	CONDBREAK,
-	CLEARBREAKS;
+	CONDBRK,
+	CLRBRK;
 
 }

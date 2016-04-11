@@ -58,7 +58,7 @@ public class TailspinDebugger {
 				system.getProcessor().step();
 				System.out.println(SPACER);
 				break;
-			case SETBREAK:
+			case SETBRK:
 				char bp;
 				if (currentCommand.getArg() == null) {
 					bp = system.getProcessor().getPc();
@@ -74,13 +74,16 @@ public class TailspinDebugger {
 				if (atBreakPoint()) {
 					system.getProcessor().step();
 				}
+				long start = System.currentTimeMillis();
 				while (!atBreakPoint()) {
 					System.out.println(SPACER);
 					system.getProcessor().step();
 					System.out.println(SPACER);
 				}
 				char breakpoint = system.getProcessor().getPc();
-				System.out.println("Reached breakpoint: " + Integer.toHexString(breakpoint & 0xFFFF).toUpperCase());
+				System.out.println("Reached breakpoint: 0x" + Integer.toHexString(breakpoint & 0xFFFF).toUpperCase() + 
+						" in " + (System.currentTimeMillis() - start) / 1000f + " seconds." );
+				System.out.println(SPACER);
 				break;
 			case REGDUMP:
 				System.out.println(SPACER);
@@ -90,7 +93,7 @@ public class TailspinDebugger {
 			case MEMDUMP:
 				memDump();
 				break;
-			case LSBREAK:
+			case LSBRK:
 				System.out.println(SPACER);
 				for (Breakpoint b : breakpoints) {
 					System.out.println(b);
@@ -113,10 +116,7 @@ public class TailspinDebugger {
 			case FRAMEDUMP:
 				framedump();
 				break;
-			case RMBREAK:
-				breakpoints.remove(new Character(system.getProcessor().getPc()));
-				break;
-			case CONDBREAK:
+			case CONDBRK:
 				Breakpoint cBreak = readCondBreakpoint();
 				breakpoints.add(cBreak);
 				System.out.println(SPACER);
@@ -124,7 +124,7 @@ public class TailspinDebugger {
 				System.out.println(cBreak);
 				System.out.println(SPACER);
 				break;
-			case CLEARBREAKS:
+			case CLRBRK:
 				breakpoints.clear();
 				break;
 			}
@@ -167,21 +167,20 @@ public class TailspinDebugger {
 	private static void showHelp() {
 		System.out.println("help: show this command list");
 		System.out.println("step: advance emulator by one instruction");
-		System.out.println("setbreak [memory address in hexadecimal]: set a new breakpoint at the specified address");
-		System.out.println("setbreak: set a new breakpoint at the current memory address");
+		System.out.println("setbrk [memory address in hexadecimal]: set a new breakpoint at the specified address");
+		System.out.println("setbrk: set a new breakpoint at the current memory address");
 		System.out.println("continue: run emulator until next breakpoint is reached");
 		System.out.println("exit: quit tdbg");
 		System.out.println("startlog: set emulator logging mode to Level.ALL");
 		System.out.println("stoplog: set emulator logging mode to Level.INFO");
 		System.out.println("reset: initialize emulator");
 		System.out.println("loadrom: load a new gameboy rom into the emulator");
-		System.out.println("lsbreak: list all breakpoints");
+		System.out.println("lsbrk: list all breakpoints");
 		System.out.println("regdump: display values of all registers");
 		System.out.println("memdump: display memory dump of emulator's current state");
 		System.out.println("framedump: display the current framebuffer state");
-		System.out.println("rmbreak: removes current instruction pointer from breakpoints");
-		System.out.println("condbreak: add a new conditional breakpoint");
-		System.out.println("clearbreaks: clear all breakpoints");
+		System.out.println("condbrk: add a new conditional breakpoint");
+		System.out.println("clrbrk: clear all breakpoints");
 	}
 
 	private static void memDump() {
@@ -230,8 +229,8 @@ public class TailspinDebugger {
 	}
 
 	private static void regDump() {
-		System.out.println("PC: " + Util.charToReadableHex(system.getProcessor().getPc()));
-		System.out.println("SP: " + Util.charToReadableHex(system.getProcessor().getSp()));
+		System.out.println("PC:" + Util.charToReadableHex(system.getProcessor().getPc()));
+		System.out.println("SP:" + Util.charToReadableHex(system.getProcessor().getSp()));
 		System.out.println("A: " + Util.byteToReadableHex(system.getProcessor().getA().getValue()));
 		System.out.println("B: " + Util.byteToReadableHex(system.getProcessor().getB().getValue()));
 		System.out.println("C: " + Util.byteToReadableHex(system.getProcessor().getC().getValue()));
@@ -262,7 +261,7 @@ public class TailspinDebugger {
 		DebugCommand c = null;
 
 		while (true) {
-			System.out.print("\n[tdbg]> ");
+			System.out.print("\n[tdbg@" + Util.charToReadableHex(system.getProcessor().getPc()) + "]> ");
 			String input = sc.nextLine().toUpperCase();
 
 			DebugCommandType commandType = null;
