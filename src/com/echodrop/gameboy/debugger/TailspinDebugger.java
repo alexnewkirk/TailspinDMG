@@ -93,12 +93,12 @@ public class TailspinDebugger {
 						" in " + (System.currentTimeMillis() - start) / 1000f + " seconds." );
 				System.out.println(SPACER);
 				break;
-			case REGDUMP:
+			case REGDMP:
 				System.out.println(SPACER);
 				regDump();
 				System.out.println(SPACER);
 				break;
-			case MEMDUMP:
+			case MEMDMP:
 				memDump();
 				break;
 			case LSBRK:
@@ -126,7 +126,7 @@ public class TailspinDebugger {
 			case LOADROM:
 				system.getMem().loadRom(getRomFilename());
 				break;
-			case FRAMEDUMP:
+			case FRAMEDMP:
 				framedump();
 				break;
 			case CONDBRK:
@@ -191,9 +191,9 @@ public class TailspinDebugger {
 		System.out.println("reset: initialize emulator");
 		System.out.println("loadrom: load a new gameboy rom into the emulator");
 		System.out.println("lsbrk: list all breakpoints");
-		System.out.println("regdump: display values of all registers");
-		System.out.println("memdump: display memory dump of emulator's current state");
-		System.out.println("framedump: display the current framebuffer state");
+		System.out.println("regdmp: display values of all registers");
+		System.out.println("memdmp: display memory dump of emulator's current state");
+		System.out.println("framedmp: display the current framebuffer state");
 		System.out.println("condbrk: add a new conditional breakpoint");
 		System.out.println("clrbrk: clear all breakpoints");
 	}

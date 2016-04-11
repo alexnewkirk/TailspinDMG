@@ -268,6 +268,7 @@ public class Z80 {
 		opCodes.put((byte) 0x15, new OpCode("DEC D", () -> decD(), (byte) 4));
 		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> ldDn(), (byte) 8));
 		opCodes.put((byte) 0x7C, new OpCode("LD A,H", () -> ldAh(), (byte) 4));
+		opCodes.put((byte) 0xBE, new OpCode("CP (HL)", () -> cpHl(), (byte) 8));
 	}
 
 	/**
@@ -409,6 +410,21 @@ public class Z80 {
 	 *
 	 */
 	
+	//Compare A to address pointed to by HL
+	private void cpHl() {
+		operationFlag = true;
+		
+		zeroFlag = (getA().getValue() == mem.readByte(readDualRegister(h, l)));
+		
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented
+		 *  Full carry flag not implemented
+		 * 
+		 */
+	}
+	
 	// Copy H into A
 		private void ldAh() {
 			getA().setValue(getH().getValue());
@@ -434,7 +450,8 @@ public class Z80 {
 		/**
 		 * 
 		 * 
-		 * Half carry flag not implemented Full carry flag not implemented
+		 * Half carry flag not implemented
+		 *  Full carry flag not implemented
 		 * 
 		 */
 

@@ -4,9 +4,9 @@ public enum DebugCommandType {
 	
 	SETBRK,
 	STEP,
-	MEMDUMP,
+	MEMDMP,
 	CONTINUE,
-	REGDUMP,
+	REGDMP,
 	EXIT,
 	LSBRK,
 	RESET,
@@ -15,7 +15,7 @@ public enum DebugCommandType {
 	LOGINFO,
 	LOGALL,
 	LOADROM,
-	FRAMEDUMP,
+	FRAMEDMP,
 	CONDBRK,
 	CLRBRK;
 
