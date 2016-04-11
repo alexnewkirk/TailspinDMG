@@ -33,6 +33,10 @@ public class TailspinDebugger {
 
 	public static void main(String[] args) {
 
+		System.out.println("[Tailspin Debugger]");
+		System.out.println("Type 'help' for a list of commands.");
+		System.out.println("hint: begin by loading a ROM.\n\n");
+
 		init();
 		loadRegisters();
 
@@ -62,13 +66,13 @@ public class TailspinDebugger {
 				} else {
 					bp = currentCommand.getArg();
 				}
-				breakpoints.add(new Breakpoint(false, null, (byte)0, bp));
+				breakpoints.add(new Breakpoint(false, null, (byte) 0, bp));
 				System.out.println(SPACER);
 				System.out.println("[!] Breakpoint added at 0x" + Integer.toHexString(bp & 0xFFFF).toUpperCase());
 				System.out.println(SPACER);
 				break;
 			case CONTINUE:
-				if(atBreakPoint()) {
+				if (atBreakPoint()) {
 					system.getProcessor().step();
 				}
 				while (!atBreakPoint()) {
@@ -118,6 +122,9 @@ public class TailspinDebugger {
 				System.out.println("[+] Added breakpoint: ");
 				System.out.println(cBreak);
 				break;
+			case CLEARBREAKS:
+				breakpoints.clear();
+				break;
 			}
 
 		}
@@ -159,6 +166,7 @@ public class TailspinDebugger {
 		System.out.println("help: show this help info");
 		System.out.println("step: advance emulator by one instruction");
 		System.out.println("setbreak [memory address in hexadecimal]: set a new breakpoint at the specified address");
+		System.out.println("setbreak: set a new breakpoint at the current memory address");
 		System.out.println("continue: run emulator until next breakpoint is reached");
 		System.out.println("exit: quit tdbg");
 		System.out.println("startlog: set emulator logging mode to Level.ALL");
@@ -170,6 +178,8 @@ public class TailspinDebugger {
 		System.out.println("memdump: display memory dump of emulator's current state");
 		System.out.println("framedump: display the current framebuffer state");
 		System.out.println("rmbreak: removes current instruction pointer from breakpoints");
+		System.out.println("condbreak: add a new conditional breakpoint");
+		System.out.println("clearbreaks: clear all breakpoints");
 	}
 
 	private static void memDump() {
@@ -183,7 +193,6 @@ public class TailspinDebugger {
 		options.add("OAM");
 		options.add("VRAM");
 
-		
 		MemoryRegion selected = null;
 
 		int choice = getMenuSelection(options);
@@ -221,28 +230,28 @@ public class TailspinDebugger {
 	private static void regDump() {
 		System.out.println("PC: " + Util.charToReadableHex(system.getProcessor().getPc()));
 		System.out.println("SP: " + Util.charToReadableHex(system.getProcessor().getSp()));
-		System.out.println("A: " + Util.byteToReadableHex(system.getProcessor().getA().value));
-		System.out.println("B: " + Util.byteToReadableHex(system.getProcessor().getB().value));
-		System.out.println("C: " + Util.byteToReadableHex(system.getProcessor().getC().value));
-		System.out.println("D: " + Util.byteToReadableHex(system.getProcessor().getD().value));
-		System.out.println("E: " + Util.byteToReadableHex(system.getProcessor().getE().value));
-		System.out.println("H: " + Util.byteToReadableHex(system.getProcessor().getH().value));
-		System.out.println("L: " + Util.byteToReadableHex(system.getProcessor().getL().value));
-		System.out.println("T clock: " + Util.byteToReadableHex(system.getProcessor().getClockT().value));
-		System.out.println("M clock: " + Util.byteToReadableHex(system.getProcessor().getClockM().value));
+		System.out.println("A: " + Util.byteToReadableHex(system.getProcessor().getA().getValue()));
+		System.out.println("B: " + Util.byteToReadableHex(system.getProcessor().getB().getValue()));
+		System.out.println("C: " + Util.byteToReadableHex(system.getProcessor().getC().getValue()));
+		System.out.println("D: " + Util.byteToReadableHex(system.getProcessor().getD().getValue()));
+		System.out.println("E: " + Util.byteToReadableHex(system.getProcessor().getE().getValue()));
+		System.out.println("H: " + Util.byteToReadableHex(system.getProcessor().getH().getValue()));
+		System.out.println("L: " + Util.byteToReadableHex(system.getProcessor().getL().getValue()));
+		System.out.println("T clock: " + Util.byteToReadableHex(system.getProcessor().getClockT().getValue()));
+		System.out.println("M clock: " + Util.byteToReadableHex(system.getProcessor().getClockM().getValue()));
 		System.out.println("Zero flag: " + system.getProcessor().isZeroFlag());
 		System.out.println("Operation flag: " + system.getProcessor().isOperationFlag());
 		System.out.println("Half Carry flag: " + system.getProcessor().isHalfCarryFlag());
 		System.out.println("Full Carry flag: " + system.getProcessor().isFullCarryFlag());
 		System.out.println("Conditional non-exec flag: " + system.getProcessor().isConditionalNotExecFlag());
-		System.out.println("GPU ScrollX: " + Util.byteToReadableHex(system.getGpu().getScrollX().value));
-		System.out.println("GPU ScrollY: " + Util.byteToReadableHex(system.getGpu().getScrollY().value));
-		System.out.println("GPU Scanline: " + Util.byteToReadableHex(system.getGpu().getLine().value));
+		System.out.println("GPU ScrollX: " + Util.byteToReadableHex(system.getGpu().getScrollX().getValue()));
+		System.out.println("GPU ScrollY: " + Util.byteToReadableHex(system.getGpu().getScrollY().getValue()));
+		System.out.println("GPU Scanline: " + Util.byteToReadableHex(system.getGpu().getLine().getValue()));
 		System.out.println(
-				"GPU Background Palette: " + Util.byteToReadableHex(system.getGpu().getBackgroundPalette().value));
-		System.out.println("GPU LCD Control: " + Util.byteToReadableHex(system.getGpu().getLcdControl().value));
-		System.out.println("GPU ScrollY: " + Util.byteToReadableHex(system.getGpu().getScrollY().value));
-		System.out.println("GPU Mode: " + Util.byteToReadableHex(system.getGpu().getMode().value));
+				"GPU Background Palette: " + Util.byteToReadableHex(system.getGpu().getBackgroundPalette().getValue()));
+		System.out.println("GPU LCD Control: " + Util.byteToReadableHex(system.getGpu().getLcdControl().getValue()));
+		System.out.println("GPU ScrollY: " + Util.byteToReadableHex(system.getGpu().getScrollY().getValue()));
+		System.out.println("GPU Mode: " + Util.byteToReadableHex(system.getGpu().getMode().getValue()));
 		System.out.println("GPU Modeclock: " + system.getGpu().getModeClock());
 
 	}
@@ -291,79 +300,83 @@ public class TailspinDebugger {
 
 		}
 	}
-	
+
 	private static Breakpoint readCondBreakpoint() {
-		
+
 		boolean valid = false;
-		
+
 		Breakpoint result = new Breakpoint();
-		
+
 		result.setConditional(true);
-		
-		while(!valid) {
-			
-			System.out.print("[breakpoint address in hex]> ");
-			try {
-				String input = sc.nextLine().toUpperCase();
-				input = input.replace("0X", "");
-				input = input.trim();
-				result.setAddress((char)Integer.parseInt(input, 16));
-			} catch(NumberFormatException e) {
-				continue;
+
+		while (!valid) {
+
+			result.setAddress(readHexAddress());
+
+			ArrayList<String> breakpointOptions = new ArrayList<String>();
+			breakpointOptions.add("Watch register...");
+			breakpointOptions.add("Watch memory address...");
+
+			switch (getMenuSelection(breakpointOptions)) {
+
+			case 0:
+				ArrayList<String> registerOptions = new ArrayList<String>();
+				registerOptions.add("A");
+				registerOptions.add("B");
+				registerOptions.add("C");
+				registerOptions.add("D");
+				registerOptions.add("E");
+				registerOptions.add("H");
+				registerOptions.add("L");
+
+				int registerSelected = getMenuSelection(registerOptions);
+
+				result.setWatched(availableRegisters.get(registerSelected));
+				break;
+			case 1:
+				result.setWatched(new MemoryBlock(system, readHexAddress()));
+				break;
+
 			}
-			
-			ArrayList<String> options = new ArrayList<String>();
-			options.add("A");
-			options.add("B");
-			options.add("C");
-			options.add("D");
-			options.add("E");
-			options.add("H");
-			options.add("L");
-			
-			int registerSelected = getMenuSelection(options);
-			
-			result.setWatched(availableRegisters.get(registerSelected));
-			
+
 			Byte targetValue = null;
-			
-			while(targetValue == null) {
-				System.out.print("[target value for register " + options.get(registerSelected) + "]> ");
+
+			while (targetValue == null) {
+				System.out.print("[target value]> ");
 				try {
-					targetValue = (byte)Integer.parseInt(sc.nextLine(), 16);
-				} catch (NumberFormatException e){
+					targetValue = (byte) Integer.parseInt(sc.nextLine(), 16);
+				} catch (NumberFormatException e) {
 					System.out.println("Invalid input, try again.");
 				}
 			}
 			result.setTargetValue(targetValue);
 			valid = true;
 		}
-		
+
 		return result;
 	}
-	
+
 	private static int getMenuSelection(ArrayList<String> options) {
 		int choice = -1;
-		
-		while(choice < 0 || choice > options.size() - 1) {
-			for(String s : options) {
+
+		while (choice < 0 || choice > options.size() - 1) {
+			for (String s : options) {
 				System.out.println("[" + options.indexOf(s) + "] " + s);
 			}
-			
+
 			System.out.print("> ");
-			
+
 			try {
 				choice = sc.nextInt();
-			} catch(NumberFormatException e) {
+			} catch (NumberFormatException e) {
 				System.out.println("[!] Invalid input, try again.");
 			} finally {
 				sc.nextLine();
 			}
 		}
-		
+
 		return choice;
 	}
-
 
 	private static boolean atBreakPoint() {
 
@@ -375,6 +388,32 @@ public class TailspinDebugger {
 			}
 		}
 		return false;
+	}
+
+	private static char readHexAddress() {
+
+		Character result = null;
+
+		while (result == null) {
+
+			System.out.print("[memory address in hex]> ");
+			String input = sc.nextLine().toUpperCase();
+			input = input.replace("0X", "");
+
+			input = input.trim();
+
+			if (!input.isEmpty()) {
+
+				try {
+
+					result = (char) Integer.parseInt(input, 16);
+
+				} catch (NumberFormatException e) {
+					// invalid or no argument
+				}
+			}
+		}
+		return result;
 	}
 
 }

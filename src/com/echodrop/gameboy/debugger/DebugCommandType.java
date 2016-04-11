@@ -16,6 +16,7 @@ public enum DebugCommandType {
 	LOADROM,
 	FRAMEDUMP,
 	RMBREAK,
-	CONDBREAK;
+	CONDBREAK,
+	CLEARBREAKS;
 
 }

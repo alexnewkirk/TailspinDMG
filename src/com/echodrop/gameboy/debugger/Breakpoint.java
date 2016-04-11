@@ -2,11 +2,12 @@ package com.echodrop.gameboy.debugger;
 
 import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.Util;
+import com.echodrop.gameboy.interfaces.IInternalByteValue;
 
 public class Breakpoint {
 
 	private boolean conditional;
-	private Register watched;
+	private IInternalByteValue watched;
 	private byte targetValue;
 	private char address;
 	
@@ -27,11 +28,11 @@ public class Breakpoint {
 		this.conditional = conditional;
 	}
 
-	public Register getWatched() {
+	public IInternalByteValue getWatched() {
 		return watched;
 	}
 
-	public void setWatched(Register watched) {
+	public void setWatched(IInternalByteValue watched) {
 		this.watched = watched;
 	}
 
@@ -47,7 +48,7 @@ public class Breakpoint {
 		if(getAddress() == pc) {
 			
 			if(isConditional()) {
-				if(watched.value == targetValue) {
+				if(watched.getValue() == targetValue) {
 					return true;
 				}
 			} else {

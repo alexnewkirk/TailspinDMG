@@ -101,18 +101,18 @@ public class GPU {
 
 		logger.info("GPU Clock Step: line:" + getLine() + " mode:" + getMode() + " modeClock: " + getModeClock());
 
-		switch (getMode().value) {
+		switch (getMode().getValue()) {
 
 		// HBLANK
 		case 0:
 			if (getModeClock() >= 204) {
 				setModeClock(0);
-				getLine().value++;
+				getLine().setValue(getLine().getValue() + 1);
 
-				if (getLine().value == 143) {
+				if (getLine().getValue() == 143) {
 					// Change mode to VBLANK
 					logger.info("[!] GPU MODE SWITCHING TO VBLANK (mode 1)");
-					mode.value = 1;
+					mode.setValue(1);
 
 					// update screen after last HBLANK
 					notifyAllObservers();
@@ -120,7 +120,7 @@ public class GPU {
 				} else {
 					// Change mode to OAM read
 					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 2)");
-					mode.value = 2;
+					mode.setValue(2);
 				}
 			}
 
@@ -130,14 +130,14 @@ public class GPU {
 		case 1:
 			if (getModeClock() >= 456) {
 				setModeClock(0);
-				getLine().value++;
+				getLine().setValue(getLine().getValue() + 1);
 				;
 
-				if (getLine().value > 153) {
+				if (getLine().getValue() > 153) {
 					// change mode to OAM read
 					logger.info("[!] GPU MODE SWITCHING TO OAM READ (mode 2)");
-					mode.value = 2;
-					getLine().value = 0;
+					mode.setValue(2);
+					getLine().setValue(0);
 				}
 			}
 
@@ -148,7 +148,7 @@ public class GPU {
 			if (getModeClock() >= 80) {
 				setModeClock(0);
 				// change to vram read mode
-				mode.value = 3;
+				mode.setValue(3);
 				logger.info("[!] GPU MODE SWITCHING TO VRAM READ (mode 3)");
 			}
 
@@ -160,7 +160,7 @@ public class GPU {
 				// change mode to HBLANK
 				setModeClock(0);
 				logger.info("\n[!] GPU MODE SWITCHING TO HBLANK (mode 0)\n");
-				mode.value = 0;
+				mode.setValue(0);
 
 				// Write scanline to framebuffer
 				renderScanLine();
@@ -177,19 +177,19 @@ public class GPU {
 
 		// LCD control register
 		case 0xFF00:
-			return getLcdControl().value;
+			return getLcdControl().getValue();
 
 		// SCY register
 		case 0xFF42:
-			return getScrollY().value;
+			return getScrollY().getValue();
 
 		// SCX register
 		case 0xFF43:
-			return getScrollX().value;
+			return getScrollX().getValue();
 
 		// Current scanline register
 		case 0xFF44:
-			return getLine().value;
+			return getLine().getValue();
 		}
 
 		logger.severe("Invalid memory access in GPU: " + Integer.toHexString(address));
@@ -210,17 +210,17 @@ public class GPU {
 
 		// SCY register
 		case 0xFF42:
-			getScrollY().value = data;
+			getScrollY().setValue(data);
 			break;
 
 		// SCX register
 		case 0xFF43:
-			getScrollX().value = data;
+			getScrollX().setValue(data);
 			break;
 
 		// current scanline register
 		case 0xFF44:
-			getLine().value = data;
+			getLine().setValue(data);
 			break;
 
 		}

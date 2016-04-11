@@ -125,8 +125,8 @@ public class Z80 {
 				clockIncrement = instruction.getM_time();
 			}
 
-			getClockT().value += clockIncrement / 4;
-			getClockM().value += clockIncrement;
+			getClockT().setValue(getClockT().getValue() + clockIncrement / 4);
+			getClockM().setValue(getClockM().getValue() + clockIncrement);
 
 			system.getGpu().incrementModeClock(clockIncrement);
 
@@ -174,8 +174,8 @@ public class Z80 {
 	 */
 	private void writeDualRegister(Register r1, Register r2, char value) {
 		byte[] bytes = Util.wordToBytes(value);
-		r1.value = bytes[0];
-		r2.value = bytes[1];
+		r1.setValue(bytes[0]);
+		r2.setValue(bytes[1]);
 	}
 
 	/**
@@ -183,7 +183,7 @@ public class Z80 {
 	 * unit
 	 */
 	private char readDualRegister(Register r1, Register r2) {
-		return Util.bytesToWord(r1.value, r2.value);
+		return Util.bytesToWord(r1.getValue(), r2.getValue());
 	}
 
 	/**
@@ -410,16 +410,16 @@ public class Z80 {
 	
 	// Load 8-bit immediate into D
 		private void ldDn() {
-			getD().value = mem.readByte(pc);
-			logger.finer("Loaded " + Integer.toHexString(getD().value & 0xFF) + " into D");
+			getD().setValue(mem.readByte(pc));
+			logger.finer("Loaded " + Integer.toHexString(getD().getValue() & 0xFF) + " into D");
 			pc++;
 		}
 
 	// Subtract B from A
 	private void subB() {
 
-		getA().value -= getB().value;
-		if (getA().value == 0) {
+		getA().setValue(getA().getValue() - getB().getValue());
+		if (getA().getValue() == 0) {
 			zeroFlag = true;
 		}
 		operationFlag = true;
@@ -438,14 +438,14 @@ public class Z80 {
 	// Copy E to address pointed to by HL
 	private void ldHlE() {
 		char address = readDualRegister(getH(), getL());
-		mem.writeByte(address, getE().value);
-		logger.finer("Wrote E (" + Integer.toHexString(getE().value & 0xFF) + ") to " + Integer.toHexString(address));
+		mem.writeByte(address, getE().getValue());
+		logger.finer("Wrote E (" + Integer.toHexString(getE().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
 	}
 
 	// Increment H
 	private void incH() {
-		getH().value++;
-		if (getH().value == 0) {
+		getH().setValue(getH().getValue() + 1);
+		if (getH().getValue() == 0) {
 			setZeroFlag(true);
 		}
 
@@ -464,8 +464,8 @@ public class Z80 {
 
 	// Decrement E
 	private void decE() {
-		getE().value--;
-		if (getE().value == 0) {
+		getE().setValue(getE().getValue() - 1);
+		if (getE().getValue() == 0) {
 			setZeroFlag(true);
 		}
 		setOperationFlag(true);
@@ -482,8 +482,8 @@ public class Z80 {
 
 	// Decrement D
 	private void decD() {
-		getD().value--;
-		if (getD().value == 0) {
+		getD().setValue(getD().getValue() - 1);
+		if (getD().getValue() == 0) {
 			setZeroFlag(true);
 		}
 		setOperationFlag(true);
@@ -504,22 +504,22 @@ public class Z80 {
 		pc++;
 
 		char address = (char) (0xFF00 + immediate);
-		getA().value = mem.readByte(address);
+		getA().setValue(mem.readByte(address));
 
 		logger.finer("Loaded " + getA() + " into A from " + Integer.toHexString(address & 0xFFFF));
 	}
 
 	// Load 8-bit immediate into E
 	private void ldEn() {
-		getE().value = mem.readByte(pc);
-		logger.finer("Loaded " + Integer.toHexString(getE().value & 0xFF) + " into E");
+		getE().setValue(mem.readByte(pc));
+		logger.finer("Loaded " + Integer.toHexString(getE().getValue() & 0xFF) + " into E");
 		pc++;
 	}
 
 	// Increment B
 	private void incB() {
-		getB().value++;
-		if (getB().value == 0) {
+		getB().setValue(getB().getValue() + 1);
+		if (getB().getValue() == 0) {
 			setZeroFlag(true);
 		}
 
@@ -538,14 +538,14 @@ public class Z80 {
 
 	// Copy A into H
 	private void ldHa() {
-		getH().value = getA().value;
-		logger.finer("Copied A (" + Integer.toHexString(getA().value & 0xFF) + ") into H");
+		getH().setValue(getA().getValue());
+		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into H");
 	}
 
 	// Copy A into D
 	private void ldDa() {
-		getD().value = getA().value;
-		logger.finer("Copied A (" + Integer.toHexString(getA().value & 0xFF) + ") into D");
+		getD().setValue(getA().getValue());
+		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into D");
 	}
 
 	// Relative jmp by signed immediate
@@ -560,8 +560,8 @@ public class Z80 {
 
 	// Load 8-bit immediate into L
 	private void ldLn() {
-		getL().value = mem.readByte(pc);
-		logger.finer("Loaded " + Integer.toHexString(getL().value & 0xFF) + " into L");
+		getL().setValue(mem.readByte(pc));
+		logger.finer("Loaded " + Integer.toHexString(getL().getValue() & 0xFF) + " into L");
 		pc++;
 	}
 
@@ -582,12 +582,12 @@ public class Z80 {
 
 	// Decrement A
 	private void decA() {
-		logger.finer("Decrementing A (" + Integer.toHexString(getA().value & 0xFF) + ")");
-		getA().value--;
-		logger.finer("A = " + Integer.toHexString(getA().value & 0xFF));
+		logger.finer("Decrementing A (" + Integer.toHexString(getA().getValue() & 0xFF) + ")");
+		getA().setValue(getA().getValue() - 1);
+		logger.finer("A = " + Integer.toHexString(getA().getValue() & 0xFF));
 
 		setOperationFlag(true);
-		setZeroFlag((getA().value == 0));
+		setZeroFlag((getA().getValue() == 0));
 
 		/**
 		 * 
@@ -601,12 +601,12 @@ public class Z80 {
 
 	// Decrement C
 	private void decC() {
-		logger.finer("Decrementing C (" + Integer.toHexString(getC().value & 0xFF) + ")");
-		getC().value--;
-		logger.finer("C = " + Integer.toHexString(getC().value & 0xFF));
+		logger.finer("Decrementing C (" + Integer.toHexString(getC().getValue() & 0xFF) + ")");
+		getC().setValue(getC().getValue() - 1);
+		logger.finer("C = " + Integer.toHexString(getC().getValue() & 0xFF));
 
 		setOperationFlag(true);
-		setZeroFlag((getC().value == 0));
+		setZeroFlag((getC().getValue() == 0));
 
 		/**
 		 * 
@@ -623,9 +623,9 @@ public class Z80 {
 		byte immediate = mem.readByte(pc);
 		pc++;
 
-		if (getA().value == immediate) {
+		if (getA().getValue() == immediate) {
 			setZeroFlag(true);
-		} else if (getA().value < immediate) {
+		} else if (getA().getValue() < immediate) {
 			setFullCarryFlag(true);
 		}
 
@@ -647,14 +647,14 @@ public class Z80 {
 		char address = mem.readWord(pc);
 		pc += 2;
 
-		logger.finer("Loaded A (" + Integer.toHexString(getA().value & 0xFF) + ") into address "
+		logger.finer("Loaded A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into address "
 				+ Integer.toHexString(address & 0xFFFF));
 	}
 
 	// Copy value of E into A
 	private void ldAe() {
-		getA().value = getE().value;
-		logger.finer("Copied E (" + Integer.toHexString(getE().value & 0xFF) + ") into A");
+		getA().setValue(getE().getValue());
+		logger.finer("Copied E (" + Integer.toHexString(getE().getValue() & 0xFF) + ") into A");
 	}
 
 	// Increment DE
@@ -684,8 +684,8 @@ public class Z80 {
 	private void ldiHlA() {
 		char hl = readDualRegister(getH(), getL());
 
-		mem.writeByte(hl, getA().value);
-		logger.finer("Wrote A(" + Integer.toHexString(getA().value & 0xFF) + ") to HL ("
+		mem.writeByte(hl, getA().getValue());
+		logger.finer("Wrote A(" + Integer.toHexString(getA().getValue() & 0xFF) + ") to HL ("
 				+ Integer.toHexString(hl & 0xFFFF) + ")");
 
 		writeDualRegister(getH(), getL(), (char) (hl + 1));
@@ -694,8 +694,8 @@ public class Z80 {
 
 	// Decrement B
 	private void decB() {
-		getB().value--;
-		if (getB().value == 0) {
+		getB().setValue(getB().getValue() - 1);
+		if (getB().getValue() == 0) {
 			setZeroFlag(true);
 		}
 		setOperationFlag(true);
@@ -721,9 +721,9 @@ public class Z80 {
 
 	// rotate A left
 	private void rlA() {
-		logger.finer("Rotating A (" + Integer.toBinaryString(getA().value & 0xFF) + ") left");
-		getA().value = Util.leftRotate(getA().value);
-		logger.finer("A = " + Integer.toBinaryString(getA().value & 0xFF));
+		logger.finer("Rotating A (" + Integer.toBinaryString(getA().getValue() & 0xFF) + ") left");
+		getA().setValue(Util.leftRotate(getA().getValue()));
+		logger.finer("A = " + Integer.toBinaryString(getA().getValue() & 0xFF));
 
 		setZeroFlag(false);
 		setOperationFlag(false);
@@ -741,11 +741,11 @@ public class Z80 {
 
 	// rotate C left
 	private void rlC() {
-		logger.finer("Rotating C (" + Integer.toBinaryString(getC().value & 0xFF) + ") left");
-		getC().value = Util.leftRotate(getC().value);
-		logger.finer("C = " + Integer.toBinaryString(getC().value & 0xFF));
+		logger.finer("Rotating C (" + Integer.toBinaryString(getC().getValue() & 0xFF) + ") left");
+		getC().setValue(Util.leftRotate(getC().getValue()));
+		logger.finer("C = " + Integer.toBinaryString(getC().getValue() & 0xFF));
 
-		if (getC().value == 0) {
+		if (getC().getValue() == 0) {
 			setZeroFlag(true);
 		}
 
@@ -771,15 +771,15 @@ public class Z80 {
 
 	// Load 8-bit immediate into B
 	private void ldBn() {
-		getB().value = mem.readByte(pc);
-		logger.finer("Loaded " + Integer.toHexString(getB().value & 0xFF) + " into B");
+		getB().setValue(mem.readByte(pc));
+		logger.finer("Loaded " + Integer.toHexString(getB().getValue() & 0xFF) + " into B");
 		pc++;
 	}
 
 	// Copy A to C
 	private void ldCa() {
-		getC().value = getA().value;
-		logger.finer("Copied A (" + Integer.toHexString(getA().value & 0xFF) + ") to C");
+		getC().setValue(getA().getValue());
+		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to C");
 	}
 
 	// Call routine at nn
@@ -794,8 +794,8 @@ public class Z80 {
 	// Load A from address pointed to by DE
 	private void ldAde() {
 		char address = readDualRegister(getD(), getE());
-		getA().value = mem.readByte(address);
-		logger.finer("Loaded " + Integer.toHexString(getA().value & 0xFF) + " into A from "
+		getA().setValue(mem.readByte(address));
+		logger.finer("Loaded " + Integer.toHexString(getA().getValue() & 0xFF) + " into A from "
 				+ "address pointed to by DE (" + Integer.toHexString(address) + ")");
 	}
 
@@ -815,22 +815,22 @@ public class Z80 {
 		pc++;
 
 		char address = (char) (0xFF00 + immediate);
-		mem.writeByte(address, getA().value);
-		logger.finer("Wrote A (" + Integer.toHexString(getA().value & 0xFF) + ") to " + Integer.toHexString(address));
+		mem.writeByte(address, getA().getValue());
+		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
 		;
 	}
 
 	// Copy A to address pointed to by HL
 	private void ldHlA() {
 		char address = readDualRegister(getH(), getL());
-		mem.writeByte(address, getA().value);
-		logger.finer("Wrote A (" + Integer.toHexString(getA().value & 0xFF) + ") to " + Integer.toHexString(address));
+		mem.writeByte(address, getA().getValue());
+		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
 	}
 
 	// Increment C
 	private void incC() {
-		getC().value++;
-		if (getC().value == 0) {
+		getC().setValue(getC().getValue() + 1);
+		if (getC().getValue() == 0) {
 			setZeroFlag(true);
 		}
 
@@ -850,18 +850,18 @@ public class Z80 {
 	// Save A at address pointed to by
 	// 0xFF00 + C
 	private void ldhCa() {
-		char address = (char) (0xFF00 + getC().value);
-		mem.writeByte(address, getA().value);
-		logger.finer("Wrote A (" + Integer.toHexString(getA().value) + ") to " + Integer.toHexString(address));
+		char address = (char) (0xFF00 + getC().getValue());
+		mem.writeByte(address, getA().getValue());
+		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue()) + ") to " + Integer.toHexString(address));
 	}
 
 	// Subtract A and carry flag from A
 	private void sbcAa() {
-		String hex = Integer.toHexString(getA().value);
+		String hex = Integer.toHexString(getA().getValue());
 		logger.finer("Subtracted " + hex + " from " + hex);
 
-		getA().value -= getA().value;
-		if (getA().value == 0) {
+		getA().setValue(getA().getValue() - getA().getValue());
+		if (getA().getValue() == 0) {
 			setZeroFlag(true);
 		}
 		setOperationFlag(true);
@@ -875,7 +875,7 @@ public class Z80 {
 		 */
 		logger.warning("SBC A, A called, half carry flag not implemented");
 
-		if (getA().value < 0) {
+		if (getA().getValue() < 0) {
 			setFullCarryFlag(true);
 		}
 
@@ -896,7 +896,7 @@ public class Z80 {
 
 	// test bit 7 of register H
 	private void bit7h() {
-		String bin = Integer.toBinaryString(getH().value & 0xFF);
+		String bin = Integer.toBinaryString(getH().getValue() & 0xFF);
 		if (bin.toCharArray()[7] == '0') {
 			setZeroFlag(true);
 		} else {
@@ -915,9 +915,9 @@ public class Z80 {
 
 	// XOR A against A
 	private void xorA() {
-		getA().value ^= getA().value;
+		getA().setValue(getA().getValue() ^ getA().getValue());
 
-		if (getA().value == 0) {
+		if (getA().getValue() == 0) {
 			setZeroFlag(true);
 		}
 
@@ -943,9 +943,9 @@ public class Z80 {
 	private void lddHlA() {
 
 		char address = readDualRegister(getH(), getL());
-		mem.writeByte(address, getA().value);
+		mem.writeByte(address, getA().getValue());
 
-		logger.finer("Wrote A (" + Integer.toHexString(getA().value) + ") to address in HL ("
+		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue()) + ") to address in HL ("
 				+ Integer.toHexString(address) + ")");
 
 		address--;
@@ -981,15 +981,15 @@ public class Z80 {
 
 	// load 8-bit immediate into C
 	private void ldCn() {
-		getC().value = mem.readByte(pc);
-		logger.finer("Loaded " + Integer.toHexString(getC().value & 0xFF) + " into C");
+		getC().setValue(mem.readByte(pc));
+		logger.finer("Loaded " + Integer.toHexString(getC().getValue() & 0xFF) + " into C");
 		pc++;
 	}
 
 	// load 8-bit immediate into A
 	private void ldAn() {
-		getA().value = mem.readByte(pc);
-		logger.finer("Loaded " + Integer.toHexString(getA().value & 0xFF) + " into A");
+		getA().setValue(mem.readByte(pc));
+		logger.finer("Loaded " + Integer.toHexString(getA().getValue() & 0xFF) + " into A");
 		pc++;
 	}
 
