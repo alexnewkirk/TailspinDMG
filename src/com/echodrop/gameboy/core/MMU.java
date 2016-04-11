@@ -23,7 +23,7 @@ public class MMU {
 	private static final Logger logger = Logger.getLogger(MMU.class.getName());
 	private TailspinGB system;
 
-	/*
+	/**
 	 * After the bios runs, it is unmapped from memory by setting this flag to
 	 * false
 	 */
@@ -128,30 +128,17 @@ public class MMU {
 	 */
 	public MemoryRegion findMemoryRegion(char address) {
 
-		// mask off the last 4 bits of the address
-		// to find which memory region it's located in
+		/*
+		 * mask off the last 4 bits of the address to find which memory region
+		 * it's located in
+		 */
 		switch (address & 0xF000) {
-
 		case 0x0000:
 			if (biosMapped) {
-
 				if (address < 0x100) {
-
 					return getBios();
-
-				} else {
-
-					/**
-					 * 
-					 * This will be important later
-					 *
-					 */
-					// reached the end of the bios
-					// biosMapped = false;
-
 				}
 			}
-
 			return getRom();
 
 		// ROM Bank 0
@@ -210,7 +197,6 @@ public class MMU {
 			// wram shadow. should be called for 0x000 - 0xD00
 		default:
 			return getWorkingRam();
-
 		}
 	}
 
@@ -221,7 +207,6 @@ public class MMU {
 		if (address >= 0xFF00 && address <= 0xFF7F) {
 			return system.getGpu().readByte(address);
 		}
-
 		MemoryRegion r = findMemoryRegion(address);
 		return r.getMem(address);
 	}
@@ -234,10 +219,8 @@ public class MMU {
 		if (address >= 0xFF00 && address <= 0xFF7F) {
 			return system.getGpu().readWord(address);
 		}
-
 		byte b1 = readByte(address);
 		byte b2 = readByte((char) (address + 1));
-
 		return Util.bytesToWord(b1, b2);
 	}
 
