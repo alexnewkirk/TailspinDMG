@@ -236,7 +236,9 @@ public class MMU {
 	public void writeByte(char address, byte data) {
 		if (address >= 0xFF00 && address <= 0xFF7F) {
 			system.getGpu().writeByte(address, data);
-		} else {
+		} else if(address == 0xFF50 && data == 0x01) {
+			biosMapped = false;
+		}else {
 			MemoryRegion r = findMemoryRegion(address);
 			r.setMem(address, data);
 		}
