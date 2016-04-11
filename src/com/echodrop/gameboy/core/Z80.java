@@ -128,7 +128,7 @@ public class Z80 {
 			getClockT().setValue(getClockT().getValue() + clockIncrement / 4);
 			getClockM().setValue(getClockM().getValue() + clockIncrement);
 
-			system.getGpu().incrementModeClock((byte)(clockIncrement / 4));
+			system.getGpu().incrementModeClock((byte) (clockIncrement / 4));
 
 		} else {
 			logger.severe("Unimplemented instruction: " + Integer.toHexString(opcode & 0xFF));
@@ -269,6 +269,9 @@ public class Z80 {
 		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> ldDn(), (byte) 8));
 		opCodes.put((byte) 0x7C, new OpCode("LD A,H", () -> ldAh(), (byte) 4));
 		opCodes.put((byte) 0xBE, new OpCode("CP (HL)", () -> cpHl(), (byte) 8));
+		opCodes.put((byte) 0x7D, new OpCode("LD A, L", () -> ldAl(), (byte) 4));
+		opCodes.put((byte) 0x78, new OpCode("LD A, B", () -> ldAb(), (byte) 4));
+		opCodes.put((byte) 0x86, new OpCode("ADD A,(HL)", () -> addAhL(), (byte) 8));
 	}
 
 	/**
@@ -410,26 +413,51 @@ public class Z80 {
 	 *
 	 */
 	
-	//Compare A to address pointed to by HL
-	private void cpHl() {
-		operationFlag = true;
-		
-		zeroFlag = (getA().getValue() == mem.readByte(readDualRegister(h, l)));
+	//Add value pointed to by HL to Am, 
+	private void addAhL() {
+		operationFlag = false;
+		getA().setValue(getA().getValue() + mem.readByte(readDualRegister(h, l)));
+		zeroFlag = (getA().getValue() == 0);
 		
 		/**
 		 * 
 		 * 
-		 * Half carry flag not implemented
-		 *  Full carry flag not implemented
+		 * Half carry flag not implemented Full carry flag not implemented
 		 * 
 		 */
 	}
-	
+
+	// Compare A to address pointed to by HL
+	private void cpHl() {
+		operationFlag = true;
+
+		zeroFlag = (getA().getValue() == mem.readByte(readDualRegister(h, l)));
+
+		/**
+		 * 
+		 * 
+		 * Half carry flag not implemented Full carry flag not implemented
+		 * 
+		 */
+	}
+
 	// Copy H into A
-		private void ldAh() {
-			getA().setValue(getH().getValue());
-			logger.finer("Copied H (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
-		}
+	private void ldAh() {
+		getA().setValue(getH().getValue());
+		logger.finer("Copied H (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
+	}
+
+	// Copy B into A
+	private void ldAb() {
+		getA().setValue(getB().getValue());
+		logger.finer("Copied B (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
+	}
+
+	// Copy L into A
+	private void ldAl() {
+		getA().setValue(getL().getValue());
+		logger.finer("Copied L (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
+	}
 
 	// Load 8-bit immediate into D
 	private void ldDn() {
@@ -450,8 +478,7 @@ public class Z80 {
 		/**
 		 * 
 		 * 
-		 * Half carry flag not implemented
-		 *  Full carry flag not implemented
+		 * Half carry flag not implemented Full carry flag not implemented
 		 * 
 		 */
 
@@ -641,13 +668,13 @@ public class Z80 {
 		if (getA().getValue() == immediate) {
 			setZeroFlag(true);
 		} else {
-			
+
 			setZeroFlag(false);
-			
+
 			if (getA().getValue() < immediate) {
 				setFullCarryFlag(true);
 			}
-			
+
 		}
 
 		setOperationFlag(true);
