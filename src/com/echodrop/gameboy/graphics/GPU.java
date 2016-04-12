@@ -243,32 +243,45 @@ public class GPU {
 	}
 
 	private void renderScanLine() {
-		logger.info("[!] renderScanLine() called");
-
+		logger.fine("[!] renderScanLine() called");
 		GPU gpu = system.getGpu();
-		char mapOffset = (char) (Util.readBit(3, gpu.getLcdControl().getValue()) ? 0x9c00 : 0x9800);
-		mapOffset += ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 0xFF) >> 3;
-
+		
+		
+		char tilemapOffset = (char) (Util.readBit(3, gpu.getLcdControl().getValue()) ? 0x9c00 : 0x9800);
+		
+		
+		tilemapOffset += ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 0xFF) >> 3;
+		
+		logger.finer("mapOffset = " + Util.charToReadableHex(tilemapOffset));
+		
 		byte lineOffset = (byte) (gpu.getScrollX().getValue() >> 3);
+		logger.finer("lineOffset = " + Util.byteToReadableHex(lineOffset));
 
 		byte y = (byte) ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 7);
+		logger.finer("y = " + Util.byteToReadableHex(y));
 
 		byte x = (byte) (gpu.getScrollX().getValue() & 7);
+		logger.finer("x = " + Util.byteToReadableHex(x));
 
-		byte tile = system.getMem().readByte((char) (mapOffset + lineOffset));
+		byte tile = system.getMem().readByte((char) (tilemapOffset + lineOffset));
+		logger.finer("tile = " + Util.byteToReadableHex(tile));
 
+		//base address for selected tileset
 		char baseAddress = (char) ((Util.readBit(4, gpu.getLcdControl().getValue())) ? 0x8000 : 0x9000);
+		logger.finer("baseAddress = " + Util.charToReadableHex(baseAddress));
 
 		for (int i = 0; i < 160; i++) {
 			byte color = (byte) (system.getMem().readByte((char) (baseAddress + tile))
 					+ system.getMem().readByte((char) (baseAddress + tile + 1)));
+			
+			logger.finer("color = " + Util.byteToReadableHex(color));
 
 			frameBuffer[x & 0xFF][y & 0xFF] = color;
 
 			x++;
 			if (x == 8) {
 				lineOffset = (byte) ((lineOffset + 1) & 31);
-				tile = system.getMem().readByte((char) (mapOffset + lineOffset));
+				tile = system.getMem().readByte((char) (tilemapOffset + lineOffset));
 			}
 		}
 
