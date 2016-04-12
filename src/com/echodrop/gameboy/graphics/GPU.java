@@ -9,28 +9,14 @@
 package com.echodrop.gameboy.graphics;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
-import com.echodrop.gameboy.core.TailspinGB;
-import com.echodrop.gameboy.core.Util;
 import com.echodrop.gameboy.core.MemoryRegion;
 import com.echodrop.gameboy.core.Register;
+import com.echodrop.gameboy.core.TailspinGB;
+import com.echodrop.gameboy.core.Util;
 import com.echodrop.gameboy.exceptions.MemoryAccessException;
 import com.echodrop.gameboy.interfaces.IGraphicsObserver;
-
-/**
- * 
- * Notes:
- * 
- * Tiles are 8x8 pixels
- * Tilemaps are 32 x 32 tiles
- * 0x8000-0x87FF is tileset 1, tiles 0-127
- * 0x9800-0x9BFF is tilemap 0, 0x9C00-9FFF is tilemap 1
- * 0x9000-0x97FF is tileset 0, tiles 0-127
- * 0x8800-0x8FFF is tileset 0, -1 to -127 - which are shared with tileset 1 as
- * tiles 128-255
- */
 
 /**
  * Emulation core for GameBoy Graphics Processing Unit
@@ -61,7 +47,7 @@ public class GPU {
 	 * Advanced after each CPU instruction with the Z80 clock_t
 	 */
 	private int modeClock;
-	private List<IGraphicsObserver> observers;
+	private ArrayList<IGraphicsObserver> observers;
 
 	public GPU(TailspinGB system) {
 		this.system = system;
@@ -113,7 +99,8 @@ public class GPU {
 					mode.setValue(1);
 
 					// update screen after last HBLANK
-					notifyAllObservers();
+					// notifyAllObservers();
+					renderFrame();
 
 				} else {
 
@@ -161,7 +148,7 @@ public class GPU {
 				mode.setValue(0);
 
 				// Write scanline to framebuffer
-				renderScanLine();
+				// renderScanLine();
 			}
 			break;
 		}
@@ -233,58 +220,55 @@ public class GPU {
 
 	public void registerObserver(IGraphicsObserver o) {
 		observers.add(o);
+		logger.info("[+] Graphics observer registered: " + o);
 	}
 
-	private void notifyAllObservers() {
-		for (IGraphicsObserver o : observers) {
-			o.update();
+	public void notifyAllObservers() {
+		logger.info("[~] GPU notifying all graphics observers");
+		for (int i = 0; i < observers.size(); i++) {
+			observers.get(i).updateDisplay();
+			logger.fine("[+] Notifying observer: " + observers.get(i));
 		}
-		logger.severe("[!] VBLANK, notifying observers");
+
 	}
 
-	private void renderScanLine() {
-		logger.fine("[!] renderScanLine() called");
-		GPU gpu = system.getGpu();
-		
-		
-		char tilemapOffset = (char) (Util.readBit(3, gpu.getLcdControl().getValue()) ? 0x9C00 : 0x9800);
-		
-		
-		tilemapOffset += ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 0xFFFF) >> 3;
-		
-		logger.finer("mapOffset = " + Util.charToReadableHex(tilemapOffset));
-		
-		byte lineOffset = (byte) (gpu.getScrollX().getValue() >> 3);
-		logger.finer("lineOffset = " + Util.byteToReadableHex(lineOffset));
+//	private void renderScanLine() {
+//	}
 
-		byte y = (byte) ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 7);
-		logger.finer("y = " + Util.byteToReadableHex(y));
+	public void renderFrame() {
 
-		byte x = (byte) (gpu.getScrollX().getValue() & 7);
-		logger.finer("x = " + Util.byteToReadableHex(x));
+		boolean tileset = Util.readBit(3, getLcdControl().getValue());
 
-		byte tile = system.getMem().readByte((char) (tilemapOffset + lineOffset));
-		logger.finer("tile = " + Util.byteToReadableHex(tile));
+		char address = (char) (Util.readBit(4, getLcdControl().getValue()) ? 0x9C00 : 0x9800);
 
-		//base address for selected tileset
-		char baseAddress = (char) ((Util.readBit(4, gpu.getLcdControl().getValue())) ? 0x8000 : 0x9000);
-		logger.finer("baseAddress = " + Util.charToReadableHex(baseAddress));
+		byte[][] rendered = new byte[256][256];
+		byte[][] newFrameBuffer = new byte[160][144];
+
+		for (int i = 0; i < 1024; i++) {
+
+			int x = (i % 32) * 8;
+			int y = (i / 32) * 8;
+
+			byte tileOffset = system.getMem().readByte(address);
+
+			byte[] tileData = Util.getTile(system.getMem(), tileset, tileOffset);
+
+			byte[][] pixels = Util.mapTile(getBackgroundPalette().getValue(), tileData);
+
+			for (int j = 0; j < 8; j++) {
+				for (int k = 0; k < 8; k++) {
+					rendered[x + k][y + j] = pixels[j][k];
+				}
+			}
+			address++;
+		}
 
 		for (int i = 0; i < 160; i++) {
-			byte color = (byte) (system.getMem().readByte((char) (baseAddress + tile))
-					+ system.getMem().readByte((char) (baseAddress + tile + 1)));
-			
-			logger.finer("color = " + Util.byteToReadableHex(color));
-
-			frameBuffer[x & 0xFF][y & 0xFF] = color;
-
-			x++;
-			if (x == 8) {
-				lineOffset = (byte) ((lineOffset + 1) & 31);
-				tile = system.getMem().readByte((char) (tilemapOffset + lineOffset));
+			for (int j = 0; j < 144; j++) {
+				newFrameBuffer[i][j] = rendered[i + getScrollX().getValue()][j + getScrollY().getValue()];
 			}
 		}
-
+		setFrameBuffer(newFrameBuffer);
 	}
 
 	public void incrementModeClock(byte time) {
@@ -307,8 +291,9 @@ public class GPU {
 		this.oam = oam;
 	}
 
-	private void setFrameBuffer(byte[][] frameBuffer) {
+	public void setFrameBuffer(byte[][] frameBuffer) {
 		this.frameBuffer = frameBuffer;
+		notifyAllObservers();
 	}
 
 	public byte[][] getFrameBuffer() {

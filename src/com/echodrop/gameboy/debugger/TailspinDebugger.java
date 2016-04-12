@@ -16,6 +16,7 @@ import com.echodrop.gameboy.core.MemoryRegion;
 import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.core.Util;
+import com.echodrop.gameboy.ui.SwingScreen;
 
 /**
  * A simple command line debugger for the Tailspin emulator
@@ -28,6 +29,8 @@ public class TailspinDebugger {
 	private static boolean running;
 	private static final String SPACER = "------------------------------";
 	private static ArrayList<Register> availableRegisters = new ArrayList<Register>();
+	private static boolean videoEnabled = false;
+	private static SwingScreen vid;
 
 	/**
 	 * Initializes debugger
@@ -145,7 +148,99 @@ public class TailspinDebugger {
 				breakpoints.clear();
 				System.out.println("[!] Cleared all breakpoints");
 				break;
+			case TILEDMP:
+				tiledump();
+				break;
+			case VTILEDMP:
+				vTileDump();
+				break;
+			case VIDEO:
+				enableVideoMode();
+				break;
+			case TILEWRITETEST:
+				tileWriteTest();
+				break;
+			case RENDER:
+				system.getGpu().renderFrame();
+				break;
 			}
+		}
+	}
+
+	private static void tileWriteTest() {
+		system.getMem().writeByte((char) 0x81a0, (byte) 0x00);
+		system.getMem().writeByte((char) 0x81a1, (byte) 0x00);
+		system.getMem().writeByte((char) 0x81a2, (byte) 0x7e);
+		system.getMem().writeByte((char) 0x81a3, (byte) 0x7e);
+		system.getMem().writeByte((char) 0x81a4, (byte) 0x42);
+		system.getMem().writeByte((char) 0x81a5, (byte) 0x42);
+		system.getMem().writeByte((char) 0x81a6, (byte) 0x42);
+		system.getMem().writeByte((char) 0x81a7, (byte) 0x42);
+		system.getMem().writeByte((char) 0x81a8, (byte) 0x7e);
+		system.getMem().writeByte((char) 0x81a9, (byte) 0x7e);
+		system.getMem().writeByte((char) 0x81aa, (byte) 0x42);
+		system.getMem().writeByte((char) 0x81ab, (byte) 0x42);
+		system.getMem().writeByte((char) 0x81ac, (byte) 0x42);
+		system.getMem().writeByte((char) 0x81ad, (byte) 0x42);
+		system.getMem().writeByte((char) 0x81ae, (byte) 0x00);
+		system.getMem().writeByte((char) 0x81af, (byte) 0x00);
+		system.getGpu().notifyAllObservers();
+	}
+
+	private static void enableVideoMode() {
+		if (!videoEnabled) {
+			videoEnabled = true;
+
+			javax.swing.SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					vid = new SwingScreen(system);
+					vid.setVisible(true);
+				}
+			});
+
+		}
+	}
+
+	private static void vTileDump() {
+		enableVideoMode();
+		byte[][] newFrameBuffer = new byte[160][144];
+		for (int i = 0; i < 256; i++) {
+			int tileX = i % 20;
+			int tileY = i / 20;
+
+			int x = tileX * 8;
+			int y = tileY * 8;
+
+			byte[][] tile = Util.mapTile(system.getGpu().getBackgroundPalette().getValue(),
+					Util.getTile(system.getMem(), true, i));
+
+			for (int j = 0; j < 8; j++) {
+				for (int k = 0; k < 8; k++) {
+					newFrameBuffer[x + j][y + k] = (byte) tile[j][k];
+				}
+			}
+		}
+		system.getGpu().setFrameBuffer(newFrameBuffer);
+	}
+
+	private static void tiledump() {
+		for (int i = 0; i < 256; i++) {
+			System.out.println("Tile " + i + ":");
+			byte[] tile = Util.getTile(system.getMem(), true, i);
+			byte[][] tileData = Util.mapTile(system.getGpu().getBackgroundPalette().getValue(), tile);
+			// row
+			int rowCount = 0;
+			for (int k = 0; k < 16; k += 2) {
+				// pixel within row
+				for (int l = 0; l < 8; l++) {
+					// System.out.print(row[l]);
+					System.out.print(tileData[rowCount][l]);
+				}
+				rowCount++;
+				System.out.println();
+			}
+			sc.nextLine();
 		}
 	}
 
@@ -198,6 +293,11 @@ public class TailspinDebugger {
 		System.out.println("framedmp: display the current framebuffer state");
 		System.out.println("condbrk: add a new conditional breakpoint");
 		System.out.println("clrbrk: clear all breakpoints");
+		System.out.println("tiledmp: display tileset data in text format");
+		System.out.println("vtiledmp: render tileset to framebuffer");
+		System.out.println("video: enable video mode");
+		System.out.println("render: draw framebuffer to screen");
+
 	}
 
 	private static void memDump() {
@@ -309,6 +409,9 @@ public class TailspinDebugger {
 					c = new DebugCommand(commandType, argument);
 					return c;
 				}
+			}
+			if(!input.isEmpty()) {
+				System.out.println("[!] Invalid command: '" + input + "'");
 			}
 		}
 	}

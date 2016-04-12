@@ -28,6 +28,11 @@ public enum DebugCommandType {
 	LOADROM,
 	FRAMEDMP,
 	CONDBRK,
-	CLRBRK;
+	CLRBRK,
+	TILEDMP,
+	VTILEDMP,
+	VIDEO,
+	TILEWRITETEST,
+	RENDER;
 
 }

@@ -45,7 +45,7 @@ public class TailspinGB {
 			globalLogger.removeHandler(handler);
 		}
 
-		logger.setLevel(Level.OFF);
+		logger.setLevel(Level.INFO);
 		logger.addHandler(new CliHandler());
 
 		mem.initLogging();

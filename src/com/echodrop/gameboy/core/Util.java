@@ -81,8 +81,55 @@ public class Util {
 		//XXX needs error checking
 		StringBuilder sb = new StringBuilder();
 		sb.append(zeroLeftPad(Integer.toBinaryString(data & 0xFF), 8));
-		sb = sb.reverse();
+		//sb = sb.reverse();
 		return sb.charAt(bit) == '1';
 	}
+	
+	public static byte[] mapRow(byte palette, byte b1, byte b2) {
+		
+		StringBuilder paletteSb = new StringBuilder();
+		byte[] row = new byte[8];
+		String bin1 = zeroLeftPad(Integer.toBinaryString(b1 & 0xFF), 8);
+		String bin2 = zeroLeftPad(Integer.toBinaryString(b2 & 0xFF), 8);
+		paletteSb.append(zeroLeftPad(Integer.toBinaryString(palette & 0xFF), 8));
+		
+		for(int i = 0; i < 8; i++) {
+			byte color = (byte)(Integer.parseInt("" + bin2.charAt(i) + bin1.charAt(i), 2) & 0xFF);
+			row[i] = color;//(byte)(Integer.parseInt(paletteSb.charAt(color) & 0xFF;
+			//XXX this isnt being mapped through the palette
+		}
+		
+		return row;
+	}
+	
+	public static byte[] getTile(MMU mem, boolean tileset, int tileNumber) {
+		char memOffset = (char)(tileset ? 0x8000 : 0x9000);
+		byte[] tile = new byte[16];
+		for(int i = 0; i < 16; i++) {		
+			tile[i] = mem.readByte((char)(memOffset + (tileNumber * 16) + i));
+		}
+		return tile;
+	}
+	
+	public static byte[][] mapTile(byte palette, byte[] tileData) {
+		byte[][] tile = new byte[8][8];
+		byte firstHalf;
+		byte secondHalf;
+		
+		int xCount = 0;
+		for(int i = 0; i < 16; i += 2) {
+			firstHalf = tileData[i];
+			secondHalf = tileData[i+1];
+			byte[] row = mapRow(palette, secondHalf, firstHalf);
+			
+			for(int j = 0; j < 8; j++) {
+				tile[xCount][j] = row[j];
+			}
+			xCount++;
+		}
+
+		return tile;
+	}
+
 
 }

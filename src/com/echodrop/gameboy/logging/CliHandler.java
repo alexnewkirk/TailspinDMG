@@ -26,6 +26,7 @@ public class CliHandler extends Handler {
 
 	@Override
 	public void publish(LogRecord record) {
+		System.out.println();
 		if (record.getLevel() == Level.SEVERE || record.getLevel() == Level.WARNING) {
 			System.err.println(record.getMessage());
 		} else {
