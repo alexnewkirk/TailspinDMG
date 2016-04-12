@@ -33,7 +33,7 @@ import com.echodrop.gameboy.interfaces.IGraphicsObserver;
  */
 
 /**
- * Emulation core for GameBoy Graphics Processing Units
+ * Emulation core for GameBoy Graphics Processing Unit
  */
 public class GPU {
 
@@ -247,10 +247,10 @@ public class GPU {
 		GPU gpu = system.getGpu();
 		
 		
-		char tilemapOffset = (char) (Util.readBit(3, gpu.getLcdControl().getValue()) ? 0x9c00 : 0x9800);
+		char tilemapOffset = (char) (Util.readBit(3, gpu.getLcdControl().getValue()) ? 0x9C00 : 0x9800);
 		
 		
-		tilemapOffset += ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 0xFF) >> 3;
+		tilemapOffset += ((gpu.getLine().getValue() + gpu.getScrollY().getValue()) & 0xFFFF) >> 3;
 		
 		logger.finer("mapOffset = " + Util.charToReadableHex(tilemapOffset));
 		

@@ -12,3 +12,4 @@ The emulator is currently capable of executing the entire GameBoy BIOS successfu
 2. http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
 3. http://www.devrs.com/gb/files/GBCPU_Instr.html
 4. http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
+http://www.enliten.force9.co.uk/gameboy/memory.htm
