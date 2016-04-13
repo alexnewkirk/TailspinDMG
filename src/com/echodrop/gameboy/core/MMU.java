@@ -83,9 +83,10 @@ public class MMU {
 
 	/**
 	 * Loads the DMG bios into memory
+	 * TODO: put file i/o into another class, it doesnt belong here
 	 */
-	public void loadBios() {
-		Path path = Paths.get("bios.gb");
+	public void loadBios(String filename) {
+		Path path = Paths.get(filename);
 		byte[] gbBios = null;
 		try {
 			gbBios = Files.readAllBytes(path);
@@ -96,13 +97,12 @@ public class MMU {
 		for (int i = 0; i < gbBios.length - 1; i++) {
 			getBios().setMem((char) i, (byte) (gbBios[i] & 0xFF));
 		}
-
 		logger.info("BIOS loaded: " + gbBios.length + " bytes");
-
 	}
 
 	/**
 	 * Loads a rom binary of the specified filename into memory
+	 * TODO: put file i/o into another class, it doesnt belong here
 	 */
 	public void loadRom(String filename) {
 		Path path = Paths.get(filename);

@@ -30,27 +30,29 @@ public class TailspinGB {
 		this.setMem(new MMU(this));
 		this.setProcessor(new Z80(this));
 		this.setGpu(new GPU(this));
-		this.initLogging();
+		this.initSystemLogging();
 	}
 
 	/**
 	 * Sets up system-wide logging
 	 */
-	public void initLogging() {
+	public void initSystemLogging() {
+		mem.initLogging();
+		processor.initLogging();
+		gpu.initLogging();
+	}
+
+	public void initLogging(Level logLevel, Handler handler) {
 		// disable default handler in root logger
 		Logger globalLogger = Logger.getLogger("");
 		Handler[] handlers = globalLogger.getHandlers();
 
-		for (Handler handler : handlers) {
-			globalLogger.removeHandler(handler);
+		for (Handler h : handlers) {
+			globalLogger.removeHandler(h);
 		}
-
-		logger.setLevel(Level.INFO);
-		logger.addHandler(new CliHandler());
-
-		mem.initLogging();
-		processor.initLogging();
-		gpu.initLogging();
+		logger.setLevel(logLevel);
+		logger.addHandler(handler);
+		initSystemLogging();
 	}
 
 	/**
@@ -60,7 +62,6 @@ public class TailspinGB {
 		processor.initialize();
 		gpu.initialize();
 		mem.initialize();
-		mem.loadBios();
 	}
 
 	public MMU getMem() {

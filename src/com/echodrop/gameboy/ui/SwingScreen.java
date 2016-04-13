@@ -18,6 +18,7 @@ public class SwingScreen extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		add(tsp);
 		setLocationRelativeTo(null);
+		setResizable(false);
 		pack();
 	}
 

@@ -9,7 +9,7 @@
 package com.echodrop.gameboy.debugger;
 
 /**
- * Command types available for the Tailspin debugger
+ * Commands available for the Tailspin debugger
  */
 public enum DebugCommandType {
 	
@@ -29,10 +29,9 @@ public enum DebugCommandType {
 	FRAMEDMP,
 	CONDBRK,
 	CLRBRK,
-	TILEDMP,
 	VTILEDMP,
+	TILEDMP,
 	VIDEO,
 	TILEWRITETEST,
 	RENDER;
-
 }

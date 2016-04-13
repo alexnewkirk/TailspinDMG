@@ -82,6 +82,9 @@ public class GPU {
 
 	/**
 	 * Called after each CPU instruction
+	 * 
+	 * Based on the write-up at
+	 * http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU
 	 */
 	public void clockStep() {
 		logger.info("GPU Clock Step: line:" + getLine() + " mode:" + getMode() + " modeClock: " + getModeClock());
@@ -147,6 +150,7 @@ public class GPU {
 				logger.info("\n[!] GPU MODE SWITCHING TO HBLANK (mode 0)\n");
 				mode.setValue(0);
 
+				// TODO: Implement rendering individual scanlines
 				// Write scanline to framebuffer
 				// renderScanLine();
 			}
@@ -184,7 +188,7 @@ public class GPU {
 	}
 
 	public char readWord(char address) {
-		// TODO
+		// TODO Does the gpu need to be able to write 16-bit values?
 		throw new RuntimeException();
 	}
 
@@ -232,8 +236,8 @@ public class GPU {
 
 	}
 
-//	private void renderScanLine() {
-//	}
+	// private void renderScanLine() {
+	// }
 
 	public void renderFrame() {
 
@@ -249,7 +253,7 @@ public class GPU {
 			int x = (i % 32) * 8;
 			int y = (i / 32) * 8;
 
-			byte tileOffset = system.getMem().readByte(address);
+			byte tileOffset = system.getMem().readByte((char) (address + 16));
 
 			byte[] tileData = Util.getTile(system.getMem(), tileset, tileOffset);
 
@@ -257,7 +261,7 @@ public class GPU {
 
 			for (int j = 0; j < 8; j++) {
 				for (int k = 0; k < 8; k++) {
-					rendered[x + j][y + k] = pixels[j][k];
+					rendered[x + k][y + j] = pixels[k][j];
 				}
 			}
 			address++;

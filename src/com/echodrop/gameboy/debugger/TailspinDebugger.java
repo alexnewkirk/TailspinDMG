@@ -148,11 +148,11 @@ public class TailspinDebugger {
 				breakpoints.clear();
 				System.out.println("[!] Cleared all breakpoints");
 				break;
-			case TILEDMP:
-				tiledump();
-				break;
 			case VTILEDMP:
 				vTileDump();
+				break;
+			case TILEDMP:
+				tiledump();
 				break;
 			case VIDEO:
 				enableVideoMode();
@@ -167,6 +167,10 @@ public class TailspinDebugger {
 		}
 	}
 
+	/**
+	 * Writes a tile that looks like the letter 'A' into memory at 0x81a0. Used
+	 * with vtiledmp to check that tiles are being rendered correctly
+	 */
 	private static void tileWriteTest() {
 		system.getMem().writeByte((char) 0x81a0, (byte) 0x00);
 		system.getMem().writeByte((char) 0x81a1, (byte) 0x00);
@@ -187,10 +191,12 @@ public class TailspinDebugger {
 		system.getGpu().notifyAllObservers();
 	}
 
+	/**
+	 * Opens a Swing window that displays the emulation's framebuffer
+	 */
 	private static void enableVideoMode() {
 		if (!videoEnabled) {
 			videoEnabled = true;
-
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -198,10 +204,14 @@ public class TailspinDebugger {
 					vid.setVisible(true);
 				}
 			});
-
 		}
 	}
 
+	/**
+	 * Dumps tileset 1 to the framebuffer
+	 * 
+	 * @TODO: add support for tileset 0
+	 */
 	private static void vTileDump() {
 		enableVideoMode();
 		byte[][] newFrameBuffer = new byte[160][144];
@@ -217,13 +227,16 @@ public class TailspinDebugger {
 
 			for (int j = 0; j < 8; j++) {
 				for (int k = 0; k < 8; k++) {
-					newFrameBuffer[x + j][y + k] = (byte) tile[j][k];
+					newFrameBuffer[x + j][y + k] = (byte) tile[k][j];
 				}
 			}
 		}
 		system.getGpu().setFrameBuffer(newFrameBuffer);
 	}
 
+	/**
+	 * Dumps tileset 1 in text mode to the console
+	 */
 	private static void tiledump() {
 		for (int i = 0; i < 256; i++) {
 			System.out.println("Tile " + i + ":");
@@ -254,6 +267,9 @@ public class TailspinDebugger {
 		availableRegisters.add(system.getProcessor().getL());
 	}
 
+	/**
+	 * Dumps the contents of the framebuffer in text mode to the console.
+	 */
 	private static void framedump() {
 		byte[][] fb = system.getGpu().getFrameBuffer();
 		for (int i = 0; i < fb.length; i++) {
@@ -271,7 +287,6 @@ public class TailspinDebugger {
 			System.out.print("[tdbg] Enter ROM filename:");
 			filename = sc.nextLine();
 		}
-
 		return filename;
 	}
 
@@ -301,7 +316,6 @@ public class TailspinDebugger {
 	}
 
 	private static void memDump() {
-
 		ArrayList<String> options = new ArrayList<String>();
 		options.add("BIOS (0x0000 - 0x00FF)");
 		options.add("Working RAM (0xC000 - 0xDFFF)");
@@ -342,7 +356,6 @@ public class TailspinDebugger {
 		if (selected != null) {
 			System.out.println(selected);
 		}
-
 	}
 
 	private static void regDump() {
@@ -381,36 +394,24 @@ public class TailspinDebugger {
 			String input = sc.nextLine().toUpperCase();
 			DebugCommandType commandType = null;
 			Character argument = null;
-
 			for (DebugCommandType dct : DebugCommandType.values()) {
-
 				if (input.contains(dct.name())) {
-
 					commandType = dct;
-
 					String remaining = input.replace(dct.toString(), "");
-
 					remaining = remaining.replace("0X", "");
-
 					remaining = remaining.trim();
-
 					if (!remaining.isEmpty()) {
-
 						try {
-
 							argument = (char) Integer.parseInt(remaining, 16);
-
 						} catch (NumberFormatException e) {
 							// invalid or no argument
 						}
-
 					}
-
 					c = new DebugCommand(commandType, argument);
 					return c;
 				}
 			}
-			if(!input.isEmpty()) {
+			if (!input.isEmpty()) {
 				System.out.println("[!] Invalid command: '" + input + "'");
 			}
 		}

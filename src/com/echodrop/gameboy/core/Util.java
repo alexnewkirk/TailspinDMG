@@ -32,13 +32,11 @@ public class Util {
 		if (hex1.length() < 2) {
 			hex1 = "0" + hex1;
 		}
-
 		String hex2 = Integer.toHexString(b1 & 0xFF);
 
 		if (hex2.length() < 2) {
 			hex2 = "0" + hex2;
 		}
-
 		char result = (char) Integer.parseInt(hex1 + hex2, 16);
 		return result;
 	}
@@ -77,6 +75,10 @@ public class Util {
 		return result;
 	}
 	
+	/**
+	 * Reads the value of a specific bit from data
+	 * @return true if the specified bit is 1
+	 */
 	public static boolean readBit(int bit, byte data) {
 		//XXX needs error checking
 		StringBuilder sb = new StringBuilder();
@@ -85,12 +87,23 @@ public class Util {
 		return sb.charAt(bit) == '1';
 	}
 	
+	/**
+	 * Maps a row of pixels from a tile, to be rendered to the screen.
+	 * 
+	 * @param palette the value of a background color palette register
+	 * @param b1 the first byte of the row to be mapped
+	 * @param b2 the second byte of a row to be mapped
+	 * @return an array of length 8 containing mapped pixels
+	 */
 	public static byte[] mapRow(byte palette, byte b1, byte b2) {
-		
 		StringBuilder paletteSb = new StringBuilder();
 		byte[] row = new byte[8];
-		String bin1 = zeroLeftPad(Integer.toBinaryString(b1 & 0xFF), 8);
-		String bin2 = zeroLeftPad(Integer.toBinaryString(b2 & 0xFF), 8);
+		StringBuilder bin1 = new StringBuilder();
+		bin1.append(zeroLeftPad(Integer.toBinaryString(b1 & 0xFF), 8));
+		StringBuilder bin2 = new StringBuilder();
+		bin2.append(zeroLeftPad(Integer.toBinaryString(b2 & 0xFF), 8));
+//		bin1 = bin1.reverse();
+//		bin2 = bin2.reverse();
 		paletteSb.append(zeroLeftPad(Integer.toBinaryString(palette & 0xFF), 8));
 		
 		for(int i = 0; i < 8; i++) {
@@ -98,7 +111,6 @@ public class Util {
 			row[i] = color;//(byte)(Integer.parseInt(paletteSb.charAt(color) & 0xFF;
 			//XXX this isnt being mapped through the palette
 		}
-		
 		return row;
 	}
 	
@@ -114,6 +126,12 @@ public class Util {
 		return tile;
 	}
 	
+	/**
+	 * Maps an entire 8x8 tile and returns a 2 dimensional array of size 8x8
+	 * @param palette the palette register value for the colors to be mapped through
+	 * @param tileData a byte array of length 16, containing 1 entire tile
+	 * @return
+	 */
 	public static byte[][] mapTile(byte palette, byte[] tileData) {
 		byte[][] tile = new byte[8][8];
 		byte firstHalf;
@@ -130,7 +148,6 @@ public class Util {
 			}
 			xCount++;
 		}
-
 		return tile;
 	}
 
