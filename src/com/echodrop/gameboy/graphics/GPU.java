@@ -257,7 +257,7 @@ public class GPU {
 
 			for (int j = 0; j < 8; j++) {
 				for (int k = 0; k < 8; k++) {
-					rendered[x + k][y + j] = pixels[j][k];
+					rendered[x + j][y + k] = pixels[j][k];
 				}
 			}
 			address++;

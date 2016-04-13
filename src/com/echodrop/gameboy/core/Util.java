@@ -102,6 +102,9 @@ public class Util {
 		return row;
 	}
 	
+	/**
+	 * Retrieves specified tile from memory
+	 */
 	public static byte[] getTile(MMU mem, boolean tileset, int tileNumber) {
 		char memOffset = (char)(tileset ? 0x8000 : 0x9000);
 		byte[] tile = new byte[16];
