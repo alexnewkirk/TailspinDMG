@@ -15,7 +15,7 @@ public class SwingScreen extends JFrame {
 
 	public SwingScreen(TailspinGB system) {
 		tsp = new TailspinScreenPanel(system.getGpu());
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		add(tsp);
 		setLocationRelativeTo(null);
 		setResizable(false);

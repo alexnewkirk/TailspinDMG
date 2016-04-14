@@ -2,7 +2,9 @@ package com.echodrop.gameboy.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 import javax.swing.JPanel;
 
@@ -15,7 +17,9 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 	private GPU gpu;
 	private byte[][] screen;
 	private int pixelSize = 4;
-	
+	private boolean fpsDisplay = true;
+	private long lastFrameMillis;
+
 	public TailspinScreenPanel(GPU gpu) {
 		this.gpu = gpu;
 		gpu.registerObserver(this);
@@ -24,7 +28,7 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 		setPreferredSize(new Dimension(160 * pixelSize, 144 * pixelSize));
 		updateDisplay();
 	}
-	
+
 	@Override
 	protected void paintComponent(Graphics g) {
 		if(screen != null) {
@@ -52,12 +56,25 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 				}
 			}
 		}
+		if(lastFrameMillis != 0) {
+			Graphics2D g2d = (Graphics2D) g;
+			g2d.setColor(Color.RED);
+			g2d.setFont(new Font("Arial", Font.BOLD, 10));
+			g2d.drawString("FPS: " + 60/(System.currentTimeMillis() - lastFrameMillis) / 1000f, 30, 30);
+		}
+		
+		
 	}
 
 	@Override
 	public void updateDisplay() {
 		this.screen = gpu.getFrameBuffer();
 		this.repaint();
+		lastFrameMillis = System.currentTimeMillis();
+	}
+
+	public void toggleFpsDisplay() {
+		fpsDisplay = !fpsDisplay;
 	}
 
 }

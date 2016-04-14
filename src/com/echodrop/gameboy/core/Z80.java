@@ -195,9 +195,9 @@ public class Z80 {
 		byte b1 = b[0];
 		byte b2 = b[1];
 		sp--;
-		mem.writeByte(sp, b1);
-		sp--;
 		mem.writeByte(sp, b2);
+		sp--;
+		mem.writeByte(sp, b1);
 	}
 
 	/**
@@ -208,7 +208,7 @@ public class Z80 {
 		sp++;
 		byte b1 = mem.readByte(sp);
 		sp++;
-		return Util.bytesToWord(b1, b2);
+		return Util.bytesToWord(b2, b1);
 	}
 
 	/**

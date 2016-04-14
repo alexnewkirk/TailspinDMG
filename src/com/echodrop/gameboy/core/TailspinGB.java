@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.echodrop.gameboy.graphics.GPU;
-import com.echodrop.gameboy.logging.CliHandler;
 
 /**
  * This class represents a combination of the components required for the
@@ -30,17 +29,8 @@ public class TailspinGB {
 		this.setMem(new MMU(this));
 		this.setProcessor(new Z80(this));
 		this.setGpu(new GPU(this));
-		this.initSystemLogging();
 	}
 
-	/**
-	 * Sets up system-wide logging
-	 */
-	public void initSystemLogging() {
-		mem.initLogging();
-		processor.initLogging();
-		gpu.initLogging();
-	}
 
 	public void initLogging(Level logLevel, Handler handler) {
 		// disable default handler in root logger
@@ -52,7 +42,10 @@ public class TailspinGB {
 		}
 		logger.setLevel(logLevel);
 		logger.addHandler(handler);
-		initSystemLogging();
+
+		mem.initLogging();
+		processor.initLogging();
+		gpu.initLogging();
 	}
 
 	/**
@@ -62,6 +55,9 @@ public class TailspinGB {
 		processor.initialize();
 		gpu.initialize();
 		mem.initialize();
+
+		// FIXME remove this later, it shouldn't be hardcoded
+		mem.loadBios("bios.gb");
 	}
 
 	public MMU getMem() {

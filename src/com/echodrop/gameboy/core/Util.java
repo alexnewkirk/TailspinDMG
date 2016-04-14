@@ -45,7 +45,7 @@ public class Util {
 	 * Left circular bit shift
 	 */
 	public static byte leftRotate(byte b) {
-		String bin = Integer.toBinaryString(b & 0xFF);
+		String bin = zeroLeftPad(Integer.toBinaryString(b & 0xFF), 8);
 		String shifted = bin.substring(1) + bin.charAt(0);
 		return (byte) Integer.parseInt(shifted, 2);
 	}
@@ -96,22 +96,28 @@ public class Util {
 	 * @return an array of length 8 containing mapped pixels
 	 */
 	public static byte[] mapRow(byte palette, byte b1, byte b2) {
-		StringBuilder paletteSb = new StringBuilder();
 		byte[] row = new byte[8];
-		StringBuilder bin1 = new StringBuilder();
-		bin1.append(zeroLeftPad(Integer.toBinaryString(b1 & 0xFF), 8));
-		StringBuilder bin2 = new StringBuilder();
-		bin2.append(zeroLeftPad(Integer.toBinaryString(b2 & 0xFF), 8));
-//		bin1 = bin1.reverse();
-//		bin2 = bin2.reverse();
-		paletteSb.append(zeroLeftPad(Integer.toBinaryString(palette & 0xFF), 8));
+
+		String bin1 = Integer.toBinaryString(b1 & 0xFF);
+		bin1 = zeroLeftPad(bin1, 8);
+		
+		String bin2 = Integer.toBinaryString(b2 & 0xFF);
+		bin2 = zeroLeftPad(bin2, 8);
 		
 		for(int i = 0; i < 8; i++) {
-			byte color = (byte)(Integer.parseInt("" + bin2.charAt(i) + bin1.charAt(i), 2) & 0xFF);
+			byte color = (byte)(Integer.parseUnsignedInt("" + bin2.charAt(i) + bin1.charAt(i), 2) & 0xFF);
 			row[i] = color;//(byte)(Integer.parseInt(paletteSb.charAt(color) & 0xFF;
 			//XXX this isnt being mapped through the palette
 		}
 		return row;
+	}
+	
+	public static String reverse(String s) {
+		String reversed = "";
+		for(int i = s.length() - 1; i >= 0; i--) {
+			reversed = s.charAt(i) + reversed;
+		}
+		return reversed;
 	}
 	
 	/**

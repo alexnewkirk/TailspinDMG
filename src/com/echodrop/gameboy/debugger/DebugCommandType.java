@@ -22,7 +22,7 @@ public enum DebugCommandType {
 	LSBRK,
 	RESET,
 	HELP,
-	LOGNONE,
+	NOLOG,
 	LOGINFO,
 	LOGALL,
 	LOADROM,

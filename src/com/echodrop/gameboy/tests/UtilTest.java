@@ -6,10 +6,10 @@ import org.junit.Test;
 
 import com.echodrop.gameboy.core.Util;
 
-public class ReadBitTest {
+public class UtilTest {
 
 	@Test
-	public void test() {
+	public void readBitTest() {
 		
 		byte input = (byte)0x91;
 		assertTrue(Util.readBit(3, input));
@@ -24,6 +24,17 @@ public class ReadBitTest {
 		assertTrue(!Util.readBit(6, input));
 		assertTrue(Util.readBit(7, input));
 		
+	}
+	
+	@Test
+	public void reverseTest() {
+		String expected = "xelA";
+		String actual = Util.reverse(expected);
+		assertEquals(expected, actual);
+		
+		expected = "niposliaT";
+		actual = Util.reverse(expected);
+		assertEquals(expected, actual);
 	}
 
 }

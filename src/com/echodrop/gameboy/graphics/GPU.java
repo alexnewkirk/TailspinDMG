@@ -253,7 +253,7 @@ public class GPU {
 			int x = (i % 32) * 8;
 			int y = (i / 32) * 8;
 
-			byte tileOffset = system.getMem().readByte((char) (address + 16));
+			byte tileOffset = system.getMem().readByte((char) (address));
 
 			byte[] tileData = Util.getTile(system.getMem(), tileset, tileOffset);
 
@@ -261,7 +261,7 @@ public class GPU {
 
 			for (int j = 0; j < 8; j++) {
 				for (int k = 0; k < 8; k++) {
-					rendered[x + k][y + j] = pixels[k][j];
+					rendered[x + k][y + j] = pixels[j][k];
 				}
 			}
 			address++;
