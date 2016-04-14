@@ -51,6 +51,22 @@ public class Util {
 	}
 
 	/**
+	 * Rotates a register left, through the carry flag
+	 * 
+	 * @param toRotate
+	 *            register to be rotated
+	 * @param carryFlag
+	 *            current state of carry flag
+	 * @return new state of carry flag
+	 */
+	public static boolean leftRotateThroughCarry(Register toRotate, boolean carryFlag) {
+		String bin = zeroLeftPad(Integer.toBinaryString(toRotate.getValue() & 0xFF), 8) + (carryFlag ? '1' : '0');
+		String shifted = bin.substring(1) + bin.charAt(0);
+		toRotate.setValue(Integer.parseInt(shifted.substring(0, 8), 2));
+		return shifted.charAt(8) == '1';
+	}
+
+	/**
 	 * Converts a byte value to a human-readable hexadecimal representation
 	 */
 	public static String byteToReadableHex(byte b) {
@@ -74,25 +90,29 @@ public class Util {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Reads the value of a specific bit from data
+	 * 
 	 * @return true if the specified bit is 1
 	 */
 	public static boolean readBit(int bit, byte data) {
-		//XXX needs error checking
+		// XXX needs error checking
 		StringBuilder sb = new StringBuilder();
 		sb.append(zeroLeftPad(Integer.toBinaryString(data & 0xFF), 8));
-		//sb = sb.reverse();
+		// sb = sb.reverse();
 		return sb.charAt(bit) == '1';
 	}
-	
+
 	/**
 	 * Maps a row of pixels from a tile, to be rendered to the screen.
 	 * 
-	 * @param palette the value of a background color palette register
-	 * @param b1 the first byte of the row to be mapped
-	 * @param b2 the second byte of a row to be mapped
+	 * @param palette
+	 *            the value of a background color palette register
+	 * @param b1
+	 *            the first byte of the row to be mapped
+	 * @param b2
+	 *            the second byte of a row to be mapped
 	 * @return an array of length 8 containing mapped pixels
 	 */
 	public static byte[] mapRow(byte palette, byte b1, byte b2) {
@@ -100,62 +120,65 @@ public class Util {
 
 		String bin1 = Integer.toBinaryString(b1 & 0xFF);
 		bin1 = zeroLeftPad(bin1, 8);
-		
+
 		String bin2 = Integer.toBinaryString(b2 & 0xFF);
 		bin2 = zeroLeftPad(bin2, 8);
-		
-		for(int i = 0; i < 8; i++) {
-			byte color = (byte)(Integer.parseUnsignedInt("" + bin2.charAt(i) + bin1.charAt(i), 2) & 0xFF);
-			row[i] = color;//(byte)(Integer.parseInt(paletteSb.charAt(color) & 0xFF;
-			//XXX this isnt being mapped through the palette
+
+		for (int i = 0; i < 8; i++) {
+			byte color = (byte) (Integer.parseUnsignedInt("" + bin2.charAt(i) + bin1.charAt(i), 2) & 0xFF);
+			row[i] = color;// (byte)(Integer.parseInt(paletteSb.charAt(color) &
+							// 0xFF;
+			// XXX this isnt being mapped through the palette
 		}
 		return row;
 	}
-	
+
 	public static String reverse(String s) {
 		String reversed = "";
-		for(int i = s.length() - 1; i >= 0; i--) {
+		for (int i = s.length() - 1; i >= 0; i--) {
 			reversed = s.charAt(i) + reversed;
 		}
 		return reversed;
 	}
-	
+
 	/**
 	 * Retrieves specified tile from memory
 	 */
 	public static byte[] getTile(MMU mem, boolean tileset, int tileNumber) {
-		char memOffset = (char)(tileset ? 0x8000 : 0x9000);
+		char memOffset = (char) (tileset ? 0x8000 : 0x9000);
 		byte[] tile = new byte[16];
-		for(int i = 0; i < 16; i++) {		
-			tile[i] = mem.readByte((char)(memOffset + (tileNumber * 16) + i));
+		for (int i = 0; i < 16; i++) {
+			tile[i] = mem.readByte((char) (memOffset + (tileNumber * 16) + i));
 		}
 		return tile;
 	}
-	
+
 	/**
 	 * Maps an entire 8x8 tile and returns a 2 dimensional array of size 8x8
-	 * @param palette the palette register value for the colors to be mapped through
-	 * @param tileData a byte array of length 16, containing 1 entire tile
+	 * 
+	 * @param palette
+	 *            the palette register value for the colors to be mapped through
+	 * @param tileData
+	 *            a byte array of length 16, containing 1 entire tile
 	 * @return
 	 */
 	public static byte[][] mapTile(byte palette, byte[] tileData) {
 		byte[][] tile = new byte[8][8];
 		byte firstHalf;
 		byte secondHalf;
-		
+
 		int xCount = 0;
-		for(int i = 0; i < 16; i += 2) {
+		for (int i = 0; i < 16; i += 2) {
 			firstHalf = tileData[i];
-			secondHalf = tileData[i+1];
+			secondHalf = tileData[i + 1];
 			byte[] row = mapRow(palette, secondHalf, firstHalf);
-			
-			for(int j = 0; j < 8; j++) {
+
+			for (int j = 0; j < 8; j++) {
 				tile[xCount][j] = row[j];
 			}
 			xCount++;
 		}
 		return tile;
 	}
-
 
 }

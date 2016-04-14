@@ -766,16 +766,11 @@ public class Z80 {
 	 */
 	private void rlA() {
 		logger.finer("Rotating A (" + Integer.toBinaryString(getA().getValue() & 0xFF) + ") left");
-		getA().setValue(Util.leftRotate(getA().getValue()));
+		setFullCarryFlag(Util.leftRotateThroughCarry(getA(), isFullCarryFlag()));
 		logger.finer("A = " + Integer.toBinaryString(getA().getValue() & 0xFF));
 		setZeroFlag(false);
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
-
-		/**
-		 * XXX Full carry flag not implemented
-		 */
-		logger.warning("RL A called, full carry flag not implemented");
 	}
 
 	/**
@@ -783,16 +778,11 @@ public class Z80 {
 	 */
 	private void rlC() {
 		logger.finer("Rotating C (" + Integer.toBinaryString(getC().getValue() & 0xFF) + ") left");
-		getC().setValue(Util.leftRotate(getC().getValue()));
+		setFullCarryFlag(Util.leftRotateThroughCarry(getC(), isFullCarryFlag()));
 		logger.finer("C = " + Integer.toBinaryString(getC().getValue() & 0xFF));
 		setZeroFlag(getC().getValue() == 0);
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
-
-		/**
-		 * XXX Full carry flag not implemented
-		 */
-		logger.warning("RL C called, full carry flag not implemented");
 	}
 
 	/**

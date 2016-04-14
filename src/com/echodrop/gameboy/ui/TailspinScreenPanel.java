@@ -56,12 +56,12 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 				}
 			}
 		}
-		if(lastFrameMillis != 0) {
-			Graphics2D g2d = (Graphics2D) g;
-			g2d.setColor(Color.RED);
-			g2d.setFont(new Font("Arial", Font.BOLD, 10));
-			g2d.drawString("FPS: " + 60/(System.currentTimeMillis() - lastFrameMillis) / 1000f, 30, 30);
-		}
+//		if(lastFrameMillis != 0) {
+//			Graphics2D g2d = (Graphics2D) g;
+//			g2d.setColor(Color.RED);
+//			g2d.setFont(new Font("Arial", Font.BOLD, 10));
+//			g2d.drawString("FPS: " + 60/(System.currentTimeMillis() - lastFrameMillis) / 1000f, 30, 30);
+//		}
 		
 		
 	}
