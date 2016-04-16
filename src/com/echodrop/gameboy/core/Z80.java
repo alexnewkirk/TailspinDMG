@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import com.echodrop.gameboy.exceptions.InstructionNotImplementedException;
+import com.echodrop.gameboy.util.NumberUtils;
 
 /**
  * Emulation core for Z80 microprocessor
@@ -174,7 +175,7 @@ public class Z80 {
 	 * unit
 	 */
 	private void writeDualRegister(Register r1, Register r2, char value) {
-		byte[] bytes = Util.wordToBytes(value);
+		byte[] bytes = NumberUtils.wordToBytes(value);
 		r2.setValue(bytes[0]);
 		r1.setValue(bytes[1]);
 	}
@@ -184,14 +185,14 @@ public class Z80 {
 	 * unit
 	 */
 	private char readDualRegister(Register r1, Register r2) {
-		return Util.bytesToWord(r2.getValue(), r1.getValue());
+		return NumberUtils.bytesToWord(r2.getValue(), r1.getValue());
 	}
 
 	/**
 	 * Pushes a memory address onto the stack
 	 */
 	private void push(char address) {
-		byte[] b = Util.wordToBytes(address);
+		byte[] b = NumberUtils.wordToBytes(address);
 		byte b1 = b[0];
 		byte b2 = b[1];
 		sp--;
@@ -208,7 +209,7 @@ public class Z80 {
 		sp++;
 		byte b1 = mem.readByte(sp);
 		sp++;
-		return Util.bytesToWord(b2, b1);
+		return NumberUtils.bytesToWord(b2, b1);
 	}
 
 	/**
@@ -406,16 +407,15 @@ public class Z80 {
 	 */
 
 	/**
-	 * Add value pointed to by HL to Am,
+	 * Add value pointed to by HL to A
 	 */
 	private void addAhL() {
 		operationFlag = false;
-		getA().setValue(getA().getValue() + mem.readByte(readDualRegister(h, l)));
-		zeroFlag = (getA().getValue() == 0);
-
-		/**
-		 * XXX Full carry and half carry flags not implemented
-		 */
+		byte memAtHl = mem.readByte(readDualRegister(h, l));
+		setFullCarryFlag(NumberUtils.ByteAdditionOverflow(getA().getValue(), memAtHl));
+		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getA().getValue(), memAtHl));
+		getA().setValue(getA().getValue() + memAtHl);
+		setZeroFlag((getA().getValue() == 0));
 	}
 
 	/**
@@ -493,15 +493,11 @@ public class Z80 {
 	 * Increment H
 	 */
 	private void incH() {
+		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getH().getValue(), (byte) 1));
 		getH().setValue(getH().getValue() + 1);
 		setZeroFlag(getH().getValue() == 0);
 		setOperationFlag(false);
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
 		logger.finer("Incremented H");
-		logger.warning("INC H called, half carry flag not implemented");
 	}
 
 	/**
@@ -556,16 +552,11 @@ public class Z80 {
 	 * Increment B
 	 */
 	private void incB() {
+		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getB().getValue(), (byte) 1));
 		getB().setValue(getB().getValue() + 1);
 		setZeroFlag(getB().getValue() == 0);
-
 		setOperationFlag(false);
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
 		logger.finer("Incremented B");
-		logger.warning("INC B called, half carry flag not implemented");
 	}
 
 	/**
@@ -766,7 +757,7 @@ public class Z80 {
 	 */
 	private void rlA() {
 		logger.finer("Rotating A (" + Integer.toBinaryString(getA().getValue() & 0xFF) + ") left");
-		setFullCarryFlag(Util.leftRotateThroughCarry(getA(), isFullCarryFlag()));
+		setFullCarryFlag(NumberUtils.leftRotateThroughCarry(getA(), isFullCarryFlag()));
 		logger.finer("A = " + Integer.toBinaryString(getA().getValue() & 0xFF));
 		setZeroFlag(false);
 		setOperationFlag(false);
@@ -778,7 +769,7 @@ public class Z80 {
 	 */
 	private void rlC() {
 		logger.finer("Rotating C (" + Integer.toBinaryString(getC().getValue() & 0xFF) + ") left");
-		setFullCarryFlag(Util.leftRotateThroughCarry(getC(), isFullCarryFlag()));
+		setFullCarryFlag(NumberUtils.leftRotateThroughCarry(getC(), isFullCarryFlag()));
 		logger.finer("C = " + Integer.toBinaryString(getC().getValue() & 0xFF));
 		setZeroFlag(getC().getValue() == 0);
 		setOperationFlag(false);
@@ -868,15 +859,11 @@ public class Z80 {
 	 * Increment C
 	 */
 	private void incC() {
+		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getC().getValue(), (byte)1));
 		getC().setValue(getC().getValue() + 1);
 		setZeroFlag(getC().getValue() == 0);
 		setOperationFlag(false);
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
 		logger.finer("Incremented C");
-		logger.warning("INC C called, half carry flag not implemented");
 	}
 
 	/**

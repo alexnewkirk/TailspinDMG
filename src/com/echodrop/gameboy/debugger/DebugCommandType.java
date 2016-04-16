@@ -33,5 +33,6 @@ public enum DebugCommandType {
 	TILEDMP,
 	VIDEO,
 	TILEWRITETEST,
-	RENDER;
+	RENDER,
+	LOADBIOS;
 }

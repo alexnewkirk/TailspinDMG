@@ -8,6 +8,8 @@
 
 package com.echodrop.gameboy.core;
 
+import com.echodrop.gameboy.util.StringUtils;
+
 /**
  * Represents a logical block of memory in the emulator's RAM
  */
@@ -66,10 +68,10 @@ public class MemoryRegion {
 
 		for (int i = 0; i < contents.length / 16; i++) {
 
-			table += "0x" + Util.zeroLeftPad(Integer.toHexString((i * 16 + start)), 4) + "| ";
+			table += "0x" + StringUtils.zeroLeftPad(Integer.toHexString((i * 16 + start)), 4) + "| ";
 
 			for (int j = 0; j < 16; j++) {
-				table += Util.zeroLeftPad(Integer.toHexString(getMem((char) ((start + i * 16 + j))) & 0xFF), 2) + " ";
+				table += StringUtils.zeroLeftPad(Integer.toHexString(getMem((char) ((start + i * 16 + j))) & 0xFF), 2) + " ";
 			}
 			table += "\n";
 		}

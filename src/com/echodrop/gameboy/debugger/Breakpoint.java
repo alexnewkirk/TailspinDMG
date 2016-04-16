@@ -9,8 +9,8 @@
 package com.echodrop.gameboy.debugger;
 
 import com.echodrop.gameboy.core.Register;
-import com.echodrop.gameboy.core.Util;
 import com.echodrop.gameboy.interfaces.IInternalByteValue;
+import com.echodrop.gameboy.util.StringUtils;
 
 /**
  * Represents a breakpoint for the Tailspin debugger
@@ -98,11 +98,11 @@ public class Breakpoint {
 
 	@Override
 	public String toString() {
-		String result = Util.charToReadableHex(getAddress());
+		String result = StringUtils.charToReadableHex(getAddress());
 		if (isConditional()) {
 			result += "\n";
 			result += "Register: " + getWatched() + "\n";
-			result += "Target value: " + Util.byteToReadableHex(getTargetValue());
+			result += "Target value: " + StringUtils.byteToReadableHex(getTargetValue());
 		}
 		return result;
 	}

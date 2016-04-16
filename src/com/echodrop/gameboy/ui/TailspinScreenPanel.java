@@ -18,7 +18,8 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 	private byte[][] screen;
 	private int pixelSize = 4;
 	private boolean fpsDisplay = true;
-	private long lastFrameMillis;
+	private long startMillis;
+	private int frameCount = 0;
 
 	public TailspinScreenPanel(GPU gpu) {
 		this.gpu = gpu;
@@ -27,6 +28,7 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 		this.setBackground(Color.WHITE);
 		setPreferredSize(new Dimension(160 * pixelSize, 144 * pixelSize));
 		updateDisplay();
+		startMillis = System.currentTimeMillis();
 	}
 
 	@Override
@@ -56,12 +58,12 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 				}
 			}
 		}
-//		if(lastFrameMillis != 0) {
-//			Graphics2D g2d = (Graphics2D) g;
-//			g2d.setColor(Color.RED);
-//			g2d.setFont(new Font("Arial", Font.BOLD, 10));
-//			g2d.drawString("FPS: " + 60/(System.currentTimeMillis() - lastFrameMillis) / 1000f, 30, 30);
-//		}
+		if(frameCount > 0) {
+			Graphics2D g2d = (Graphics2D) g;
+			g2d.setColor(Color.RED);
+			g2d.setFont(new Font("Arial", Font.BOLD, 10));
+			g2d.drawString("FPS: " + frameCount / (System.currentTimeMillis() - startMillis), 30, 30);
+		}
 		
 		
 	}
@@ -70,7 +72,7 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 	public void updateDisplay() {
 		this.screen = gpu.getFrameBuffer();
 		this.repaint();
-		lastFrameMillis = System.currentTimeMillis();
+		frameCount++;
 	}
 
 	public void toggleFpsDisplay() {

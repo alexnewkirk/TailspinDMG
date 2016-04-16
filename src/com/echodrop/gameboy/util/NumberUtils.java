@@ -6,12 +6,15 @@
  * Licensing information can be found in the root directory of the project.
  */
 
-package com.echodrop.gameboy.core;
+package com.echodrop.gameboy.util;
+
+import com.echodrop.gameboy.core.MMU;
+import com.echodrop.gameboy.core.Register;
 
 /**
  * Contains miscellaneous utilities that are used throughout the codebase.
  */
-public class Util {
+public class NumberUtils {
 
 	/**
 	 * Splits a 16 bit value into two bytes
@@ -45,7 +48,7 @@ public class Util {
 	 * Left circular bit shift
 	 */
 	public static byte leftRotate(byte b) {
-		String bin = zeroLeftPad(Integer.toBinaryString(b & 0xFF), 8);
+		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(b & 0xFF), 8);
 		String shifted = bin.substring(1) + bin.charAt(0);
 		return (byte) Integer.parseInt(shifted, 2);
 	}
@@ -60,35 +63,10 @@ public class Util {
 	 * @return new state of carry flag
 	 */
 	public static boolean leftRotateThroughCarry(Register toRotate, boolean carryFlag) {
-		String bin = zeroLeftPad(Integer.toBinaryString(toRotate.getValue() & 0xFF), 8) + (carryFlag ? '1' : '0');
+		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(toRotate.getValue() & 0xFF), 8) + (carryFlag ? '1' : '0');
 		String shifted = bin.substring(1) + bin.charAt(0);
 		toRotate.setValue(Integer.parseInt(shifted.substring(0, 8), 2));
 		return shifted.charAt(8) == '1';
-	}
-
-	/**
-	 * Converts a byte value to a human-readable hexadecimal representation
-	 */
-	public static String byteToReadableHex(byte b) {
-		return "0x" + zeroLeftPad(Integer.toHexString(b & 0xFF).toUpperCase(), 2);
-	}
-
-	/**
-	 * Converts a char value to a human-readable hexadecimal representation
-	 */
-	public static String charToReadableHex(char c) {
-		return "0x" + zeroLeftPad(Integer.toHexString(c & 0xFFFF).toUpperCase(), 4);
-	}
-
-	/**
-	 * Left-pads a string with zeros until it is of length size
-	 */
-	public static String zeroLeftPad(String s, int size) {
-		String result = s;
-		while (result.length() < size) {
-			result = "0" + result;
-		}
-		return result;
 	}
 
 	/**
@@ -99,7 +77,7 @@ public class Util {
 	public static boolean readBit(int bit, byte data) {
 		// XXX needs error checking
 		StringBuilder sb = new StringBuilder();
-		sb.append(zeroLeftPad(Integer.toBinaryString(data & 0xFF), 8));
+		sb.append(StringUtils.zeroLeftPad(Integer.toBinaryString(data & 0xFF), 8));
 		// sb = sb.reverse();
 		return sb.charAt(bit) == '1';
 	}
@@ -119,10 +97,10 @@ public class Util {
 		byte[] row = new byte[8];
 
 		String bin1 = Integer.toBinaryString(b1 & 0xFF);
-		bin1 = zeroLeftPad(bin1, 8);
+		bin1 = StringUtils.zeroLeftPad(bin1, 8);
 
 		String bin2 = Integer.toBinaryString(b2 & 0xFF);
-		bin2 = zeroLeftPad(bin2, 8);
+		bin2 = StringUtils.zeroLeftPad(bin2, 8);
 
 		for (int i = 0; i < 8; i++) {
 			byte color = (byte) (Integer.parseUnsignedInt("" + bin2.charAt(i) + bin1.charAt(i), 2) & 0xFF);
@@ -131,14 +109,6 @@ public class Util {
 			// XXX this isnt being mapped through the palette
 		}
 		return row;
-	}
-
-	public static String reverse(String s) {
-		String reversed = "";
-		for (int i = s.length() - 1; i >= 0; i--) {
-			reversed = s.charAt(i) + reversed;
-		}
-		return reversed;
 	}
 
 	/**
@@ -179,6 +149,16 @@ public class Util {
 			xCount++;
 		}
 		return tile;
+	}
+	
+	public static boolean ByteAdditionOverflow(byte b1, byte b2) {
+		int result = Byte.toUnsignedInt(b1) + Byte.toUnsignedInt(b2);
+		return result > 255;
+	}
+	
+	public static boolean ByteAdditionNibbleOverflow(byte b1, byte b2) {
+		int result = Byte.toUnsignedInt((byte)(b1 & 0xF)) + Byte.toUnsignedInt((byte)(b2 & 0xF));
+		return result > 0xF;
 	}
 
 }

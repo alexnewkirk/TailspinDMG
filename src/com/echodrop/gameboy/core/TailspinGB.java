@@ -55,9 +55,6 @@ public class TailspinGB {
 		processor.initialize();
 		gpu.initialize();
 		mem.initialize();
-
-		// FIXME remove this later, it shouldn't be hardcoded
-		mem.loadBios("bios.gb");
 	}
 
 	public MMU getMem() {

@@ -8,11 +8,11 @@
 
 package com.echodrop.gameboy.core;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.logging.Logger;
+
+import com.echodrop.gameboy.exceptions.FileSizeException;
+import com.echodrop.gameboy.exceptions.MemoryAccessException;
+import com.echodrop.gameboy.util.NumberUtils;
 
 /**
  * Emulation core for GameBoy Memory Management Unit.
@@ -29,7 +29,7 @@ public class MMU {
 	 */
 	private boolean biosMapped = true;
 
-	// Memory map
+	/* Memory Map */
 	private MemoryRegion bios;
 	private MemoryRegion rom;
 	private MemoryRegion workingRam;
@@ -40,31 +40,6 @@ public class MMU {
 		this.system = system;
 		this.initialize();
 	}
-
-	/**
-	 * 
-	 * Memory map reference:
-	 * 
-	 * [0x0000 - 0x00FF] BIOS, while its mapped into memory. After the BIOS runs
-	 * it is removed from memory (first instruction after 0x00FF)
-	 * 
-	 * [0x0000 - 0x3FFF] Bank 0 of Cartridge ROM -[0100-014F] Header
-	 * 
-	 * [0x4000 - 0x7FFF] Bank 1 of Cartridge ROM
-	 * 
-	 * [0x8000 - 0x9FFF] VRAM
-	 * 
-	 * [0xC000 - 0xDFFF] WRAM
-	 * 
-	 * [0xE000 - 0xFDFF] WRAM shadow
-	 * 
-	 * [FE00-FE9F] Sprite data
-	 * 
-	 * [FF00-FF7F] Mem-mapped I/O
-	 * 
-	 * [FF80-FFFF] Zero-page
-	 * 
-	 */
 
 	/**
 	 * Sets MMU to initial state
@@ -83,40 +58,26 @@ public class MMU {
 
 	/**
 	 * Loads the DMG bios into memory
-	 * TODO: put file i/o into another class, it doesnt belong here
 	 */
-	public void loadBios(String filename) {
-		Path path = Paths.get(filename);
-		byte[] gbBios = null;
-		try {
-			gbBios = Files.readAllBytes(path);
-		} catch (IOException e) {
-			e.printStackTrace();
+	public void loadBios(byte[] gbBios) {
+		if (gbBios.length != 256) {
+			throw new FileSizeException(256, gbBios.length);
 		}
-
 		for (int i = 0; i < gbBios.length - 1; i++) {
 			getBios().setMem((char) i, (byte) (gbBios[i] & 0xFF));
 		}
+		biosMapped = true;
 		logger.info("BIOS loaded: " + gbBios.length + " bytes");
 	}
 
 	/**
 	 * Loads a rom binary of the specified filename into memory
-	 * TODO: put file i/o into another class, it doesnt belong here
 	 */
-	public void loadRom(String filename) {
-		Path path = Paths.get(filename);
-		byte[] romData = null;
-		try {
-			romData = Files.readAllBytes(path);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
+	public void loadRom(byte[] romData) {
 		for (int i = 0; i < romData.length - 1; i++) {
 			getRom().setMem((char) i, (byte) (romData[i] & 0xFF));
 		}
-		logger.info("ROM loaded: " + filename + " : " + romData.length + " bytes");
+		logger.info("ROM loaded: " + romData.length + " bytes");
 	}
 
 	/**
@@ -188,9 +149,9 @@ public class MMU {
 				if (address >= 0xFF80) {
 					return getZeroPage();
 				} else {
-					// I/O. This should never happen
+					/* I/O. This should never happen */
 					logger.severe("I/O read or write attempted by MMU at " + Integer.toHexString(address & 0xFFFF));
-					// throw new MemoryAccessException(address);
+					throw new MemoryAccessException(address);
 				}
 			}
 
@@ -221,7 +182,7 @@ public class MMU {
 		}
 		byte b1 = readByte(address);
 		byte b2 = readByte((char) (address + 1));
-		return Util.bytesToWord(b1, b2);
+		return NumberUtils.bytesToWord(b1, b2);
 	}
 
 	/**

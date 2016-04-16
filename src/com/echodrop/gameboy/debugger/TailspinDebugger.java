@@ -12,8 +12,8 @@ import java.util.ArrayList;
 
 import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
-import com.echodrop.gameboy.core.Util;
 import com.echodrop.gameboy.ui.SwingScreen;
+import com.echodrop.gameboy.util.NumberUtils;
 
 /**
  * A simple command line debugger for the Tailspin emulator
@@ -103,8 +103,8 @@ public class TailspinDebugger {
 			int x = tileX * 8;
 			int y = tileY * 8;
 
-			byte[][] tile = Util.mapTile(getSystem().getGpu().getBackgroundPalette().getValue(),
-					Util.getTile(getSystem().getMem(), true, i));
+			byte[][] tile = NumberUtils.mapTile(getSystem().getGpu().getBackgroundPalette().getValue(),
+					NumberUtils.getTile(getSystem().getMem(), true, i));
 
 			for (int j = 0; j < 8; j++) {
 				for (int k = 0; k < 8; k++) {
