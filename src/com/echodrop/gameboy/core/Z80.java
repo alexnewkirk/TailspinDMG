@@ -859,7 +859,7 @@ public class Z80 {
 	 * Increment C
 	 */
 	private void incC() {
-		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getC().getValue(), (byte)1));
+		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getC().getValue(), (byte) 1));
 		getC().setValue(getC().getValue() + 1);
 		setZeroFlag(getC().getValue() == 0);
 		setOperationFlag(false);

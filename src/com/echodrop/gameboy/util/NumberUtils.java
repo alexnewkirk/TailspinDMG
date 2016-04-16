@@ -63,7 +63,8 @@ public class NumberUtils {
 	 * @return new state of carry flag
 	 */
 	public static boolean leftRotateThroughCarry(Register toRotate, boolean carryFlag) {
-		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(toRotate.getValue() & 0xFF), 8) + (carryFlag ? '1' : '0');
+		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(toRotate.getValue() & 0xFF), 8)
+				+ (carryFlag ? '1' : '0');
 		String shifted = bin.substring(1) + bin.charAt(0);
 		toRotate.setValue(Integer.parseInt(shifted.substring(0, 8), 2));
 		return shifted.charAt(8) == '1';
@@ -150,15 +151,15 @@ public class NumberUtils {
 		}
 		return tile;
 	}
-	
+
 	public static boolean ByteAdditionOverflow(byte b1, byte b2) {
 		int result = Byte.toUnsignedInt(b1) + Byte.toUnsignedInt(b2);
 		return result > 255;
 	}
-	
+
 	public static boolean ByteAdditionNibbleOverflow(byte b1, byte b2) {
-		int result = Byte.toUnsignedInt((byte)(b1 & 0xF)) + Byte.toUnsignedInt((byte)(b2 & 0xF));
-		return result > 0xF;
+		int result = Byte.toUnsignedInt((byte) (b1 & 0x7)) + Byte.toUnsignedInt((byte) (b2 & 0x7));
+		return result > 0x7;
 	}
 
 }
