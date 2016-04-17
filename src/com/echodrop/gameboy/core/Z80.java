@@ -412,8 +412,8 @@ public class Z80 {
 	private void addAhL() {
 		operationFlag = false;
 		byte memAtHl = mem.readByte(readDualRegister(h, l));
-		setFullCarryFlag(NumberUtils.ByteAdditionOverflow(getA().getValue(), memAtHl));
-		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getA().getValue(), memAtHl));
+		setFullCarryFlag(NumberUtils.byteAdditionOverflow(getA().getValue(), memAtHl));
+		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(getA().getValue(), memAtHl));
 		getA().setValue(getA().getValue() + memAtHl);
 		setZeroFlag((getA().getValue() == 0));
 	}
@@ -423,11 +423,10 @@ public class Z80 {
 	 */
 	private void cpHl() {
 		operationFlag = true;
-		zeroFlag = (getA().getValue() == mem.readByte(readDualRegister(h, l)));
-
-		/**
-		 * XXX Full carry and half carry flags not implemented
-		 */
+		byte memAtHl =  mem.readByte(readDualRegister(h, l));
+		setZeroFlag(getA().getValue() == memAtHl);
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), memAtHl));
+		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), memAtHl));
 	}
 
 	/**
@@ -468,15 +467,12 @@ public class Z80 {
 	 */
 	private void subB() {
 
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), getB().getValue()));
+		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), getB().getValue()));
 		getA().setValue(getA().getValue() - getB().getValue());
 		setZeroFlag(getA().getValue() == 0);
 		operationFlag = true;
-
 		logger.finer("Subtracted B from A");
-
-		/**
-		 * XXX Full carry and half carry flags not implemented
-		 */
 	}
 
 	/**
@@ -493,7 +489,7 @@ public class Z80 {
 	 * Increment H
 	 */
 	private void incH() {
-		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getH().getValue(), (byte) 1));
+		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(getH().getValue(), (byte) 1));
 		getH().setValue(getH().getValue() + 1);
 		setZeroFlag(getH().getValue() == 0);
 		setOperationFlag(false);
@@ -504,28 +500,20 @@ public class Z80 {
 	 * Decrement E
 	 */
 	private void decE() {
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getE().getValue(), (byte) 1));
 		getE().setValue(getE().getValue() - 1);
 		setZeroFlag(getE().getValue() == 0);
 		setOperationFlag(true);
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
-		logger.warning("DEC E called, half carry flag not implemented");
 	}
 
 	/**
 	 * Decrement D
 	 */
 	private void decD() {
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getD().getValue(), (byte) 1));
 		getD().setValue(getD().getValue() - 1);
 		setZeroFlag(getD().getValue() == 0);
 		setOperationFlag(true);
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
-		logger.warning("DEC D called, half carry flag not implemented");
 	}
 
 	/**
@@ -552,7 +540,7 @@ public class Z80 {
 	 * Increment B
 	 */
 	private void incB() {
-		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getB().getValue(), (byte) 1));
+		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(getB().getValue(), (byte) 1));
 		getB().setValue(getB().getValue() + 1);
 		setZeroFlag(getB().getValue() == 0);
 		setOperationFlag(false);
@@ -615,34 +603,24 @@ public class Z80 {
 	 * Decrement A
 	 */
 	private void decA() {
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), (byte) 1));
 		logger.finer("Decrementing A (" + Integer.toHexString(getA().getValue() & 0xFF) + ")");
 		getA().setValue(getA().getValue() - 1);
 		logger.finer("A = " + Integer.toHexString(getA().getValue() & 0xFF));
-
 		setOperationFlag(true);
 		setZeroFlag((getA().getValue() == 0));
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
-		logger.warning("DEC A called, half carry flag not implemented");
 	}
 
 	/**
 	 * Decrement C
 	 */
 	private void decC() {
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getC().getValue(), (byte) 1));
 		logger.finer("Decrementing C (" + Integer.toHexString(getC().getValue() & 0xFF) + ")");
 		getC().setValue(getC().getValue() - 1);
 		logger.finer("C = " + Integer.toHexString(getC().getValue() & 0xFF));
-
 		setOperationFlag(true);
 		setZeroFlag((getC().getValue() == 0));
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
-		logger.warning("DEC C called, half carry flag not implemented");
 	}
 
 	/**
@@ -652,6 +630,8 @@ public class Z80 {
 		byte immediate = mem.readByte(pc);
 		pc++;
 		setOperationFlag(true);
+		
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), immediate));
 
 		if (getA().getValue() == immediate) {
 			setZeroFlag(true);
@@ -661,11 +641,6 @@ public class Z80 {
 				setFullCarryFlag(true);
 			}
 		}
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
-		logger.warning("CP n called, half carry flag not implemented");
 	}
 
 	/**
@@ -733,14 +708,10 @@ public class Z80 {
 	 * Decrement B
 	 */
 	private void decB() {
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getD().getValue(), (byte) 1));
 		getB().setValue(getB().getValue() - 1);
 		setZeroFlag(getB().getValue() == 0);
 		setOperationFlag(true);
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
-		logger.warning("DEC B called, half carry flag not implemented");
 	}
 
 	/**
@@ -859,7 +830,7 @@ public class Z80 {
 	 * Increment C
 	 */
 	private void incC() {
-		setHalfCarryFlag(NumberUtils.ByteAdditionNibbleOverflow(getC().getValue(), (byte) 1));
+		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(getC().getValue(), (byte) 1));
 		getC().setValue(getC().getValue() + 1);
 		setZeroFlag(getC().getValue() == 0);
 		setOperationFlag(false);

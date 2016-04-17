@@ -152,14 +152,36 @@ public class NumberUtils {
 		return tile;
 	}
 
-	public static boolean ByteAdditionOverflow(byte b1, byte b2) {
+	public static boolean byteAdditionOverflow(byte b1, byte b2) {
 		int result = Byte.toUnsignedInt(b1) + Byte.toUnsignedInt(b2);
 		return result > 255;
 	}
 
-	public static boolean ByteAdditionNibbleOverflow(byte b1, byte b2) {
+	public static boolean byteAdditionNibbleOverflow(byte b1, byte b2) {
 		int result = Byte.toUnsignedInt((byte) (b1 & 0x7)) + Byte.toUnsignedInt((byte) (b2 & 0x7));
 		return result > 0x7;
+	}
+	
+	public static boolean byteSubtractionBorrow(byte b1, byte b2) {
+		int b = Byte.toUnsignedInt(b1) >> 7;
+		if(b > 0) {
+			int r = Byte.toUnsignedInt(b1) & 0x7F;
+			if(Byte.toUnsignedInt(b2) > r) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static boolean byteSubtractionNibbleBorrow(byte b1, byte b2) {
+		int b = (Byte.toUnsignedInt(b1) >> 3) & 1;
+		if(b > 0) {
+			int r = Byte.toUnsignedInt(b1) & 7;
+			if(Byte.toUnsignedInt(b2) > r) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

@@ -25,10 +25,10 @@ public class NumberUtilsTest {
 	
 	@Test
 	public void ByteAdditionOverflowTest() {
-		assertTrue(NumberUtils.ByteAdditionOverflow((byte) 255, (byte)1));
-		assertTrue(NumberUtils.ByteAdditionOverflow((byte) -20, (byte)-40));
+		assertTrue(NumberUtils.byteAdditionOverflow((byte) 255, (byte)1));
+		assertTrue(NumberUtils.byteAdditionOverflow((byte) -20, (byte)-40));
 		
-		assertFalse(NumberUtils.ByteAdditionOverflow((byte) 250, (byte) 5));
+		assertFalse(NumberUtils.byteAdditionOverflow((byte) 250, (byte) 5));
 	}
 	
 	@Test
