@@ -93,15 +93,15 @@ public class Z80 {
 	public void step() {
 		logger.info("Instruction pointer: 0x" + Integer.toHexString(pc));
 
-		// Grab next instruction and increment instruction pointer
+		/* Grab next instruction and increment instruction pointer */
 		byte opcode = mem.readByte(pc++);
 
 		logger.fine("Opcode: 0x" + Integer.toHexString(opcode & 0xFF));
 
-		// mask instruction pointer to 16 bits
+		/* mask instruction pointer to 16 bits */
 		pc &= 65535;
 
-		// Execute the instruction
+		/* Execute the instruction */
 		OpCode instruction;
 		if ((opcode & 0xFF) == 0xCB) {
 			logger.fine("CB prefixed opcode detected");
@@ -117,8 +117,10 @@ public class Z80 {
 			logger.fine(instruction.getDisassembly());
 			instruction.exec();
 
-			// Increment clocks by the amount of time
-			// that passed during the instruction
+			/*
+			 * Increment clocks by the amount of time that passed during the
+			 * instruction
+			 */
 
 			byte clockIncrement = 0;
 
@@ -218,55 +220,55 @@ public class Z80 {
 	private void loadOpCodes() {
 		opCodes.put((byte) 0x00, new OpCode("NOP", () -> nop(), (byte) 4));
 		opCodes.put((byte) 0x31, new OpCode("LD SP, nn", () -> ldSpNn(), (byte) 12));
-		opCodes.put((byte) 0xAF, new OpCode("XOR A", () -> xorA(), (byte) 4));
-		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> ldHlNn(), (byte) 12));
-		opCodes.put((byte) 0x32, new OpCode("LDD HL, A", () -> lddHlA(), (byte) 8));
+		opCodes.put((byte) 0xAF, new OpCode("XOR A", () -> xor(getA()), (byte) 4));
+		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> loadSixteen(getH(), getL()), (byte) 12));
+		opCodes.put((byte) 0x32, new OpCode("LDD HL, A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
 		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> jrNzN(), (byte) 12, (byte) 8));
 		opCodes.put((byte) 0xFB, new OpCode("EI", () -> eI(), (byte) 4));
-		opCodes.put((byte) 0x0E, new OpCode("LDD C, n", () -> ldCn(), (byte) 8));
-		opCodes.put((byte) 0x9F, new OpCode("SBC A, A", () -> sbcAa(), (byte) 8));
-		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> ldAn(), (byte) 8));
-		opCodes.put((byte) 0xE2, new OpCode("LDH (C), A", () -> ldhCa(), (byte) 8));
-		opCodes.put((byte) 0x0C, new OpCode("INC C", () -> incC(), (byte) 4));
-		opCodes.put((byte) 0x77, new OpCode("LD (HL), A", () -> ldHlA(), (byte) 8));
-		opCodes.put((byte) 0xE0, new OpCode("LDH (n), A", () -> ldHnA(), (byte) 12));
-		opCodes.put((byte) 0x11, new OpCode("LD DE, nn", () -> ldDeNn(), (byte) 12));
-		opCodes.put((byte) 0x1A, new OpCode("LD A, (DE)", () -> ldAde(), (byte) 8));
+		opCodes.put((byte) 0x0E, new OpCode("LD C, n", () -> loadImmediate(getC()), (byte) 8));
+		opCodes.put((byte) 0x9F, new OpCode("SBC A, A", () -> subtractWithCarry(getA()), (byte) 8));
+		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> loadImmediate(getA()), (byte) 8));
+		opCodes.put((byte) 0xE2, new OpCode("LDH (C), A", () -> loadToRegisterAddress(getC(), getA()), (byte) 8));
+		opCodes.put((byte) 0x0C, new OpCode("INC C", () -> increment(getC()), (byte) 4));
+		opCodes.put((byte) 0x77, new OpCode("LD (HL), A", () -> loadToAddress(getH(), getL(), getA()), (byte) 8));
+		opCodes.put((byte) 0xE0, new OpCode("LDH (n), A", () -> loadToImmediateEightBitAddress(getA()), (byte) 12));
+		opCodes.put((byte) 0x11, new OpCode("LD DE, nn", () -> loadSixteen(getD(), getE()), (byte) 12));
+		opCodes.put((byte) 0x1A, new OpCode("LD A, (DE)", () -> loadFromAddress(getA(), getD(), getE()), (byte) 8));
 		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> callNn(), (byte) 24));
-		opCodes.put((byte) 0x4f, new OpCode("LD C, A", () -> ldCa(), (byte) 4));
-		opCodes.put((byte) 0x06, new OpCode("LD B, n", () -> ldBn(), (byte) 8));
-		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushBc(), (byte) 16));
-		opCodes.put((byte) 0x17, new OpCode("RL A", () -> rlA(), (byte) 4));
-		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popBc(), (byte) 12));
-		opCodes.put((byte) 0x05, new OpCode("DEC B", () -> decB(), (byte) 4));
-		opCodes.put((byte) 0x22, new OpCode("LDI (HL), A", () -> ldiHlA(), (byte) 8));
-		opCodes.put((byte) 0x23, new OpCode("INC HL", () -> incHl(), (byte) 8));
+		opCodes.put((byte) 0x4f, new OpCode("LD C, A", () -> load(getC(), getA()), (byte) 4));
+		opCodes.put((byte) 0x06, new OpCode("LD B, n", () -> loadImmediate(getB()), (byte) 8));
+		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushFrom(getB(), getC()), (byte) 16));
+		opCodes.put((byte) 0x17, new OpCode("RL A", () -> rl(getA()), (byte) 4));
+		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
+		opCodes.put((byte) 0x05, new OpCode("DEC B", () -> decrement(getB()), (byte) 4));
+		opCodes.put((byte) 0x22, new OpCode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8));
+		opCodes.put((byte) 0x23, new OpCode("INC HL", () -> increment(getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0xC9, new OpCode("RET", () -> ret(), (byte) 16));
-		opCodes.put((byte) 0x13, new OpCode("INC DE", () -> incDe(), (byte) 8));
-		opCodes.put((byte) 0x7B, new OpCode("LD A, E", () -> ldAe(), (byte) 4));
-		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> cpN(), (byte) 8));
-		opCodes.put((byte) 0xEA, new OpCode("LD nn A", () -> ldNnA(), (byte) 16));
-		opCodes.put((byte) 0x3D, new OpCode("DEC A", () -> decA(), (byte) 4));
+		opCodes.put((byte) 0x13, new OpCode("INC DE", () -> increment(getD(), getE()), (byte) 8));
+		opCodes.put((byte) 0x7B, new OpCode("LD A, E", () -> load(getA(), getE()), (byte) 4));
+		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> compare(), (byte) 8));
+		opCodes.put((byte) 0xEA, new OpCode("LD nn A", () -> loadToImmediateAddress(getA()), (byte) 16));
+		opCodes.put((byte) 0x3D, new OpCode("DEC A", () -> decrement(getA()), (byte) 4));
 		opCodes.put((byte) 0x28, new OpCode("JR Z, n", () -> jrZn(), (byte) 12, (byte) 8));
-		opCodes.put((byte) 0x0D, new OpCode("DEC C", () -> decC(), (byte) 4));
-		opCodes.put((byte) 0x2e, new OpCode("LD L, n", () -> ldLn(), (byte) 8));
+		opCodes.put((byte) 0x0D, new OpCode("DEC C", () -> decrement(getC()), (byte) 4));
+		opCodes.put((byte) 0x2e, new OpCode("LD L, n", () -> loadImmediate(getL()), (byte) 8));
 		opCodes.put((byte) 0x18, new OpCode("JR n", () -> jrN(), (byte) 12));
-		opCodes.put((byte) 0x67, new OpCode("LD H, A", () -> ldHa(), (byte) 4));
-		opCodes.put((byte) 0x57, new OpCode("LD D, A", () -> ldDa(), (byte) 4));
-		opCodes.put((byte) 0x04, new OpCode("INC B", () -> incB(), (byte) 4));
-		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> ldEn(), (byte) 8));
-		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> ldHaN(), (byte) 12));
-		opCodes.put((byte) 0x1D, new OpCode("DEC E", () -> decE(), (byte) 4));
-		opCodes.put((byte) 0x24, new OpCode("INC H", () -> incH(), (byte) 4));
-		opCodes.put((byte) 0x73, new OpCode("LD (HL), E", () -> ldHlE(), (byte) 8));
-		opCodes.put((byte) 0x90, new OpCode("SUB B", () -> subB(), (byte) 4));
-		opCodes.put((byte) 0x15, new OpCode("DEC D", () -> decD(), (byte) 4));
-		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> ldDn(), (byte) 8));
-		opCodes.put((byte) 0x7C, new OpCode("LD A,H", () -> ldAh(), (byte) 4));
-		opCodes.put((byte) 0xBE, new OpCode("CP (HL)", () -> cpHl(), (byte) 8));
-		opCodes.put((byte) 0x7D, new OpCode("LD A, L", () -> ldAl(), (byte) 4));
-		opCodes.put((byte) 0x78, new OpCode("LD A, B", () -> ldAb(), (byte) 4));
-		opCodes.put((byte) 0x86, new OpCode("ADD A,(HL)", () -> addAhL(), (byte) 8));
+		opCodes.put((byte) 0x67, new OpCode("LD H, A", () -> load(getH(), getA()), (byte) 4));
+		opCodes.put((byte) 0x57, new OpCode("LD D, A", () -> load(getD(), getA()), (byte) 4));
+		opCodes.put((byte) 0x04, new OpCode("INC B", () -> increment(getB()), (byte) 4));
+		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> loadImmediate(getE()), (byte) 8));
+		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> loadFromEightImmediateAddress(getA()), (byte) 12));
+		opCodes.put((byte) 0x1D, new OpCode("DEC E", () -> decrement(getE()), (byte) 4));
+		opCodes.put((byte) 0x24, new OpCode("INC H", () -> increment(getH()), (byte) 4));
+		opCodes.put((byte) 0x73, new OpCode("LD (HL), E", () -> loadToAddress(getH(), getL(), getE()), (byte) 8));
+		opCodes.put((byte) 0x90, new OpCode("SUB B", () -> subtract(getB()), (byte) 4));
+		opCodes.put((byte) 0x15, new OpCode("DEC D", () -> decrement(getD()), (byte) 4));
+		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> loadImmediate(getD()), (byte) 8));
+		opCodes.put((byte) 0x7C, new OpCode("LD A,H", () -> load(getA(), getH()), (byte) 4));
+		opCodes.put((byte) 0xBE, new OpCode("CP (HL)", () -> compareAddress(getH(), getL()), (byte) 8)); 
+		opCodes.put((byte) 0x7D, new OpCode("LD A, L", () -> load(getA(), getL()), (byte) 4));
+		opCodes.put((byte) 0x78, new OpCode("LD A, B", () -> load(getA(), getB()), (byte) 4));
+		opCodes.put((byte) 0x86, new OpCode("ADD A,(HL)", () -> addAddress(getA(), getH(), getL()), (byte) 8));
 	}
 
 	/**
@@ -274,7 +276,7 @@ public class Z80 {
 	 */
 	private void loadCbOpCodes() {
 		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit7h(), (byte) 8));
-		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rlC(), (byte) 8));
+		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rl(getC()), (byte) 8));
 	}
 
 	public Logger getLogger() {
@@ -406,161 +408,191 @@ public class Z80 {
 	 * tables above.
 	 */
 
-	/**
-	 * Add value pointed to by HL to A
-	 */
-	private void addAhL() {
+	private void addAddress(Register destination, Register s1, Register s2) {
 		operationFlag = false;
-		byte memAtHl = mem.readByte(readDualRegister(h, l));
-		setFullCarryFlag(NumberUtils.byteAdditionOverflow(getA().getValue(), memAtHl));
-		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(getA().getValue(), memAtHl));
-		getA().setValue(getA().getValue() + memAtHl);
-		setZeroFlag((getA().getValue() == 0));
+		byte memAtDual = mem.readByte(readDualRegister(s1, s2));
+		setFullCarryFlag(NumberUtils.byteAdditionOverflow(destination.getValue(), memAtDual));
+		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(destination.getValue(), memAtDual));
+		destination.setValue(destination.getValue() + memAtDual);
+		setZeroFlag((destination.getValue() == 0));
 	}
 
 	/**
-	 * Compare A to address pointed to by HL
+	 * Subtracts the value of a register from A
 	 */
-	private void cpHl() {
+	private void subtract(Register r) {
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), r.getValue()));
+		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), r.getValue()));
+		getA().setValue(getA().getValue() - r.getValue());
+		setZeroFlag(getA().getValue() == 0);
 		operationFlag = true;
-		byte memAtHl =  mem.readByte(readDualRegister(h, l));
-		setZeroFlag(getA().getValue() == memAtHl);
-		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), memAtHl));
-		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), memAtHl));
 	}
 
 	/**
-	 * Copy H into A
+	 * Subtracts the value of r + the carry flag from A
 	 */
-	private void ldAh() {
-		getA().setValue(getH().getValue());
-		logger.finer("Copied H (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
+	private void subtractWithCarry(Register r) {
+		byte toSub = (byte) (r.getValue() + (isFullCarryFlag() ? 1 : 0));
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), toSub));
+		getA().setValue(getA().getValue() - toSub);
+		setZeroFlag(getA().getValue() == 0);
+		setOperationFlag(true);
+		if (getA().getValue() < 0) {
+			setFullCarryFlag(true);
+		}
 	}
 
 	/**
-	 * Copy B into A
+	 * Decrements a register
 	 */
-	private void ldAb() {
-		getA().setValue(getB().getValue());
-		logger.finer("Copied B (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
+	private void decrement(Register r) {
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(r.getValue(), (byte) 1));
+		r.setValue(r.getValue() - 1);
+		setZeroFlag(r.getValue() == 0);
+		setOperationFlag(true);
 	}
 
 	/**
-	 * Copy L into A
+	 * Decrements a dual register
 	 */
-	private void ldAl() {
-		getA().setValue(getL().getValue());
-		logger.finer("Copied L (" + Integer.toHexString(getH().getValue() & 0xFF) + ") into A");
+	private void decrement(Register r1, Register r2) {
+		throw new RuntimeException("Not yet implemented");
 	}
 
 	/**
-	 * Load 8-bit immediate into D
+	 * XOR value of r with A, result in A
 	 */
-	private void ldDn() {
-		getD().setValue(mem.readByte(pc));
-		logger.finer("Loaded " + Integer.toHexString(getD().getValue() & 0xFF) + " into D");
+	private void xor(Register r) {
+		getA().setValue(getA().getValue() ^ r.getValue());
+		setZeroFlag(getA().getValue() == 0);
+		setHalfCarryFlag(false);
+		setFullCarryFlag(false);
+		setOperationFlag(false);
+	}
+
+	/**
+	 * Increments a register
+	 */
+	private void increment(Register r) {
+		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(r.getValue(), (byte) 1));
+		r.setValue(r.getValue() + 1);
+		setZeroFlag(r.getValue() == 0);
+		setOperationFlag(false);
+	}
+
+	/**
+	 * Increments a dual register
+	 */
+	private void increment(Register r1, Register r2) {
+		char dual = readDualRegister(r1, r2);
+		writeDualRegister(r1, r2, (char) (dual + 1));
+	}
+
+	/**
+	 * Loads a value from one register into another
+	 */
+	private void load(Register destination, Register source) {
+		destination.setValue(source.getValue());
+	}
+
+	/**
+	 * Load 8-bit immediate into specified register
+	 */
+	private void loadImmediate(Register destination) {
+		destination.setValue(mem.readByte(pc));
 		pc++;
 	}
 
 	/**
-	 * Subtract B from A
+	 * Loads a sixteen-bit immediate into a dual register
 	 */
-	private void subB() {
-
-		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), getB().getValue()));
-		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), getB().getValue()));
-		getA().setValue(getA().getValue() - getB().getValue());
-		setZeroFlag(getA().getValue() == 0);
-		operationFlag = true;
-		logger.finer("Subtracted B from A");
+	private void loadSixteen(Register r1, Register r2) {
+		char value = mem.readWord((char) pc);
+		writeDualRegister(r1, r2, value);
+		pc += 2;
 	}
 
 	/**
-	 * Copy E to address pointed to by HL
+	 * Loads the value of src into the memory address pointed to by d1d2, then
+	 * decrements d1d2.
 	 */
-	private void ldHlE() {
-		char address = readDualRegister(getH(), getL());
-		mem.writeByte(address, getE().getValue());
-		logger.finer(
-				"Wrote E (" + Integer.toHexString(getE().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
+	private void loadDecrement(Register d1, Register d2, Register src) {
+		char address = readDualRegister(d1, d2);
+		mem.writeByte(address, src.getValue());
+		address--;
+		writeDualRegister(d1, d2, address);
 	}
 
 	/**
-	 * Increment H
+	 * Loads the value of source into the address pointed to by 0xFF00 +
+	 * destination
 	 */
-	private void incH() {
-		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(getH().getValue(), (byte) 1));
-		getH().setValue(getH().getValue() + 1);
-		setZeroFlag(getH().getValue() == 0);
-		setOperationFlag(false);
-		logger.finer("Incremented H");
+	private void loadToRegisterAddress(Register destination, Register source) {
+		char address = (char) (0xFF00 + destination.getValue());
+		mem.writeByte(address, source.getValue());
 	}
 
 	/**
-	 * Decrement E
+	 * Loads the value of src into the memory address pointed to by d1d2
 	 */
-	private void decE() {
-		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getE().getValue(), (byte) 1));
-		getE().setValue(getE().getValue() - 1);
-		setZeroFlag(getE().getValue() == 0);
-		setOperationFlag(true);
+	private void loadToAddress(Register d1, Register d2, Register source) {
+		char address = readDualRegister(d1, d2);
+		mem.writeByte(address, source.getValue());
 	}
 
 	/**
-	 * Decrement D
+	 * Write the value of source into the address pointed to by 0xFF00 + an
+	 * 8-bit immediate
 	 */
-	private void decD() {
-		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getD().getValue(), (byte) 1));
-		getD().setValue(getD().getValue() - 1);
-		setZeroFlag(getD().getValue() == 0);
-		setOperationFlag(true);
-	}
-
-	/**
-	 * Load A from address pointed to by 0xFF00 + 8-bit immediate
-	 */
-	private void ldHaN() {
+	private void loadToImmediateEightBitAddress(Register sourc) {
 		byte immediate = mem.readByte(pc);
 		pc++;
 		char address = (char) (0xFF00 + immediate);
-		getA().setValue(mem.readByte(address));
-		logger.finer("Loaded " + getA() + " into A from " + Integer.toHexString(address & 0xFFFF));
+		mem.writeByte(address, sourc.getValue());
 	}
 
-	/**
-	 * Load 8-bit immediate into E
-	 */
-	private void ldEn() {
-		getE().setValue(mem.readByte(pc));
-		logger.finer("Loaded " + Integer.toHexString(getE().getValue() & 0xFF) + " into E");
+	private void loadFromAddress(Register destination, Register s1, Register s2) {
+		char address = readDualRegister(s1, s2);
+		destination.setValue(mem.readByte(address));
+	}
+
+	private void loadToAddressInc(Register r1, Register r2, Register source) {
+		char dual = readDualRegister(r1, r2);
+		mem.writeByte(dual, source.getValue());
+		writeDualRegister(r1, r2, (char) (dual + 1));
+	}
+
+	private void loadToImmediateAddress(Register source) {
+		char address = mem.readWord(pc);
+		mem.writeByte(address, source.getValue());
+		pc += 2;
+	}
+
+	private void loadFromEightImmediateAddress(Register destination) {
+		byte immediate = mem.readByte(pc);
 		pc++;
+		char address = (char) (0xFF00 + immediate);
+		destination.setValue(mem.readByte(address));
+	}
+
+	private void pushFrom(Register r1, Register r2) {
+		char stackValue = readDualRegister(r1, r2);
+		push(stackValue);
+	}
+
+	private void popTo(Register r1, Register r2) {
+		char stackValue = pop();
+		writeDualRegister(r1, r2, stackValue);
 	}
 
 	/**
-	 * Increment B
+	 * Performs a left-rotate-through-carry on r
 	 */
-	private void incB() {
-		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(getB().getValue(), (byte) 1));
-		getB().setValue(getB().getValue() + 1);
-		setZeroFlag(getB().getValue() == 0);
+	private void rl(Register r) {
+		setFullCarryFlag(NumberUtils.leftRotateThroughCarry(r, isFullCarryFlag()));
+		setZeroFlag(r.getValue() == 0);
 		setOperationFlag(false);
-		logger.finer("Incremented B");
-	}
-
-	/**
-	 * Copy A into H
-	 */
-	private void ldHa() {
-		getH().setValue(getA().getValue());
-		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into H");
-	}
-
-	/**
-	 * Copy A into D
-	 */
-	private void ldDa() {
-		getD().setValue(getA().getValue());
-		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into D");
+		setHalfCarryFlag(false);
 	}
 
 	/**
@@ -571,15 +603,6 @@ public class Z80 {
 		pc++;
 		pc += immediate;
 		logger.fine("Jmping by " + immediate);
-	}
-
-	/**
-	 * Load 8-bit immediate into L
-	 */
-	private void ldLn() {
-		getL().setValue(mem.readByte(pc));
-		logger.finer("Loaded " + Integer.toHexString(getL().getValue() & 0xFF) + " into L");
-		pc++;
 	}
 
 	/**
@@ -600,37 +623,12 @@ public class Z80 {
 	}
 
 	/**
-	 * Decrement A
-	 */
-	private void decA() {
-		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), (byte) 1));
-		logger.finer("Decrementing A (" + Integer.toHexString(getA().getValue() & 0xFF) + ")");
-		getA().setValue(getA().getValue() - 1);
-		logger.finer("A = " + Integer.toHexString(getA().getValue() & 0xFF));
-		setOperationFlag(true);
-		setZeroFlag((getA().getValue() == 0));
-	}
-
-	/**
-	 * Decrement C
-	 */
-	private void decC() {
-		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getC().getValue(), (byte) 1));
-		logger.finer("Decrementing C (" + Integer.toHexString(getC().getValue() & 0xFF) + ")");
-		getC().setValue(getC().getValue() - 1);
-		logger.finer("C = " + Integer.toHexString(getC().getValue() & 0xFF));
-		setOperationFlag(true);
-		setZeroFlag((getC().getValue() == 0));
-	}
-
-	/**
 	 * Compare 8-bit immediate to A
 	 */
-	private void cpN() {
+	private void compare() {
 		byte immediate = mem.readByte(pc);
 		pc++;
 		setOperationFlag(true);
-		
 		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), immediate));
 
 		if (getA().getValue() == immediate) {
@@ -642,33 +640,13 @@ public class Z80 {
 			}
 		}
 	}
-
-	/**
-	 * save A at given address
-	 */
-	private void ldNnA() {
-		char address = mem.readWord(pc);
-		pc += 2;
-		logger.finer("Loaded A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") into address "
-				+ Integer.toHexString(address & 0xFFFF));
-	}
-
-	/**
-	 * Copy value of E into A
-	 */
-	private void ldAe() {
-		getA().setValue(getE().getValue());
-		logger.finer("Copied E (" + Integer.toHexString(getE().getValue() & 0xFF) + ") into A");
-	}
-
-	/**
-	 * Increment DE
-	 */
-	private void incDe() {
-		logger.finer("Incrementing DE (" + Integer.toHexString(readDualRegister(getD(), getE())) + ")");
-		char de = readDualRegister(getD(), getE());
-		writeDualRegister(getD(), getE(), (char) (de + 1));
-		logger.finer("de = " + Integer.toHexString(readDualRegister(getD(), getE()) & 0xFFFF));
+	
+	private void compareAddress(Register r1, Register r2) {
+		operationFlag = true;
+		byte memAtDual = mem.readByte(readDualRegister(r1, r2));
+		setZeroFlag(getA().getValue() == memAtDual);
+		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), memAtDual));
+		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), memAtDual));
 	}
 
 	/**
@@ -681,99 +659,6 @@ public class Z80 {
 	}
 
 	/**
-	 * increment HL
-	 */
-	private void incHl() {
-		logger.finer("Incrementing HL (" + Integer.toHexString(readDualRegister(getH(), getL())) + ")");
-		char hl = readDualRegister(getH(), getL());
-		writeDualRegister(getH(), getL(), (char) (hl + 1));
-		logger.finer("HL = " + Integer.toHexString(readDualRegister(getH(), getL()) & 0xFFFF));
-	}
-
-	/**
-	 * Save A to address pointed to by HL, and increment HL
-	 */
-	private void ldiHlA() {
-		char hl = readDualRegister(getH(), getL());
-
-		mem.writeByte(hl, getA().getValue());
-		logger.finer("Wrote A(" + Integer.toHexString(getA().getValue() & 0xFF) + ") to HL ("
-				+ Integer.toHexString(hl & 0xFFFF) + ")");
-
-		writeDualRegister(getH(), getL(), (char) (hl + 1));
-		logger.finer("And incremented HL. HL = " + Integer.toHexString(readDualRegister(getH(), getL()) & 0xFFFF));
-	}
-
-	/**
-	 * Decrement B
-	 */
-	private void decB() {
-		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getD().getValue(), (byte) 1));
-		getB().setValue(getB().getValue() - 1);
-		setZeroFlag(getB().getValue() == 0);
-		setOperationFlag(true);
-	}
-
-	/**
-	 * Pop 16-bit value from the stack and store it in BC
-	 */
-	private void popBc() {
-		char address = pop();
-		writeDualRegister(getB(), getC(), address);
-		logger.finer("Popped value: " + Integer.toHexString(address & 0xFFFF) + " from stack and stored in BC");
-	}
-
-	/**
-	 * rotate A left
-	 */
-	private void rlA() {
-		logger.finer("Rotating A (" + Integer.toBinaryString(getA().getValue() & 0xFF) + ") left");
-		setFullCarryFlag(NumberUtils.leftRotateThroughCarry(getA(), isFullCarryFlag()));
-		logger.finer("A = " + Integer.toBinaryString(getA().getValue() & 0xFF));
-		setZeroFlag(false);
-		setOperationFlag(false);
-		setHalfCarryFlag(false);
-	}
-
-	/**
-	 * rotate C left
-	 */
-	private void rlC() {
-		logger.finer("Rotating C (" + Integer.toBinaryString(getC().getValue() & 0xFF) + ") left");
-		setFullCarryFlag(NumberUtils.leftRotateThroughCarry(getC(), isFullCarryFlag()));
-		logger.finer("C = " + Integer.toBinaryString(getC().getValue() & 0xFF));
-		setZeroFlag(getC().getValue() == 0);
-		setOperationFlag(false);
-		setHalfCarryFlag(false);
-	}
-
-	/**
-	 * push BC onto stack
-	 */
-	private void pushBc() {
-		char address = readDualRegister(getB(), getC());
-		push(address);
-		logger.finer("Pushed BC (" + Integer.toHexString(address) + ") onto stack");
-	}
-
-	/**
-	 * Load 8-bit immediate into B
-	 */
-	private void ldBn() {
-		getB().setValue(mem.readByte(pc));
-		logger.finer("Loaded " + Integer.toHexString(getB().getValue() & 0xFF) + " into B");
-		pc++;
-	}
-
-	/**
-	 * Copy A to C
-	 */
-	private void ldCa() {
-		getC().setValue(getA().getValue());
-		logger.finer("Copied A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to C");
-	}
-
-	/**
 	 * Call routine at nn
 	 */
 	private void callNn() {
@@ -782,87 +667,6 @@ public class Z80 {
 		logger.fine("Pushed address " + Integer.toHexString((pc + 2) & 0xFFFF) + " to stack");
 		pc = address;
 		logger.fine("Calling subroutine at 0x" + Integer.toHexString(address & 0xFFFF));
-	}
-
-	/**
-	 * Load A from address pointed to by DE
-	 */
-	private void ldAde() {
-		char address = readDualRegister(getD(), getE());
-		getA().setValue(mem.readByte(address));
-		logger.finer("Loaded " + Integer.toHexString(getA().getValue() & 0xFF) + " into A from "
-				+ "address pointed to by DE (" + Integer.toHexString(address) + ")");
-	}
-
-	/**
-	 * Load 16-bit immediate into DE
-	 */
-	private void ldDeNn() {
-		char immediate = mem.readWord((char) pc);
-		pc += 2;
-		writeDualRegister(getD(), getE(), immediate);
-		logger.finer("Loaded " + Integer.toHexString(immediate) + " into DE");
-	}
-
-	/**
-	 * Save A at address pointed to by 0xFF00 + 8-bit immediate
-	 */
-	private void ldHnA() {
-		byte immediate = mem.readByte(pc);
-		pc++;
-		char address = (char) (0xFF00 + immediate);
-		mem.writeByte(address, getA().getValue());
-		logger.finer(
-				"Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
-	}
-
-	/**
-	 * Copy A to address pointed to by HL
-	 */
-	private void ldHlA() {
-		char address = readDualRegister(getH(), getL());
-		mem.writeByte(address, getA().getValue());
-		logger.finer(
-				"Wrote A (" + Integer.toHexString(getA().getValue() & 0xFF) + ") to " + Integer.toHexString(address));
-	}
-
-	/**
-	 * Increment C
-	 */
-	private void incC() {
-		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(getC().getValue(), (byte) 1));
-		getC().setValue(getC().getValue() + 1);
-		setZeroFlag(getC().getValue() == 0);
-		setOperationFlag(false);
-		logger.finer("Incremented C");
-	}
-
-	/**
-	 * Save A at address pointed to by 0xFF00 + C
-	 */
-	private void ldhCa() {
-		char address = (char) (0xFF00 + getC().getValue());
-		mem.writeByte(address, getA().getValue());
-		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue()) + ") to " + Integer.toHexString(address));
-	}
-
-	/**
-	 * Subtract A and carry flag from A
-	 */
-	private void sbcAa() {
-		String hex = Integer.toHexString(getA().getValue());
-		logger.finer("Subtracted " + hex + " from " + hex);
-		getA().setValue(getA().getValue() - getA().getValue());
-		setZeroFlag(getA().getValue() == 0);
-		setOperationFlag(true);
-		if (getA().getValue() < 0) {
-			setFullCarryFlag(true);
-		}
-
-		/**
-		 * XXX Half carry flag not implemented
-		 */
-		logger.warning("SBC A, A called, half carry flag not implemented");
 	}
 
 	/**
@@ -904,41 +708,6 @@ public class Z80 {
 	}
 
 	/**
-	 * XOR A against A
-	 */
-	private void xorA() {
-		getA().setValue(getA().getValue() ^ getA().getValue());
-		setZeroFlag(getA().getValue() == 0);
-		setHalfCarryFlag(false);
-		setFullCarryFlag(false);
-		setOperationFlag(false);
-		logger.finer("A = " + getA());
-	}
-
-	/**
-	 * Loads a 16 bit immediate into HL
-	 */
-	private void ldHlNn() {
-		char value = mem.readWord((char) pc);
-		writeDualRegister(getH(), getL(), value);
-		logger.finer("Loaded value:" + Integer.toHexString(value) + " into HL");
-		pc += 2;
-	}
-
-	/**
-	 * Save A to address pointed to by HL, and decrement HL
-	 */
-	private void lddHlA() {
-		char address = readDualRegister(getH(), getL());
-		mem.writeByte(address, getA().getValue());
-		logger.finer("Wrote A (" + Integer.toHexString(getA().getValue()) + ") to address in HL ("
-				+ Integer.toHexString(address) + ")");
-		address--;
-		writeDualRegister(getH(), getL(), address);
-		logger.finer("and decremented HL to " + Integer.toHexString(readDualRegister(getH(), getL())));
-	}
-
-	/**
 	 * Relative jump by signed immediate (single byte) if last result was not
 	 * zero
 	 */
@@ -963,24 +732,6 @@ public class Z80 {
 			pc++;
 			logger.finer("Zero flag set, no jmp");
 		}
-	}
-
-	/**
-	 * load 8-bit immediate into C
-	 */
-	private void ldCn() {
-		getC().setValue(mem.readByte(pc));
-		logger.finer("Loaded " + Integer.toHexString(getC().getValue() & 0xFF) + " into C");
-		pc++;
-	}
-
-	/**
-	 * load 8-bit immediate into A
-	 */
-	private void ldAn() {
-		getA().setValue(mem.readByte(pc));
-		logger.finer("Loaded " + Integer.toHexString(getA().getValue() & 0xFF) + " into A");
-		pc++;
 	}
 
 }

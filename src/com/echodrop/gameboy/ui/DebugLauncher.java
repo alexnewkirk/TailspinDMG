@@ -400,7 +400,9 @@ public class DebugLauncher {
 	}
 
 	/**
-	 * Prompts the user for a filename that ends in '.gb'. Does /not/ validate said filename.
+	 * Prompts the user for a filename that ends in '.gb'. Does /not/ validate
+	 * said filename.
+	 * 
 	 * @return
 	 */
 	private static String readFilename() {
