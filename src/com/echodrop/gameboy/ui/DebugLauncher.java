@@ -224,6 +224,7 @@ public class DebugLauncher {
 		System.out.println("Half Carry flag: " + p.isHalfCarryFlag());
 		System.out.println("Full Carry flag: " + p.isFullCarryFlag());
 		System.out.println("Conditional non-exec flag: " + p.isConditionalNotExecFlag());
+		System.out.println("BIOS mapped: " + tdb.getSystem().getMem().isBiosMapped());
 		System.out.println("GPU ScrollX: " + StringUtils.byteToReadableHex(g.getScrollX().getValue()));
 		System.out.println("GPU ScrollY: " + StringUtils.byteToReadableHex(g.getScrollY().getValue()));
 		System.out.println("GPU Scanline: " + StringUtils.byteToReadableHex(g.getLine().getValue()));

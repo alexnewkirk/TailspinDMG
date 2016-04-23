@@ -198,13 +198,13 @@ public class MMU {
 	 * Writes an 8-bit value into the address specified.
 	 */
 	public void writeByte(char address, byte data) {
-		if (address == 0xFF00) {
+		if (address == 0xFF50 && data == 1) {
+			biosMapped = false;
+			logger.info("[!] BIOS unmapped from memory!");
+		} else if (address == 0xFF00) {
 			// D-pad
 		} else if (address >= 0xFF01 && address <= 0xFF7F) {
 			system.getGpu().writeByte(address, data);
-		} else if (address == 0xFF50 && data == 0x01) {
-			biosMapped = false;
-			logger.info("[!] BIOS unmapped from memory!");
 		} else {
 			MemoryRegion r = findMemoryRegion(address);
 			if (r != null) {
@@ -251,6 +251,10 @@ public class MMU {
 
 	private void setRom(MemoryRegion rom) {
 		this.rom = rom;
+	}
+
+	public boolean isBiosMapped() {
+		return biosMapped;
 	}
 
 }

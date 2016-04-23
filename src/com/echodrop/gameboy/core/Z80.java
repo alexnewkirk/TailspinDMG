@@ -222,9 +222,11 @@ public class Z80 {
 		opCodes.put((byte) 0x00, new OpCode("NOP", () -> nop(), (byte) 4));
 		opCodes.put((byte) 0x31, new OpCode("LD SP, nn", () -> ldSpNn(), (byte) 12));
 		opCodes.put((byte) 0xAF, new OpCode("XOR A", () -> xor(getA()), (byte) 4));
-		opCodes.put((byte) 0x37, new OpCode("SCF", () -> setFullCarryFlag(), (byte) 4));
+		opCodes.put((byte) 0xA9, new OpCode("XOR C", () -> xor(getC()), (byte) 4));
 		opCodes.put((byte) 0xE6, new OpCode("AND n", () -> and(), (byte) 8));
-		opCodes.put((byte) 0xB1, new OpCode("OR B", () -> or(getB()), (byte) 4));
+		opCodes.put((byte) 0xA1, new OpCode("AND C", () -> and(getC()), (byte) 4));
+		opCodes.put((byte) 0xB1, new OpCode("OR C", () -> or(getC()), (byte) 4));
+		opCodes.put((byte) 0xB0, new OpCode("OR B", () -> or(getB()), (byte) 4));
 		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> loadSixteen(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0x32, new OpCode("LDD (HL), A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
 		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> jrNzN(), (byte) 12, (byte) 8));
@@ -264,6 +266,7 @@ public class Z80 {
 		opCodes.put((byte) 0x2F, new OpCode("CPL", () -> complement(), (byte) 4));
 		opCodes.put((byte) 0x67, new OpCode("LD H, A", () -> load(getH(), getA()), (byte) 4));
 		opCodes.put((byte) 0x57, new OpCode("LD D, A", () -> load(getD(), getA()), (byte) 4));
+		opCodes.put((byte) 0x47, new OpCode("LD B, A", () -> load(getB(), getA()), (byte) 4));
 		opCodes.put((byte) 0x04, new OpCode("INC B", () -> increment(getB()), (byte) 4));
 		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> loadImmediate(getE()), (byte) 8));
 		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> loadFromEightImmediateAddress(getA()), (byte) 12));
@@ -277,6 +280,7 @@ public class Z80 {
 		opCodes.put((byte) 0xBE, new OpCode("CP (HL)", () -> compareAddress(getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x7D, new OpCode("LD A, L", () -> load(getA(), getL()), (byte) 4));
 		opCodes.put((byte) 0x78, new OpCode("LD A, B", () -> load(getA(), getB()), (byte) 4));
+		opCodes.put((byte) 0x79, new OpCode("LD A, C", () -> load(getA(), getC()), (byte) 4));
 		opCodes.put((byte) 0x86, new OpCode("ADD A,(HL)", () -> addAddress(getA(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0xC3, new OpCode("JP nn", () -> jumpToImmediate(), (byte) 16));
 		opCodes.put((byte) 0x2A,
@@ -289,6 +293,7 @@ public class Z80 {
 	private void loadCbOpCodes() {
 		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit7h(), (byte) 8));
 		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rl(getC()), (byte) 8));
+		cbOpCodes.put((byte) 0x37, new OpCode("SWAP A", () -> swap(getA()), (byte) 8));
 	}
 
 	public Logger getLogger() {
@@ -471,6 +476,18 @@ public class Z80 {
 		setZeroFlag(r.getValue() == 0);
 		setOperationFlag(true);
 	}
+	
+	private void swap(Register r) {
+		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(r.getValue()), 8);
+		String upper = bin.substring(0, 4);
+		String lower = bin.substring(4);
+		byte result = (byte)(Integer.parseInt(lower + upper, 2));
+		r.setValue(result);
+		setZeroFlag(r.getValue() == 0);
+		setHalfCarryFlag(false);
+		setFullCarryFlag(false);
+		setOperationFlag(false);
+	}
 
 	 /**
 	 * Decrements a dual register
@@ -504,6 +521,14 @@ public class Z80 {
 		byte val = mem.readByte(pc);
 		pc++;
 		getA().setValue(getA().getValue() & val);
+		setZeroFlag(getA().getValue() == 0);
+		setOperationFlag(false);
+		setHalfCarryFlag(true);
+		setFullCarryFlag(false);
+	}
+	
+	private void and(Register r) {
+		getA().setValue(getA().getValue() & r.getValue());
 		setZeroFlag(getA().getValue() == 0);
 		setOperationFlag(false);
 		setHalfCarryFlag(true);
@@ -597,11 +622,11 @@ public class Z80 {
 	 * Write the value of source into the address pointed to by 0xFF00 + an
 	 * 8-bit immediate
 	 */
-	private void loadToImmediateEightBitAddress(Register sourc) {
+	private void loadToImmediateEightBitAddress(Register source) {
 		byte immediate = mem.readByte(pc);
 		pc++;
 		char address = (char) (0xFF00 + immediate);
-		mem.writeByte(address, sourc.getValue());
+		mem.writeByte(address, source.getValue());
 	}
 
 	private void loadFromAddress(Register destination, Register s1, Register s2) {
