@@ -140,7 +140,10 @@ public class MMU {
 
 			// OAM
 			case 0xE00:
-				if (address < 0xFEA0) {
+
+				if (address >= 0xFEA0 && address <= 0xFEFF) {
+					return null;
+				} else if (address >= 0xFE00 && address <= 0xFE9F) {
 					return system.getGpu().getOam();
 				}
 
@@ -165,11 +168,17 @@ public class MMU {
 	 * @return an 8-bit value from the address specified.
 	 */
 	public byte readByte(char address) {
-		if (address >= 0xFF00 && address <= 0xFF7F) {
+		if (address == 0xFF00) {
+			// D-pad
+			return 00;
+		} else if (address >= 0xFF01 && address <= 0xFF7F) {
 			return system.getGpu().readByte(address);
 		}
 		MemoryRegion r = findMemoryRegion(address);
-		return r.getMem(address);
+		if (r != null) {
+			return r.getMem(address);
+		}
+		return 0;
 	}
 
 	/**
@@ -189,14 +198,18 @@ public class MMU {
 	 * Writes an 8-bit value into the address specified.
 	 */
 	public void writeByte(char address, byte data) {
-		if (address >= 0xFF00 && address <= 0xFF7F) {
+		if (address == 0xFF00) {
+			// D-pad
+		} else if (address >= 0xFF01 && address <= 0xFF7F) {
 			system.getGpu().writeByte(address, data);
 		} else if (address == 0xFF50 && data == 0x01) {
 			biosMapped = false;
 			logger.info("[!] BIOS unmapped from memory!");
 		} else {
 			MemoryRegion r = findMemoryRegion(address);
-			r.setMem(address, data);
+			if (r != null) {
+				r.setMem(address, data);
+			}
 		}
 	}
 

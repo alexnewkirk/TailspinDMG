@@ -67,7 +67,7 @@ public class GPU {
 		this.setScrollY(new Register((byte) 0, "SCY"));
 		this.setLcdControl(new Register((byte) 0, "LCDC"));
 		this.setVram(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "vram"));
-		this.setOam(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "oam"));
+		this.setOam(new MemoryRegion((char) 0xFE00, (char) 0xFE9F, "oam"));
 		this.setFrameBuffer(new byte[160][144]);
 		for (int i = 0; i < 160; i++) {
 			for (int j = 0; j < 144; j++) {

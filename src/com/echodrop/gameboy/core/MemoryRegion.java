@@ -8,6 +8,7 @@
 
 package com.echodrop.gameboy.core;
 
+import com.echodrop.gameboy.exceptions.MemoryAccessException;
 import com.echodrop.gameboy.util.StringUtils;
 
 /**
@@ -40,14 +41,22 @@ public class MemoryRegion {
 	 * @return byte value at the specified address
 	 */
 	public byte getMem(char addr) {
-		return contents[addr - start];
+		int index = addr - start;
+		if (index < 0 || index > contents.length) {
+			throw new MemoryAccessException(addr, this);
+		}
+		return contents[index];
 	}
 
 	/**
 	 * Sets the specified address to the value of content
 	 */
 	public void setMem(char addr, byte content) {
-		contents[addr - start] = content;
+		int index = addr - start;
+		if (index < 0 || index > contents.length) {
+			throw new MemoryAccessException(addr, this);
+		}
+		contents[index] = content;
 	}
 
 	/**
@@ -71,7 +80,8 @@ public class MemoryRegion {
 			table += "0x" + StringUtils.zeroLeftPad(Integer.toHexString((i * 16 + start)), 4) + "| ";
 
 			for (int j = 0; j < 16; j++) {
-				table += StringUtils.zeroLeftPad(Integer.toHexString(getMem((char) ((start + i * 16 + j))) & 0xFF), 2) + " ";
+				table += StringUtils.zeroLeftPad(Integer.toHexString(getMem((char) ((start + i * 16 + j))) & 0xFF), 2)
+						+ " ";
 			}
 			table += "\n";
 		}
