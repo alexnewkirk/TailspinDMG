@@ -78,7 +78,7 @@ public class Breakpoint {
 	public boolean trigger(char pc) {
 		if (getAddress() == pc) {
 			if (isConditional()) {
-				if (watched.getValue() == targetValue) {
+				if (getWatched().getValue() == targetValue) {
 					return true;
 				}
 			} else {
@@ -101,7 +101,9 @@ public class Breakpoint {
 		String result = StringUtils.charToReadableHex(getAddress());
 		if (isConditional()) {
 			result += "\n";
-			result += "Register: " + getWatched() + "\n";
+			if(getWatched() instanceof Register) {
+				result += "Register: " + ((Register) getWatched()).getName() + "\n";
+			}
 			result += "Target value: " + StringUtils.byteToReadableHex(getTargetValue());
 		}
 		return result;

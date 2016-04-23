@@ -27,7 +27,6 @@ public class TailspinDebugger {
 
 	public TailspinDebugger() {
 		this.setSystem(new TailspinGB());
-		loadRegisters();
 		init();
 	}
 
@@ -113,24 +112,6 @@ public class TailspinDebugger {
 			}
 		}
 		getSystem().getGpu().setFrameBuffer(newFrameBuffer);
-	}
-
-	private void loadRegisters() {
-		getAvailableRegisters().add(getSystem().getProcessor().getA());
-		getAvailableRegisters().add(getSystem().getProcessor().getB());
-		getAvailableRegisters().add(getSystem().getProcessor().getC());
-		getAvailableRegisters().add(getSystem().getProcessor().getD());
-		getAvailableRegisters().add(getSystem().getProcessor().getE());
-		getAvailableRegisters().add(getSystem().getProcessor().getH());
-		getAvailableRegisters().add(getSystem().getProcessor().getL());
-	}
-
-	public ArrayList<Register> getAvailableRegisters() {
-		return availableRegisters;
-	}
-
-	public void setAvailableRegisters(ArrayList<Register> availableRegisters) {
-		this.availableRegisters = availableRegisters;
 	}
 
 	public boolean atBreakPoint() {

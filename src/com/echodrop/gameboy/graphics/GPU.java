@@ -59,13 +59,13 @@ public class GPU {
 	 */
 	public void initialize() {
 		this.observers = new ArrayList<IGraphicsObserver>();
-		this.setMode(new Register((byte) 0));
-		this.setLine(new Register((byte) 0));
+		this.setMode(new Register((byte) 0, "GPU Mode"));
+		this.setLine(new Register((byte) 0, "Scanline"));
 		this.setModeClock(0);
-		this.setBackgroundPalette(new Register((byte) 0x010B));
-		this.setScrollX(new Register((byte) 0));
-		this.setScrollY(new Register((byte) 0));
-		this.setLcdControl(new Register((byte) 0));
+		this.setBackgroundPalette(new Register((byte) 0x010B, "BG Palette"));
+		this.setScrollX(new Register((byte) 0, "SCX"));
+		this.setScrollY(new Register((byte) 0, "SCY"));
+		this.setLcdControl(new Register((byte) 0, "LCDC"));
 		this.setVram(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "vram"));
 		this.setOam(new MemoryRegion((char) 0x8000, (char) 0x9FFF, "oam"));
 		this.setFrameBuffer(new byte[160][144]);

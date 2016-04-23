@@ -148,13 +148,13 @@ public class Z80 {
 	 * Resets the CPU to its initial state
 	 */
 	public void initialize() {
-		setA(new Register((byte) 0x0));
-		setB(new Register((byte) 0x0));
-		setC(new Register((byte) 0x0));
-		setD(new Register((byte) 0x0));
-		setE(new Register((byte) 0x0));
-		setH(new Register((byte) 0x0));
-		setL(new Register((byte) 0x0));
+		setA(new Register((byte) 0x0, "A"));
+		setB(new Register((byte) 0x0, "B"));
+		setC(new Register((byte) 0x0, "C"));
+		setD(new Register((byte) 0x0, "D"));
+		setE(new Register((byte) 0x0, "E"));
+		setH(new Register((byte) 0x0, "H"));
+		setL(new Register((byte) 0x0, "L"));
 
 		setZeroFlag(false);
 		setOperationFlag(false);
@@ -164,8 +164,8 @@ public class Z80 {
 		pc = 0;
 		sp = 0;
 
-		setClockT(new Register((byte) 0x0));
-		setClockM(new Register((byte) 0x0));
+		setClockT(new Register((byte) 0x0, "Clock T"));
+		setClockM(new Register((byte) 0x0, "Clock M"));
 	}
 
 	public void initLogging() {
@@ -222,7 +222,7 @@ public class Z80 {
 		opCodes.put((byte) 0x31, new OpCode("LD SP, nn", () -> ldSpNn(), (byte) 12));
 		opCodes.put((byte) 0xAF, new OpCode("XOR A", () -> xor(getA()), (byte) 4));
 		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> loadSixteen(getH(), getL()), (byte) 12));
-		opCodes.put((byte) 0x32, new OpCode("LDD HL, A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
+		opCodes.put((byte) 0x32, new OpCode("LDD (HL), A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
 		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> jrNzN(), (byte) 12, (byte) 8));
 		opCodes.put((byte) 0xFB, new OpCode("EI", () -> eI(), (byte) 4));
 		opCodes.put((byte) 0x0E, new OpCode("LD C, n", () -> loadImmediate(getC()), (byte) 8));
@@ -269,6 +269,7 @@ public class Z80 {
 		opCodes.put((byte) 0x7D, new OpCode("LD A, L", () -> load(getA(), getL()), (byte) 4));
 		opCodes.put((byte) 0x78, new OpCode("LD A, B", () -> load(getA(), getB()), (byte) 4));
 		opCodes.put((byte) 0x86, new OpCode("ADD A,(HL)", () -> addAddress(getA(), getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0xC3, new OpCode("JP nn", () -> jumpToImmediate(), (byte) 16));
 	}
 
 	/**
@@ -407,6 +408,14 @@ public class Z80 {
 	 * From here down, you'll find the definitions for each opcode listed in the
 	 * tables above.
 	 */
+	
+	private void jumpToImmediate() {
+		byte b2 = mem.readByte(pc);
+		pc++;
+		byte b1 = mem.readByte(pc);
+		char address = NumberUtils.bytesToWord(b2, b1);
+		pc = address;
+	}
 
 	private void addAddress(Register destination, Register s1, Register s2) {
 		operationFlag = false;
@@ -452,12 +461,12 @@ public class Z80 {
 		setOperationFlag(true);
 	}
 
-	/**
-	 * Decrements a dual register
-	 */
-	private void decrement(Register r1, Register r2) {
-		throw new RuntimeException("Not yet implemented");
-	}
+//	/**
+//	 * Decrements a dual register
+//	 */
+//	private void decrement(Register r1, Register r2) {
+//		throw new RuntimeException("Not yet implemented");
+//	}
 
 	/**
 	 * XOR value of r with A, result in A

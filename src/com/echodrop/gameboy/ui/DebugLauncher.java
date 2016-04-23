@@ -7,6 +7,7 @@ import java.util.logging.Level;
 
 import com.echodrop.gameboy.core.MMU;
 import com.echodrop.gameboy.core.MemoryRegion;
+import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.core.Z80;
 import com.echodrop.gameboy.debugger.Breakpoint;
@@ -286,11 +287,9 @@ public class DebugLauncher {
 			}
 			System.out.print("> ");
 			try {
-				choice = sc.nextInt();
+				choice = Integer.parseInt(sc.nextLine());
 			} catch (NumberFormatException e) {
 				System.out.println("[!] Invalid input, try again.");
-			} finally {
-				sc.nextLine();
 			}
 		}
 		return choice;
@@ -377,7 +376,33 @@ public class DebugLauncher {
 				registerOptions.add("H");
 				registerOptions.add("L");
 				int registerSelected = getMenuSelection(registerOptions);
-				result.setWatched(tdb.getAvailableRegisters().get(registerSelected));
+				Register r = null;
+				Z80 processor = system.getProcessor();
+				switch(registerSelected) {
+				
+				case 0: 
+					r = processor.getA();
+					break;
+				case 1:
+					r = processor.getB();
+					break;
+				case 2:
+					r = processor.getC();
+					break;
+				case 3:
+					r = processor.getD();
+					break;
+				case 4:
+					r = processor.getE();
+					break;
+				case 5:
+					r = processor.getH();
+					break;
+				case 6: 
+					r = processor.getL();
+					break;
+				}
+				result.setWatched(r);
 				break;
 			case 1:
 				result.setWatched(new MemoryBlock(tdb.getSystem(), readHexAddress()));
