@@ -425,6 +425,9 @@ public class Z80 {
 	 * tables above.
 	 */
 
+	/**
+	 * Jumps to address pointed to by 16-bit immediate
+	 */
 	private void jumpToImmediate() {
 		byte b2 = mem.readByte(pc);
 		pc++;
@@ -433,6 +436,9 @@ public class Z80 {
 		pc = address;
 	}
 
+	/**
+	 * Adds value at address pointed to by s1s2 to destination.
+	 */
 	private void addAddress(Register destination, Register s1, Register s2) {
 		operationFlag = false;
 		byte memAtDual = mem.readByte(readDualRegister(s1, s2));
@@ -476,12 +482,18 @@ public class Z80 {
 		setZeroFlag(r.getValue() == 0);
 		setOperationFlag(true);
 	}
-	
+
+	/**
+	 * Swaps high and low nibbles of a register
+	 * 
+	 * @param r
+	 *            the register to swap
+	 */
 	private void swap(Register r) {
 		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(r.getValue()), 8);
 		String upper = bin.substring(0, 4);
 		String lower = bin.substring(4);
-		byte result = (byte)(Integer.parseInt(lower + upper, 2));
+		byte result = (byte) (Integer.parseInt(lower + upper, 2));
 		r.setValue(result);
 		setZeroFlag(r.getValue() == 0);
 		setHalfCarryFlag(false);
@@ -489,14 +501,14 @@ public class Z80 {
 		setOperationFlag(false);
 	}
 
-	 /**
+	/**
 	 * Decrements a dual register
 	 */
-	 private void decrement(Register r1, Register r2) {
-		 char value = readDualRegister(r1, r2);
-		 value--;
-		 writeDualRegister(r1, r2, value);
-	 }
+	private void decrement(Register r1, Register r2) {
+		char value = readDualRegister(r1, r2);
+		value--;
+		writeDualRegister(r1, r2, value);
+	}
 
 	/**
 	 * XOR value of r with A, result in A
@@ -508,7 +520,12 @@ public class Z80 {
 		setFullCarryFlag(false);
 		setOperationFlag(false);
 	}
-	
+
+	/**
+	 * Bitwise OR A with r. Result in A.
+	 * 
+	 * @param r
+	 */
 	private void or(Register r) {
 		getA().setValue(getA().getValue() | r.getValue());
 		setZeroFlag(getA().getValue() == 0);
@@ -516,7 +533,10 @@ public class Z80 {
 		setFullCarryFlag(false);
 		setOperationFlag(false);
 	}
-	
+
+	/**
+	 * Bitwise AND A with 8-bit immediate. Result in A.
+	 */
 	private void and() {
 		byte val = mem.readByte(pc);
 		pc++;
@@ -526,7 +546,12 @@ public class Z80 {
 		setHalfCarryFlag(true);
 		setFullCarryFlag(false);
 	}
-	
+
+	/**
+	 * Bitwise AND A with r. Result in A.
+	 * 
+	 * @param r
+	 */
 	private void and(Register r) {
 		getA().setValue(getA().getValue() & r.getValue());
 		setZeroFlag(getA().getValue() == 0);
@@ -534,7 +559,7 @@ public class Z80 {
 		setHalfCarryFlag(true);
 		setFullCarryFlag(false);
 	}
-	
+
 	private void setFullCarryFlag() {
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
@@ -611,6 +636,9 @@ public class Z80 {
 		mem.writeByte(address, source.getValue());
 	}
 
+	/**
+	 * Loads 8-bit immediate into the address pointed to by d1d2
+	 */
 	private void loadImmediateToAddress(Register d1, Register d2) {
 		char address = readDualRegister(d1, d2);
 		byte value = mem.readByte(pc);
@@ -629,23 +657,36 @@ public class Z80 {
 		mem.writeByte(address, source.getValue());
 	}
 
+	/**
+	 * Loads the value pointed to by s1s2 into destination
+	 */
 	private void loadFromAddress(Register destination, Register s1, Register s2) {
 		char address = readDualRegister(s1, s2);
 		destination.setValue(mem.readByte(address));
 	}
 
-	private void loadToAddressInc(Register r1, Register r2, Register source) {
-		char dual = readDualRegister(r1, r2);
+	/**
+	 * Loads the value of source into the address pointed to by d1d2
+	 */
+	private void loadToAddressInc(Register d1, Register d2, Register source) {
+		char dual = readDualRegister(d1, d2);
 		mem.writeByte(dual, source.getValue());
-		writeDualRegister(r1, r2, (char) (dual + 1));
+		writeDualRegister(d1, d2, (char) (dual + 1));
 	}
 
+	/**
+	 * Loads the value of source into the address pointed to by a 16-bit
+	 * immediate.
+	 */
 	private void loadToImmediateAddress(Register source) {
 		char address = mem.readWord(pc);
 		mem.writeByte(address, source.getValue());
 		pc += 2;
 	}
 
+	/**
+	 * Loads value at address 0xFF00 + an 0-bit immediate into destination
+	 */
 	private void loadFromEightImmediateAddress(Register destination) {
 		byte immediate = mem.readByte(pc);
 		pc++;
@@ -653,28 +694,41 @@ public class Z80 {
 		destination.setValue(mem.readByte(address));
 	}
 
-	private void loadIncrementFromAddress(Register destination, Register source1, Register source2) {
-		char address = readDualRegister(source1, source2);
+	/**
+	 * Loads the value at the address pointed to by s1s2 into destination.
+	 * Increments s1s2
+	 */
+	private void loadIncrementFromAddress(Register destination, Register s1, Register s2) {
+		char address = readDualRegister(s1, s2);
 		destination.setValue(mem.readByte(address));
 		address++;
-		writeDualRegister(source1, source2, address);
+		writeDualRegister(s1, s2, address);
 
 	}
 
+	/**
+	 * Pushes the 16-bit value in r1r2 onto the stack
+	 */
 	private void pushFrom(Register r1, Register r2) {
 		char stackValue = readDualRegister(r1, r2);
 		push(stackValue);
 	}
 
+	/**
+	 * Pops a 16-bit value off the stack and stores it in r1r2
+	 */
 	private void popTo(Register r1, Register r2) {
 		char stackValue = pop();
 		writeDualRegister(r1, r2, stackValue);
 	}
-	
+
+	/**
+	 * Flips every bit in register A
+	 */
 	private void complement() {
-		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(getA().getValue()),8);
+		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(getA().getValue()), 8);
 		String res = "";
-		for(int i = 0; i < 8; i++) {
+		for (int i = 0; i < 8; i++) {
 			res += (bin.charAt(i) == '0' ? '1' : '0');
 		}
 		getA().setValue(Integer.parseInt(res, 2));
@@ -738,6 +792,9 @@ public class Z80 {
 		}
 	}
 
+	/**
+	 * Compares the value pointed to by r1r2 to register A
+	 */
 	private void compareAddress(Register r1, Register r2) {
 		operationFlag = true;
 		byte memAtDual = mem.readByte(readDualRegister(r1, r2));
