@@ -13,23 +13,23 @@ package com.echodrop.gameboy.debugger;
  */
 public class DebugCommand {
 
-	private DebugCommandType command;
+	private DebugAction command;
 	private Character arg;
 
-	public DebugCommand(DebugCommandType command, Character arg) {
+	public DebugCommand(DebugAction command, Character arg) {
 		this.setCommand(command);
 		this.setArg(arg);
 	}
 
-	public DebugCommand(DebugCommandType command) {
+	public DebugCommand(DebugAction command) {
 		this.setCommand(command);
 	}
 
-	public DebugCommandType getCommand() {
+	public DebugAction getCommand() {
 		return command;
 	}
 
-	public void setCommand(DebugCommandType command) {
+	public void setCommand(DebugAction command) {
 		this.command = command;
 	}
 

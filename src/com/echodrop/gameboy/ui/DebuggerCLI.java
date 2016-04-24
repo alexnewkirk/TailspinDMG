@@ -1,5 +1,5 @@
 /**
- * DebugLauncher.java
+ * DebuggerCLI.java
  * 
  * @author anewkirk
  * 
@@ -20,16 +20,16 @@ import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.core.Z80;
 import com.echodrop.gameboy.debugger.Breakpoint;
 import com.echodrop.gameboy.debugger.DebugCommand;
-import com.echodrop.gameboy.debugger.DebugCommandType;
+import com.echodrop.gameboy.debugger.DebugAction;
 import com.echodrop.gameboy.debugger.MemoryBlock;
 import com.echodrop.gameboy.debugger.TailspinDebugger;
 import com.echodrop.gameboy.graphics.GPU;
-import com.echodrop.gameboy.logging.CliHandler;
+import com.echodrop.gameboy.logging.SimpleConsoleLogger;
 import com.echodrop.gameboy.util.FileUtils;
 import com.echodrop.gameboy.util.NumberUtils;
 import com.echodrop.gameboy.util.StringUtils;
 
-public class DebugLauncher {
+public class DebuggerCLI {
 
 	private static Scanner sc;
 	private static TailspinDebugger tdb;
@@ -49,7 +49,7 @@ public class DebugLauncher {
 			System.err.print("[!] Unable to load BIOS from default path: " + DEFAULT_BIOS_PATH);
 		}
 
-		system.initLogging(Level.OFF, new CliHandler());
+		system.initLogging(Level.OFF, new SimpleConsoleLogger());
 		System.out.println("[Tailspin Debugger]");
 		System.out.println("Type 'help' for a list of commands.");
 		System.out.println("hint: begin by loading a ROM.\n\n");
@@ -311,9 +311,9 @@ public class DebugLauncher {
 			System.out
 					.print("\n[tdbg@" + StringUtils.charToReadableHex(tdb.getSystem().getProcessor().getPc()) + "] > ");
 			String input = sc.nextLine().toUpperCase();
-			DebugCommandType commandType = null;
+			DebugAction commandType = null;
 			Character argument = null;
-			for (DebugCommandType dct : DebugCommandType.values()) {
+			for (DebugAction dct : DebugAction.values()) {
 				if (input.contains(dct.name())) {
 					commandType = dct;
 					String remaining = input.replace(dct.toString(), "");
@@ -387,9 +387,9 @@ public class DebugLauncher {
 				int registerSelected = getMenuSelection(registerOptions);
 				Register r = null;
 				Z80 processor = system.getProcessor();
-				switch(registerSelected) {
-				
-				case 0: 
+				switch (registerSelected) {
+
+				case 0:
 					r = processor.getA();
 					break;
 				case 1:
@@ -407,7 +407,7 @@ public class DebugLauncher {
 				case 5:
 					r = processor.getH();
 					break;
-				case 6: 
+				case 6:
 					r = processor.getL();
 					break;
 				}

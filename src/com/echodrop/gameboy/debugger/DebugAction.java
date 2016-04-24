@@ -1,5 +1,5 @@
 /**
- * DebugCommandType.java
+ * DebugAction.java
  * 
  * @author anewkirk
  * 
@@ -11,7 +11,7 @@ package com.echodrop.gameboy.debugger;
 /**
  * Commands available for the Tailspin debugger
  */
-public enum DebugCommandType {
+public enum DebugAction {
 	
 	SETBRK,
 	STEP,

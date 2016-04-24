@@ -10,7 +10,7 @@ package com.echodrop.gameboy.core;
 
 import java.util.logging.Logger;
 
-import com.echodrop.gameboy.exceptions.FileSizeException;
+import com.echodrop.gameboy.exceptions.RomFileSizeException;
 import com.echodrop.gameboy.exceptions.MemoryAccessException;
 import com.echodrop.gameboy.util.NumberUtils;
 
@@ -61,7 +61,7 @@ public class MMU {
 	 */
 	public void loadBios(byte[] gbBios) {
 		if (gbBios.length != 256) {
-			throw new FileSizeException(256, gbBios.length);
+			throw new RomFileSizeException(256, gbBios.length);
 		}
 		for (int i = 0; i < gbBios.length; i++) {
 			getBios().setMem((char) i, (byte) (gbBios[i] & 0xFF));
