@@ -63,7 +63,7 @@ public class MMU {
 		if (gbBios.length != 256) {
 			throw new FileSizeException(256, gbBios.length);
 		}
-		for (int i = 0; i < gbBios.length - 1; i++) {
+		for (int i = 0; i < gbBios.length; i++) {
 			getBios().setMem((char) i, (byte) (gbBios[i] & 0xFF));
 		}
 		biosMapped = true;

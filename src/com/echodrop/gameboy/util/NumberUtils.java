@@ -1,5 +1,5 @@
 /**
- * Util.java
+ * NumberUtils.java
  * 
  * @author anewkirk
  * 

@@ -1,3 +1,11 @@
+/**
+ * MainLauncher.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.ui;
 
 import java.io.IOException;
@@ -7,6 +15,9 @@ import com.echodrop.gameboy.debugger.TailspinDebugger;
 import com.echodrop.gameboy.logging.CliHandler;
 import com.echodrop.gameboy.util.FileUtils;
 
+/**
+ * A simple driver class with hardcoded filenames, for convenience
+ */
 public class MainLauncher {
 	
 	public static void main(String[] args) throws IOException {

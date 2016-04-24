@@ -1,3 +1,11 @@
+/**
+ * TailspinScreenPanel.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.ui;
 
 import java.awt.Color;
@@ -33,12 +41,12 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 
 	@Override
 	protected void paintComponent(Graphics g) {
-		if(screen != null) {
-			for(int i = 0; i < 160; i++) {
-				for(int j = 0; j < 144; j++) {
+		if (screen != null) {
+			for (int i = 0; i < 160; i++) {
+				for (int j = 0; j < 144; j++) {
 					Color c = null;
 					byte color = screen[i][j];
-					switch(color) {
+					switch (color) {
 					case 0:
 						c = Color.WHITE;
 						break;
@@ -52,20 +60,19 @@ public class TailspinScreenPanel extends JPanel implements IGraphicsObserver {
 						c = Color.BLACK;
 						break;
 					}
-					
+
 					g.setColor(c);
 					g.fillRect(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
 				}
 			}
 		}
-		if(frameCount > 0) {
+		if (frameCount > 0) {
 			Graphics2D g2d = (Graphics2D) g;
 			g2d.setColor(Color.RED);
 			g2d.setFont(new Font("Arial", Font.BOLD, 10));
 			g2d.drawString("FPS: " + frameCount / (System.currentTimeMillis() - startMillis), 30, 30);
 		}
-		
-		
+
 	}
 
 	@Override

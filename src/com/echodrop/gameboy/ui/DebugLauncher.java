@@ -1,3 +1,11 @@
+/**
+ * DebugLauncher.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.ui;
 
 import java.io.IOException;
