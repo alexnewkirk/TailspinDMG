@@ -17,7 +17,7 @@ import com.echodrop.gameboy.core.MMU;
 import com.echodrop.gameboy.core.MemoryRegion;
 import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
-import com.echodrop.gameboy.core.Z80;
+import com.echodrop.gameboy.core.CPU;
 import com.echodrop.gameboy.debugger.Breakpoint;
 import com.echodrop.gameboy.debugger.DebugCommand;
 import com.echodrop.gameboy.debugger.DebugAction;
@@ -213,7 +213,7 @@ public class DebuggerCLI {
 	 * Prints the values of all system registers
 	 */
 	private static void regDump() {
-		Z80 p = tdb.getSystem().getProcessor();
+		CPU p = tdb.getSystem().getProcessor();
 		GPU g = tdb.getSystem().getGpu();
 
 		System.out.println("PC:" + StringUtils.charToReadableHex(p.getPc()));
@@ -386,7 +386,7 @@ public class DebuggerCLI {
 				registerOptions.add("L");
 				int registerSelected = getMenuSelection(registerOptions);
 				Register r = null;
-				Z80 processor = system.getProcessor();
+				CPU processor = system.getProcessor();
 				switch (registerSelected) {
 
 				case 0:

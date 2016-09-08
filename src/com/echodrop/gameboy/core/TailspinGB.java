@@ -21,13 +21,13 @@ import com.echodrop.gameboy.graphics.GPU;
 public class TailspinGB {
 
 	private static final Logger logger = Logger.getLogger(TailspinGB.class.getName());
-	private Z80 processor;
+	private CPU processor;
 	private GPU gpu;
 	private MMU mem;
 
 	public TailspinGB() {
 		this.setMem(new MMU(this));
-		this.setProcessor(new Z80(this));
+		this.setProcessor(new CPU(this));
 		this.setGpu(new GPU(this));
 	}
 
@@ -73,11 +73,11 @@ public class TailspinGB {
 		this.gpu = gpu;
 	}
 
-	public Z80 getProcessor() {
+	public CPU getProcessor() {
 		return processor;
 	}
 
-	public void setProcessor(Z80 processor) {
+	public void setProcessor(CPU processor) {
 		this.processor = processor;
 	}
 
