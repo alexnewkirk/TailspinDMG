@@ -132,7 +132,7 @@ public class DebuggerCLI {
 				bios = FileUtils.readBytes(readFilename());
 				tdb.getSystem().getMem().loadBios(bios);
 			} catch (IOException e) {
-				e.getMessage();
+				System.err.println(e.getMessage());
 			}
 			break;
 		case FRAMEDMP:
@@ -461,6 +461,7 @@ public class DebuggerCLI {
 		System.out.println("nolog: set emulator logging mode to Level.OFF");
 		System.out.println("reset: initialize emulator");
 		System.out.println("loadrom: load a new gameboy rom into the emulator");
+		System.out.println("loadbios: load gameboy boot rom into the emulator");
 		System.out.println("lsbrk: list all breakpoints");
 		System.out.println("regdmp: display values of all registers");
 		System.out.println("memdmp: display memory dump of emulator's current state");

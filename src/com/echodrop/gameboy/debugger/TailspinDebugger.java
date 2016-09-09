@@ -10,7 +10,7 @@ package com.echodrop.gameboy.debugger;
 
 import java.util.ArrayList;
 
-import com.echodrop.gameboy.core.Register;
+//import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.ui.SwingScreen;
 import com.echodrop.gameboy.util.NumberUtils;
@@ -22,7 +22,7 @@ public class TailspinDebugger {
 
 	private ArrayList<Breakpoint> breakpoints;
 	private TailspinGB system;
-	private ArrayList<Register> availableRegisters = new ArrayList<Register>();
+	//private ArrayList<Register> availableRegisters = new ArrayList<Register>();
 	private SwingScreen vid;
 
 	public TailspinDebugger() {

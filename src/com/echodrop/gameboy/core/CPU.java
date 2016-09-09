@@ -249,6 +249,7 @@ public class CPU {
 		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushFrom(getB(), getC()), (byte) 16));
 		opCodes.put((byte) 0x17, new OpCode("RL A", () -> rl(getA()), (byte) 4));
 		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
+		opCodes.put((byte) 0xE1, new OpCode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0x05, new OpCode("DEC B", () -> decrement(getB()), (byte) 4));
 		opCodes.put((byte) 0x22, new OpCode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8));
 		opCodes.put((byte) 0x23, new OpCode("INC HL", () -> increment(getH(), getL()), (byte) 8));
@@ -256,6 +257,7 @@ public class CPU {
 		opCodes.put((byte) 0x13, new OpCode("INC DE", () -> increment(getD(), getE()), (byte) 8));
 		opCodes.put((byte) 0x0B, new OpCode("DEC BC", () -> decrement(getB(), getC()), (byte) 8));
 		opCodes.put((byte) 0x7B, new OpCode("LD A, E", () -> load(getA(), getE()), (byte) 4));
+		opCodes.put((byte) 0x5F, new OpCode("LD E, A", () -> load(getE(), getA()), (byte) 4));
 		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> compare(), (byte) 8));
 		opCodes.put((byte) 0xEA, new OpCode("LD nn A", () -> loadToImmediateAddress(getA()), (byte) 16));
 		opCodes.put((byte) 0x3D, new OpCode("DEC A", () -> decrement(getA()), (byte) 4));
@@ -285,6 +287,10 @@ public class CPU {
 		opCodes.put((byte) 0xC3, new OpCode("JP nn", () -> jumpToImmediate(), (byte) 16));
 		opCodes.put((byte) 0x2A,
 				new OpCode("LD A, (HL+)", () -> loadIncrementFromAddress(getA(), getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0xEF, new OpCode("RST 28H", () -> rst28h(), (byte) 16));
+		opCodes.put((byte) 0x87, new OpCode("ADD A,A", () -> add(getA()), (byte) 4));
+		opCodes.put((byte) 0x19, new OpCode("ADD HL, DE", () -> add(getH(), getL(), getD(), getE()), (byte) 8));
+		opCodes.put((byte) 0x5E, new OpCode("LD E, (HL)", () -> loadFromAddress(getE(), getH(), getL()), (byte) 8));
 	}
 
 	/**
@@ -886,6 +892,30 @@ public class CPU {
 			pc++;
 			logger.finer("Zero flag set, no jmp");
 		}
+	}
+
+	private void rst28h() {
+		push(pc);
+		pc = 0x28;
+	}
+
+	private void add(Register r) {
+		byte a = getA().getValue();
+		boolean fullCarry = NumberUtils.byteAdditionOverflow(a, a);
+		setFullCarryFlag(fullCarry);
+		boolean halfCarry = NumberUtils.byteAdditionNibbleOverflow(a, a);
+		setHalfCarryFlag(halfCarry);
+		setOperationFlag(false);
+		setZeroFlag(a + a == 0);
+		getA().setValue(a + a);
+	}
+
+	private void add(Register a1, Register a2, Register b1, Register b2) {
+		int a = readDualRegister(a1, a2);
+		int b = readDualRegister(b1, b2);
+		setOperationFlag(false);
+		// TODO:Half/full carry flags
+		writeDualRegister(a1, a2, (char) (a + b));
 	}
 
 }
