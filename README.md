@@ -9,9 +9,6 @@ Licensed under the [MIT License](https://opensource.org/licenses/MITL).
 ###TEMU
 Emulator core for Tailspin (_com.echodrop.gameboy.core_ and _com.echodrop.gameboy.graphics_). Contains core hardware model and logic.
 
-###TDSM
-GameBoy ROM disassembler (_com.echodrop.gameboy.disasm_)
-
 ###TDMG-UI
 A collection of simple user interfaces for various components of TDMG
 
