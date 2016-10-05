@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 //import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
-import com.echodrop.gameboy.ui.SwingScreen;
+import com.echodrop.gameboy.ui.swing.SwingScreen;
 import com.echodrop.gameboy.util.NumberUtils;
 
 /**

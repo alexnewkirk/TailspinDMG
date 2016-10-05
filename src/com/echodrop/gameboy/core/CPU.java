@@ -16,7 +16,7 @@ import com.echodrop.gameboy.util.NumberUtils;
 import com.echodrop.gameboy.util.StringUtils;
 
 /**
- * Emulation core for Z80 microprocessor
+ * Emulation core for Sharp LR35902 microprocessor
  *
  */
 public class CPU {

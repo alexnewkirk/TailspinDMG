@@ -6,7 +6,7 @@
  * Licensing information can be found in the root directory of the project.
  */
 
-package com.echodrop.gameboy.ui;
+package com.echodrop.gameboy.ui.swing;
 
 import java.awt.Color;
 import java.awt.Dimension;
