@@ -238,6 +238,8 @@ public class CPU {
 		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> loadImmediate(getA()), (byte) 8));
 		opCodes.put((byte) 0xE2, new OpCode("LDH (C), A", () -> loadToRegisterAddress(getC(), getA()), (byte) 8));
 		opCodes.put((byte) 0x0C, new OpCode("INC C", () -> increment(getC()), (byte) 4));
+		opCodes.put((byte) 0x3C, new OpCode("INC A", () -> increment(getA()), (byte) 4));
+		opCodes.put((byte) 0x2C, new OpCode("INC L", () -> increment(getL()), (byte) 4));
 		opCodes.put((byte) 0x77, new OpCode("LD (HL), A", () -> loadToAddress(getH(), getL(), getA()), (byte) 8));
 		opCodes.put((byte) 0x36, new OpCode("LD (HL), n", () -> loadImmediateToAddress(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0xE0, new OpCode("LDH (n), A", () -> loadToImmediateEightBitAddress(getA()), (byte) 12));
@@ -251,8 +253,10 @@ public class CPU {
 		opCodes.put((byte) 0x06, new OpCode("LD B, n", () -> loadImmediate(getB()), (byte) 8));
 		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushFrom(getB(), getC()), (byte) 16));
 		opCodes.put((byte) 0xD5, new OpCode("PUSH DE", () -> pushFrom(getD(), getE()), (byte) 16));
+		opCodes.put((byte) 0xE5, new OpCode("PUSH HL", () -> pushFrom(getH(), getL()), (byte) 16));
 		opCodes.put((byte) 0x17, new OpCode("RL A", () -> rl(getA()), (byte) 4));
 		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
+		opCodes.put((byte) 0xD1, new OpCode("POP DE", () -> popTo(getD(), getE()), (byte) 12));
 		opCodes.put((byte) 0xE1, new OpCode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0x05, new OpCode("DEC B", () -> decrement(getB()), (byte) 4));
 		opCodes.put((byte) 0x22, new OpCode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8));
@@ -292,6 +296,8 @@ public class CPU {
 		opCodes.put((byte) 0x79, new OpCode("LD A, C", () -> load(getA(), getC()), (byte) 4));
 		opCodes.put((byte) 0x86, new OpCode("ADD A,(HL)", () -> addAddress(getA(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0xC3, new OpCode("JP nn", () -> jumpToImmediate(), (byte) 16));
+		opCodes.put((byte) 0xE9, new OpCode("JP (HL)", () -> jumpToAddress(getH(), getL()), (byte) 4));
+		opCodes.put((byte) 0xCA, new OpCode("JP Z a16", () -> jpzToSixteenImmediateAddress(), (byte) 16, (byte) 12));
 		opCodes.put((byte) 0x2A,
 				new OpCode("LD A, (HL+)", () -> loadIncrementFromAddress(getA(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0xEF, new OpCode("RST 28H", () -> rst28h(), (byte) 16));
@@ -306,6 +312,7 @@ public class CPU {
 	private void loadCbOpCodes() {
 		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit7h(), (byte) 8));
 		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rl(getC()), (byte) 8));
+		cbOpCodes.put((byte) 0x87, new OpCode("RES 0, A", () -> res(0, getA()), (byte) 8));
 		cbOpCodes.put((byte) 0x37, new OpCode("SWAP A", () -> swap(getA()), (byte) 8));
 	}
 
@@ -446,6 +453,14 @@ public class CPU {
 		pc++;
 		byte b1 = mem.readByte(pc);
 		char address = NumberUtils.bytesToWord(b2, b1);
+		pc = address;
+	}
+	
+	/**
+	 * Jumps to address stored in 16 bit register
+	 */
+	private void jumpToAddress(Register r1, Register r2) {
+		char address = readDualRegister(r1, r2);
 		pc = address;
 	}
 
@@ -715,6 +730,16 @@ public class CPU {
 		pc += 2;
 		destination.setValue(mem.readByte(address));
 	}
+	
+	/**
+	 * Jumps to a sixteen-bit immediate address if the zero flag is not set
+	 */
+	private void jpzToSixteenImmediateAddress() {
+		if(isZeroFlag()) {
+			char address = mem.readWord(pc);
+			pc = address;
+		}
+	}
 
 	/**
 	 * Loads the value at the address pointed to by s1s2 into destination.
@@ -873,6 +898,8 @@ public class CPU {
 
 	/**
 	 * Test bit 7 of register H
+	 * 
+	 * //TODO: Generalize to bit(bitno, regiter)
 	 */
 	private void bit7h() {
 		String bin = Integer.toBinaryString(getH().getValue() & 0xFF);
@@ -882,6 +909,11 @@ public class CPU {
 			setZeroFlag(false);
 		}
 		logger.finer("Testing bit 7 of " + bin + ": zeroFlag = " + isZeroFlag());
+	}
+	
+	private void res(int bitNumber, Register r) {
+		byte val = r.getValue();
+		r.setValue(NumberUtils.resetBit(bitNumber, val));
 	}
 
 	/**

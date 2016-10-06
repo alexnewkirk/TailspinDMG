@@ -82,6 +82,11 @@ public class NumberUtils {
 		// sb = sb.reverse();
 		return sb.charAt(bit) == '1';
 	}
+	
+	public static byte resetBit(int bit, byte data) {
+		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(data & 0xFF), 8);
+		return (byte) Integer.parseInt('0' + bin.substring(1), 2);
+	}
 
 	/**
 	 * Maps a row of pixels from a tile, to be rendered to the screen.
