@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+
+<AnchorPane prefHeight="450.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <StackPane prefHeight="454.0" prefWidth="800.0">
+         <children>
+            <SplitPane dividerPositions="0.5094614264919942" prefHeight="454.0" prefWidth="689.0">
+              <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                     <children>
+                        <Canvas height="255.0" layoutX="20.0" layoutY="99.0" width="296.0" />
+                     </children>
+                  </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="452.0" prefWidth="338.0">
+                     <children>
+                        <ToolBar layoutY="412.0" prefHeight="40.0" prefWidth="387.0">
+                          <items>
+                            <Button mnemonicParsing="false" text="Step" />
+                              <Button mnemonicParsing="false" text="Continue" />
+                              <Button mnemonicParsing="false" text="Restart" />
+                          </items>
+                        </ToolBar>
+                        <ListView layoutY="26.0" prefHeight="382.0" prefWidth="387.0" />
+                     </children>
+                  </AnchorPane>
+              </items>
+            </SplitPane>
+            <MenuBar StackPane.alignment="TOP_CENTER">
+              <menus>
+                <Menu mnemonicParsing="false" text="File">
+                  <items>
+                        <MenuItem mnemonicParsing="false" text="Load ROM" />
+                        <MenuItem mnemonicParsing="false" text="Load Bootstrap ROM" />
+                    <MenuItem mnemonicParsing="false" text="Close" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Delete" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="About" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+         </children>
+      </StackPane>
+   </children>
+</AnchorPane>
