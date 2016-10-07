@@ -292,10 +292,11 @@ public class CPU {
 		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushFrom(getB(), getC()), (byte) 16));
 		opCodes.put((byte) 0xD5, new OpCode("PUSH DE", () -> pushFrom(getD(), getE()), (byte) 16));
 		opCodes.put((byte) 0xE5, new OpCode("PUSH HL", () -> pushFrom(getH(), getL()), (byte) 16));
-		//opCodes.put((byte) 0xF5, new OpCode("PUSH AF", () -> pushFrom(getA(), getF()), (byte) 16));
+		opCodes.put((byte) 0xF5, new OpCode("PUSH AF", () -> pushFrom(getA(), getF()), (byte) 16));
 		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
 		opCodes.put((byte) 0xD1, new OpCode("POP DE", () -> popTo(getD(), getE()), (byte) 12));
 		opCodes.put((byte) 0xE1, new OpCode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
+		//opCodes.put((byte) 0xF1, new OpCode("POP AF", () -> popTo(getA(), getF()), (byte) 12));
 		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> callNn(), (byte) 24));
 		opCodes.put((byte) 0xC9, new OpCode("RET", () -> ret(), (byte) 16));
 		opCodes.put((byte) 0xC0, new OpCode("RET NZ", () -> retnz(), (byte) 20, (byte) 8));
@@ -373,6 +374,18 @@ public class CPU {
 
 	public boolean isFullCarryFlag() {
 		return fullCarryFlag;
+	}
+	
+	public Register getF() {
+		String reg = "";
+		reg += isZeroFlag() ? '1' : '0';
+		reg += isOperationFlag() ? '1' : '0';
+		reg += isHalfCarryFlag() ? '1' : '0';
+		reg += isFullCarryFlag() ? '1' : '0';
+		reg += "0000";
+		byte registerValue = (byte) Integer.parseUnsignedInt(reg, 2);
+		Register flag = new Register(registerValue, "F");
+		return flag;
 	}
 
 	public boolean isConditionalNotExecFlag() {
