@@ -18,7 +18,7 @@ public class JfxUi extends Application {
 		AnchorPane root = (AnchorPane) loader.load(fxmlStream);
 		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
-		
+		primaryStage.setResizable(false);
 		primaryStage.setTitle("TailspinDMG 0.1");
 		
 		primaryStage.show();
