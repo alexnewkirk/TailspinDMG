@@ -17,7 +17,6 @@ public class RegisterUtils {
 	public static byte resetBit(int bit, Register r) {
 		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(r.getValue() & 0xFF), 8);
 		return (byte) Integer.parseInt('0' + bin.substring(1), 2);
-	
 	}
 	
 	/**

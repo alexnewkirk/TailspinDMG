@@ -306,7 +306,7 @@ public class CPU {
 		opCodes.put((byte) 0xE9, new OpCode("JP (HL)", () -> jumpToAddress(getH(), getL()), (byte) 4));
 		opCodes.put((byte) 0xCA, new OpCode("JP Z a16", () -> jpzToSixteenImmediateAddress(), (byte) 16, (byte) 12));
 		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> jrNzN(), (byte) 12, (byte) 8));
-		opCodes.put((byte) 0xEF, new OpCode("RST 28H", () -> rst28h(), (byte) 16));
+		opCodes.put((byte) 0xEF, new OpCode("RST 28H", () -> rst((byte) 0x28), (byte) 16));
 	}
 
 	/**
@@ -949,9 +949,9 @@ public class CPU {
 		}
 	}
 
-	private void rst28h() {
+	private void rst(byte resetVector) {
 		push(pc);
-		pc = 0x28;
+		pc = (char) resetVector;
 	}
 
 	private void add(Register r) {
