@@ -117,6 +117,7 @@ public class DebuggerCLI {
 		case LOGINFO:
 			tdb.getSystem().getLogger().setLevel(Level.INFO);
 			System.out.println("[~] Log level: Info");
+			break;
 		case LOADROM:
 			byte[] rom;
 			try {
