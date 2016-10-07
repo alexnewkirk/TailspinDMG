@@ -13,19 +13,20 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 
+import com.echodrop.gameboy.core.CPU;
 import com.echodrop.gameboy.core.MMU;
 import com.echodrop.gameboy.core.MemoryRegion;
 import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
-import com.echodrop.gameboy.core.CPU;
 import com.echodrop.gameboy.debugger.Breakpoint;
-import com.echodrop.gameboy.debugger.DebugCommand;
 import com.echodrop.gameboy.debugger.DebugAction;
+import com.echodrop.gameboy.debugger.DebugCommand;
 import com.echodrop.gameboy.debugger.MemoryBlock;
 import com.echodrop.gameboy.debugger.TailspinDebugger;
 import com.echodrop.gameboy.graphics.GPU;
 import com.echodrop.gameboy.logging.SimpleConsoleLogger;
 import com.echodrop.gameboy.util.FileUtils;
+import com.echodrop.gameboy.util.GraphicsUtils;
 import com.echodrop.gameboy.util.NumberUtils;
 import com.echodrop.gameboy.util.StringUtils;
 
@@ -193,8 +194,8 @@ public class DebuggerCLI {
 	private static void tiledump() {
 		for (int i = 0; i < 256; i++) {
 			System.out.println("Tile " + i + ":");
-			byte[] tile = NumberUtils.getTile(tdb.getSystem().getMem(), true, i);
-			byte[][] tileData = NumberUtils.mapTile(tdb.getSystem().getGpu().getBackgroundPalette().getValue(), tile);
+			byte[] tile = GraphicsUtils.getTile(tdb.getSystem().getMem(), true, i);
+			byte[][] tileData = GraphicsUtils.mapTile(tdb.getSystem().getGpu().getBackgroundPalette().getValue(), tile);
 			// row
 			int rowCount = 0;
 			for (int k = 0; k < 16; k += 2) {

@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import com.echodrop.gameboy.exceptions.InstructionNotImplementedException;
 import com.echodrop.gameboy.util.NumberUtils;
+import com.echodrop.gameboy.util.RegisterUtils;
 import com.echodrop.gameboy.util.StringUtils;
 
 /**
@@ -782,7 +783,7 @@ public class CPU {
 	 * Performs a left-rotate-through-carry on r
 	 */
 	private void rl(Register r) {
-		setFullCarryFlag(NumberUtils.leftRotateThroughCarry(r, isFullCarryFlag()));
+		setFullCarryFlag(RegisterUtils.leftRotateThroughCarry(r, isFullCarryFlag()));
 		setZeroFlag(r.getValue() == 0);
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
@@ -907,8 +908,7 @@ public class CPU {
 	}
 	
 	private void res(int bitNumber, Register r) {
-		byte val = r.getValue();
-		r.setValue(NumberUtils.resetBit(bitNumber, val));
+		r.setValue(RegisterUtils.resetBit(bitNumber, r));
 	}
 
 	/**

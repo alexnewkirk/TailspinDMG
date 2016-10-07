@@ -13,6 +13,7 @@ import java.util.ArrayList;
 //import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.ui.swing.SwingScreen;
+import com.echodrop.gameboy.util.GraphicsUtils;
 import com.echodrop.gameboy.util.NumberUtils;
 
 /**
@@ -102,8 +103,8 @@ public class TailspinDebugger {
 			int x = tileX * 8;
 			int y = tileY * 8;
 
-			byte[][] tile = NumberUtils.mapTile(getSystem().getGpu().getBackgroundPalette().getValue(),
-					NumberUtils.getTile(getSystem().getMem(), true, i));
+			byte[][] tile = GraphicsUtils.mapTile(getSystem().getGpu().getBackgroundPalette().getValue(),
+					GraphicsUtils.getTile(getSystem().getMem(), true, i));
 
 			for (int j = 0; j < 8; j++) {
 				for (int k = 0; k < 8; k++) {

@@ -16,7 +16,8 @@ import com.echodrop.gameboy.core.Register;
 import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.exceptions.MemoryAccessException;
 import com.echodrop.gameboy.interfaces.IGraphicsObserver;
-import com.echodrop.gameboy.util.NumberUtils;
+import com.echodrop.gameboy.util.GraphicsUtils;
+import com.echodrop.gameboy.util.RegisterUtils;
 
 /**
  * Emulation core for GameBoy Graphics Processing Unit
@@ -241,9 +242,9 @@ public class GPU {
 
 	public void renderFrame() {
 
-		boolean tileset = NumberUtils.readBit(3, getLcdControl().getValue());
+		boolean tileset = RegisterUtils.readBit(3, getLcdControl());
 
-		char address = (char) (NumberUtils.readBit(4, getLcdControl().getValue()) ? 0x9C00 : 0x9800);
+		char address = (char) (RegisterUtils.readBit(4, getLcdControl()) ? 0x9C00 : 0x9800);
 
 		byte[][] rendered = new byte[256][256];
 		byte[][] newFrameBuffer = new byte[160][144];
@@ -255,9 +256,9 @@ public class GPU {
 
 			byte tileOffset = system.getMem().readByte((char) (address));
 
-			byte[] tileData = NumberUtils.getTile(system.getMem(), tileset, tileOffset);
+			byte[] tileData = GraphicsUtils.getTile(system.getMem(), tileset, tileOffset);
 
-			byte[][] pixels = NumberUtils.mapTile(getBackgroundPalette().getValue(), tileData);
+			byte[][] pixels = GraphicsUtils.mapTile(getBackgroundPalette().getValue(), tileData);
 
 			for (int j = 0; j < 8; j++) {
 				for (int k = 0; k < 8; k++) {
