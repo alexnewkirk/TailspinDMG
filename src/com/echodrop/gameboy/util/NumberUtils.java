@@ -8,9 +8,6 @@
 
 package com.echodrop.gameboy.util;
 
-import com.echodrop.gameboy.core.MMU;
-import com.echodrop.gameboy.core.Register;
-
 /**
  * Contains miscellaneous utilities that are used throughout the codebase.
  */

@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import com.echodrop.gameboy.core.TailspinGB;
 import com.echodrop.gameboy.ui.swing.SwingScreen;
 import com.echodrop.gameboy.util.GraphicsUtils;
-import com.echodrop.gameboy.util.NumberUtils;
 
 /**
  * A simple command line debugger for the Tailspin emulator

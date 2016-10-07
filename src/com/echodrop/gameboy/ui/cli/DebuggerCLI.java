@@ -27,7 +27,6 @@ import com.echodrop.gameboy.graphics.GPU;
 import com.echodrop.gameboy.logging.SimpleConsoleLogger;
 import com.echodrop.gameboy.util.FileUtils;
 import com.echodrop.gameboy.util.GraphicsUtils;
-import com.echodrop.gameboy.util.NumberUtils;
 import com.echodrop.gameboy.util.StringUtils;
 
 public class DebuggerCLI {

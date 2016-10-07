@@ -19,6 +19,8 @@ import com.echodrop.gameboy.interfaces.IGraphicsObserver;
 import com.echodrop.gameboy.util.GraphicsUtils;
 import com.echodrop.gameboy.util.RegisterUtils;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 /**
  * Emulation core for GameBoy Graphics Processing Unit
  */
@@ -190,7 +192,7 @@ public class GPU {
 
 	public char readWord(char address) {
 		// TODO Does the gpu need to be able to write 16-bit values?
-		throw new RuntimeException();
+		throw new NotImplementedException();
 	}
 
 	public void writeByte(char address, byte data) {
