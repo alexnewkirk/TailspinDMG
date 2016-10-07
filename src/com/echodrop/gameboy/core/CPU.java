@@ -279,6 +279,7 @@ public class CPU {
 		opCodes.put((byte) 0x23, new OpCode("INC HL", () -> increment(getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x3C, new OpCode("INC A", () -> increment(getA()), (byte) 4));
 		opCodes.put((byte) 0x2C, new OpCode("INC L", () -> increment(getL()), (byte) 4));
+		opCodes.put((byte) 0x14, new OpCode("INC D", () -> increment(getD()), (byte) 4));
 		opCodes.put((byte) 0x04, new OpCode("INC B", () -> increment(getB()), (byte) 4));
 		opCodes.put((byte) 0x13, new OpCode("INC DE", () -> increment(getD(), getE()), (byte) 8));
 		opCodes.put((byte) 0x24, new OpCode("INC H", () -> increment(getH()), (byte) 4));
@@ -291,6 +292,7 @@ public class CPU {
 		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushFrom(getB(), getC()), (byte) 16));
 		opCodes.put((byte) 0xD5, new OpCode("PUSH DE", () -> pushFrom(getD(), getE()), (byte) 16));
 		opCodes.put((byte) 0xE5, new OpCode("PUSH HL", () -> pushFrom(getH(), getL()), (byte) 16));
+		//opCodes.put((byte) 0xF5, new OpCode("PUSH AF", () -> pushFrom(getA(), getF()), (byte) 16));
 		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
 		opCodes.put((byte) 0xD1, new OpCode("POP DE", () -> popTo(getD(), getE()), (byte) 12));
 		opCodes.put((byte) 0xE1, new OpCode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
