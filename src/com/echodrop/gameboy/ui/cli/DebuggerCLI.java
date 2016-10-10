@@ -23,6 +23,7 @@ import com.echodrop.gameboy.debugger.DebugAction;
 import com.echodrop.gameboy.debugger.DebugCommand;
 import com.echodrop.gameboy.debugger.MemoryBlock;
 import com.echodrop.gameboy.debugger.TailspinDebugger;
+import com.echodrop.gameboy.exceptions.MapperNotImplementedException;
 import com.echodrop.gameboy.graphics.GPU;
 import com.echodrop.gameboy.logging.SimpleConsoleLogger;
 import com.echodrop.gameboy.util.FileUtils;
@@ -125,6 +126,8 @@ public class DebuggerCLI {
 				tdb.getSystem().getMem().loadRom(rom);
 			} catch (IOException e) {
 				tdb.getSystem().getLogger().severe("[!] Unable to load rom: " + e.getMessage());
+			} catch (MapperNotImplementedException me) {
+				tdb.getSystem().getLogger().severe("[!] rom " + me.getMessage() + " uses an unsupported mapper.");
 			}
 			break;
 		case LOADBIOS:
@@ -273,7 +276,7 @@ public class DebuggerCLI {
 			selected = m.getZeroPage();
 			break;
 		case 4:
-			selected = m.getRom();
+			selected = m.getRomBank0();
 			break;
 		case 5:
 			selected = g.getOam();

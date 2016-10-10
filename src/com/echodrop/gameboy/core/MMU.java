@@ -10,6 +10,7 @@ package com.echodrop.gameboy.core;
 
 import java.util.logging.Logger;
 
+import com.echodrop.gameboy.exceptions.MapperNotImplementedException;
 import com.echodrop.gameboy.exceptions.MemoryAccessException;
 import com.echodrop.gameboy.exceptions.RomFileSizeException;
 import com.echodrop.gameboy.util.NumberUtils;
@@ -31,7 +32,8 @@ public class MMU {
 
 	/* Memory Map */
 	private MemoryRegion bios;
-	private MemoryRegion rom;
+	private MemoryRegion romBank0; // Always contains the first 16k of the ROM
+	private MemoryRegion romBank;
 	private MemoryRegion workingRam;
 	private MemoryRegion externalRam;
 	private MemoryRegion zeroPage;
@@ -47,7 +49,8 @@ public class MMU {
 	 */
 	public void initialize() {
 		setBios(new MemoryRegion((char) 0x0000, (char) 0x00ff, "bios"));
-		setRom(new MemoryRegion((char) 0x0000, (char) 0x7fff, "rom"));
+		setRomBank0(new MemoryRegion((char) 0x0000, (char) 0x3fff, "romBank0"));
+		setRomBank(new MemoryRegion((char) 0x4000, (char) 0x7FFF, "romBank"));
 		setWorkingRam(new MemoryRegion((char) 0xc000, (char) 0xdfff, "workingRam"));
 		setZeroPage(new MemoryRegion((char) 0xff80, (char) 0xffff, "zeroPage"));
 		setExternalRam(new MemoryRegion((char) 0xa000, (char) 0xbfff, "externalRam"));
@@ -72,22 +75,43 @@ public class MMU {
 	}
 
 	/**
-	 * Loads a rom binary of the specified filename into memory
+	 * Loads a ROM binary with the specified filename into memory
+	 * @throws MapperNotImplementedException if the ROM uses an 
+	 * unsupported MBC
 	 */
-	public void loadRom(byte[] romData) {
-		for (int i = 0; i < romData.length - 1; i++) {
-			getRom().setMem((char) i, (byte) (romData[i] & 0xFF));
-		}
-		logger.info("ROM data loaded: " + romData.length + " bytes");
+	public void loadRom(byte[] romData) throws MapperNotImplementedException {
 		
 		RomFile rf = new RomFile(romData);
 		loadedRomFile = rf;
+		logger.info("Attempting to load ROM...");
 		logger.info(rf.toString());
+		
+		// Load first 16kb regardless of what type of cartridge it is
+		for (int i = 0; i < 0x4000; i++) {
+			getRomBank0().setMem((char) i, (byte) (romData[i] & 0xFF));
+		}
+		
+		// Switch on cartridge type to load the rest; for now only need to support
+		// ctype 0 and MBC1
+		switch(loadedRomFile.cartridgeType) {
+		case 0:
+			// No MBC (32kb ROM)
+			for (int i = 0x4000; i < 0x8000; i++) {
+				getRomBank().setMem((char) i, (byte) (romData[i] & 0xFF));
+			}
+			break;
+		case 1:
+			// MBC1
+			break;
+		default:
+			throw new MapperNotImplementedException();
+		}
+		
+		logger.info("ROM data loaded: " + romData.length + " bytes");
 	}
 
 	/**
-	 * 
-	 * Based off of the write-up at:
+	 * Based on the write-up at:
 	 * http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Memory
 	 * 
 	 * @return the MemoryRegion that the specified address will be located in.
@@ -105,20 +129,20 @@ public class MMU {
 					return getBios();
 				}
 			}
-			return getRom();
+			return getRomBank0();
 
 		// ROM Bank 0
 		case 0x1000:
 		case 0x2000:
 		case 0x3000:
-			return getRom();
+			return getRomBank0();
 
 		// ROM bank 1
 		case 0x4000:
 		case 0x5000:
 		case 0x6000:
 		case 0x7000:
-			return getRom();
+			return getRomBank();
 
 		// VRAM
 		case 0x8000:
@@ -226,8 +250,16 @@ public class MMU {
 		this.bios = bios;
 	}
 
-	public MemoryRegion getRom() {
-		return rom;
+	public MemoryRegion getRomBank0() {
+		return romBank0;
+	}
+
+	public MemoryRegion getRomBank() {
+		return romBank;
+	}
+
+	public void setRomBank(MemoryRegion romBank) {
+		this.romBank = romBank;
 	}
 
 	public MemoryRegion getWorkingRam() {
@@ -254,8 +286,8 @@ public class MMU {
 		this.workingRam = workingRam;
 	}
 
-	private void setRom(MemoryRegion rom) {
-		this.rom = rom;
+	private void setRomBank0(MemoryRegion rom) {
+		this.romBank0 = rom;
 	}
 
 	public boolean isBiosMapped() {
