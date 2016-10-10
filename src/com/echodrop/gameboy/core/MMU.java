@@ -10,8 +10,8 @@ package com.echodrop.gameboy.core;
 
 import java.util.logging.Logger;
 
-import com.echodrop.gameboy.exceptions.RomFileSizeException;
 import com.echodrop.gameboy.exceptions.MemoryAccessException;
+import com.echodrop.gameboy.exceptions.RomFileSizeException;
 import com.echodrop.gameboy.util.NumberUtils;
 
 /**
@@ -35,6 +35,7 @@ public class MMU {
 	private MemoryRegion workingRam;
 	private MemoryRegion externalRam;
 	private MemoryRegion zeroPage;
+	private RomFile loadedRomFile;
 
 	public MMU(TailspinGB system) {
 		this.system = system;
@@ -77,7 +78,11 @@ public class MMU {
 		for (int i = 0; i < romData.length - 1; i++) {
 			getRom().setMem((char) i, (byte) (romData[i] & 0xFF));
 		}
-		logger.info("ROM loaded: " + romData.length + " bytes");
+		logger.info("ROM data loaded: " + romData.length + " bytes");
+		
+		RomFile rf = new RomFile(romData);
+		loadedRomFile = rf;
+		logger.info(rf.toString());
 	}
 
 	/**
