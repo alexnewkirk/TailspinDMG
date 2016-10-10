@@ -1,4 +1,4 @@
-package com.echodrop.gameboy.core;
+package com.echodrop.gameboy.rom;
 
 import com.echodrop.gameboy.util.NumberUtils;
 import com.echodrop.gameboy.util.StringUtils;

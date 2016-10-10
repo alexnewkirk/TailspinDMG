@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import com.echodrop.gameboy.exceptions.MapperNotImplementedException;
 import com.echodrop.gameboy.exceptions.MemoryAccessException;
 import com.echodrop.gameboy.exceptions.RomFileSizeException;
+import com.echodrop.gameboy.rom.RomFile;
 import com.echodrop.gameboy.util.NumberUtils;
 
 /**
