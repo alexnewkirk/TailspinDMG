@@ -124,7 +124,7 @@ public class DebuggerCLI {
 				rom = FileUtils.readBytes(readFilename());
 				tdb.getSystem().getMem().loadRom(rom);
 			} catch (IOException e) {
-				e.getMessage();
+				tdb.getSystem().getLogger().severe("[!] Unable to load rom: " + e.getMessage());
 			}
 			break;
 		case LOADBIOS:
@@ -443,7 +443,7 @@ public class DebuggerCLI {
 	private static String readFilename() {
 		String filename = "";
 
-		while (filename.isEmpty() || !filename.contains(".gb")) {
+		while (filename.isEmpty()) {
 			System.out.print("[tdbg] Enter filename >");
 			filename = sc.nextLine();
 		}
