@@ -11,20 +11,20 @@ package com.echodrop.gameboy.core;
 /**
  * Represents a GameBoy Z80 CPU instruction
  */
-public class OpCode {
+public class Opcode {
 	
 	private Runnable instruction;
 	private String disassembly;
 	private byte mTime;
 	private byte conditionalTime;
 	
-	public OpCode(String disassembly, Runnable instruction, byte m_time) {
+	public Opcode(String disassembly, Runnable instruction, byte m_time) {
 		this.setDisassembly(disassembly);
 		this.setInstruction(instruction);
 		this.setMTime(m_time);
 	}
 	
-	public OpCode(String disassembly, Runnable instruction, byte m_time, byte conditional_time) {
+	public Opcode(String disassembly, Runnable instruction, byte m_time, byte conditional_time) {
 		this(disassembly, instruction, m_time);
 		this.setConditionalTime(conditionalTime);
 	}

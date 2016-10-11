@@ -63,15 +63,15 @@ public class CPU {
 	private boolean running;
 
 	/* Opcode tables */
-	private HashMap<Byte, OpCode> opCodes;
-	private HashMap<Byte, OpCode> cbOpCodes;
+	private HashMap<Byte, Opcode> opCodes;
+	private HashMap<Byte, Opcode> cbOpCodes;
 
 	public CPU(TailspinGB system) {
 		this.initialize();
 		this.system = system;
 		this.mem = system.getMem();
-		this.opCodes = new HashMap<Byte, OpCode>();
-		this.cbOpCodes = new HashMap<Byte, OpCode>();
+		this.opCodes = new HashMap<Byte, Opcode>();
+		this.cbOpCodes = new HashMap<Byte, Opcode>();
 		this.loadOpCodes();
 		this.loadCbOpCodes();
 		this.running = false;
@@ -103,7 +103,7 @@ public class CPU {
 		pc &= 65535;
 
 		/* Execute the instruction */
-		OpCode instruction;
+		Opcode instruction;
 		if ((opcode & 0xFF) == 0xCB) {
 			logger.fine("CB prefixed opcode detected");
 			opcode = mem.readByte((char) (pc));
@@ -219,122 +219,126 @@ public class CPU {
 	 * Builds basic opcode table
 	 */
 	private void loadOpCodes() {
-		opCodes.put((byte) 0x00, new OpCode("NOP", () -> nop(), (byte) 4));
-		opCodes.put((byte) 0x17, new OpCode("RL A", () -> rl(getA()), (byte) 4));
-		opCodes.put((byte) 0x1F, new OpCode("RRA", () -> rr(getA()), (byte) 4));
-		opCodes.put((byte) 0x2F, new OpCode("CPL", () -> complement(), (byte) 4));
-		opCodes.put((byte) 0xFB, new OpCode("EI", () -> setInterruptsEnabled(true), (byte) 4));
-		opCodes.put((byte) 0xF3, new OpCode("DI", () -> setInterruptsEnabled(false), (byte) 4));
-		opCodes.put((byte) 0xBE, new OpCode("CP (HL)", () -> compareAddress(getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0xAF, new OpCode("XOR A", () -> xor(getA()), (byte) 4));
-		opCodes.put((byte) 0xA9, new OpCode("XOR C", () -> xor(getC()), (byte) 4));
-		opCodes.put((byte) 0xE6, new OpCode("AND n", () -> and(), (byte) 8));
-		opCodes.put((byte) 0xA1, new OpCode("AND C", () -> and(getC()), (byte) 4));
-		opCodes.put((byte) 0xA7, new OpCode("AND A", () -> and(getA()), (byte) 4));
-		opCodes.put((byte) 0xB1, new OpCode("OR C", () -> or(getC()), (byte) 4));
-		opCodes.put((byte) 0xB0, new OpCode("OR B", () -> or(getB()), (byte) 4));
-		opCodes.put((byte) 0xB3, new OpCode("OR E", () -> or(getE()), (byte) 4));
-		opCodes.put((byte) 0x86, new OpCode("ADD A,(HL)", () -> addAddress(getA(), getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0x87, new OpCode("ADD A,A", () -> add(getA()), (byte) 4));
-		opCodes.put((byte) 0x19, new OpCode("ADD HL, DE", () -> add(getH(), getL(), getD(), getE()), (byte) 8));
-		opCodes.put((byte) 0x90, new OpCode("SUB B", () -> subtract(getB()), (byte) 4));
-		opCodes.put((byte) 0x31, new OpCode("LD SP, nn", () -> ldSpNn(), (byte) 12)); // TODO: refactor
-		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> loadSixteen(getH(), getL()), (byte) 12)); // TODO: refactor
-		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> loadEightImmediate(getA()), (byte) 8)); // TODO: refactor
-		opCodes.put((byte) 0x7B, new OpCode("LD A, E", () -> load(getA(), getE()), (byte) 4));
-		opCodes.put((byte) 0x7A, new OpCode("LD A, D", () -> load(getA(), getD()), (byte) 4));
-		opCodes.put((byte) 0x7F, new OpCode("LD A, A", () -> load(getA(), getA()), (byte) 4));
-		opCodes.put((byte) 0x5F, new OpCode("LD E, A", () -> load(getE(), getA()), (byte) 4));
-		opCodes.put((byte) 0x0E, new OpCode("LD C, n", () -> loadEightImmediate(getC()), (byte) 8)); // TODO: refactor
-		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> loadEightImmediate(getD()), (byte) 8)); // TODO: refactor
-		opCodes.put((byte) 0x26, new OpCode("LD H, n", () -> loadEightImmediate(getH()), (byte) 8)); // TODO: refactor
-		opCodes.put((byte) 0x5E, new OpCode("LD E, (HL)", () -> loadFromAddress(getE(), getH(), getL()), (byte) 8)); // TODO: refactor
-		opCodes.put((byte) 0x6E, new OpCode("LD L, (HL)", () -> loadFromAddress(getL(), getH(), getL()), (byte) 8));// TODO: refactor
-		opCodes.put((byte) 0x7C, new OpCode("LD A,H", () -> load(getA(), getH()), (byte) 4));
-		opCodes.put((byte) 0x11, new OpCode("LD DE, nn", () -> loadSixteen(getD(), getE()), (byte) 12)); // TODO: refactor
-		opCodes.put((byte) 0x01, new OpCode("LD BC, nn", () -> loadSixteen(getB(), getC()), (byte) 12)); // TODO: refactor
-		opCodes.put((byte) 0x1A, new OpCode("LD A, (DE)", () -> loadFromAddress(getA(), getD(), getE()), (byte) 8));
-		opCodes.put((byte) 0x7E, new OpCode("LD A, (HL)", () -> loadFromAddress(getA(), getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0x4E, new OpCode("LD C, (HL)", () -> loadFromAddress(getC(), getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0x46, new OpCode("LD B, (HL)", () -> loadFromAddress(getB(), getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0x56, new OpCode("LD D, (HL)", () -> loadFromAddress(getD(), getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0x77, new OpCode("LD (HL), A", () -> loadToAddress(getH(), getL(), getA()), (byte) 8));
-		opCodes.put((byte) 0x70, new OpCode("LD (HL), B", () -> loadToAddress(getH(), getL(), getB()), (byte) 8));
-		opCodes.put((byte) 0x71, new OpCode("LD (HL), C", () -> loadToAddress(getH(), getL(), getC()), (byte) 8));
-		opCodes.put((byte) 0x12, new OpCode("LD (DE), A", () -> loadToAddress(getD(), getE(), getA()), (byte) 8));
-		opCodes.put((byte) 0x36, new OpCode("LD (HL), n", () -> loadImmediateToAddress(getH(), getL()), (byte) 12));
-		opCodes.put((byte) 0x32, new OpCode("LDD (HL), A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
-		opCodes.put((byte) 0x22, new OpCode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8)); 
-		opCodes.put((byte) 0x4f, new OpCode("LD C, A", () -> load(getC(), getA()), (byte) 4));
-		opCodes.put((byte) 0x06, new OpCode("LD B, n", () -> loadEightImmediate(getB()), (byte) 8)); // TODO: refactor
-		opCodes.put((byte) 0x67, new OpCode("LD H, A", () -> load(getH(), getA()), (byte) 4));
-		opCodes.put((byte) 0x57, new OpCode("LD D, A", () -> load(getD(), getA()), (byte) 4));
-		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> loadEightImmediate(getE()), (byte) 8)); // TODO: refactor
-		opCodes.put((byte) 0x47, new OpCode("LD B, A", () -> load(getB(), getA()), (byte) 4));
-		opCodes.put((byte) 0x7D, new OpCode("LD A, L", () -> load(getA(), getL()), (byte) 4));
-		opCodes.put((byte) 0x6F, new OpCode("LD L, A", () -> load(getL(), getA()), (byte) 4));
-		opCodes.put((byte) 0x78, new OpCode("LD A, B", () -> load(getA(), getB()), (byte) 4));
-		opCodes.put((byte) 0xEA, new OpCode("LD nn A", () -> loadToImmediateAddress(getA()), (byte) 16)); // TODO: refactor
-		opCodes.put((byte) 0x79, new OpCode("LD A, C", () -> load(getA(), getC()), (byte) 4));
-		opCodes.put((byte) 0x2e, new OpCode("LD L, n", () -> loadEightImmediate(getL()), (byte) 8)); // TODO: refactor
-		opCodes.put((byte) 0xE0, new OpCode("LDH (n), A", () -> loadToImmediateEightBitAddress(getA()), (byte) 12)); // TODO: refactor
-		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> loadFromEightImmediateAddress(getA()), (byte) 12)); // TODO: refactor
+		opCodes.put((byte) 0x00, new Opcode("NOP", () -> nop(), (byte) 4));
+		opCodes.put((byte) 0x17, new Opcode("RLA", () -> rl(getA()), (byte) 4));
+		opCodes.put((byte) 0x1F, new Opcode("RRA", () -> rr(getA()), (byte) 4));
+		opCodes.put((byte) 0x2F, new Opcode("CPL", () -> complement(), (byte) 4));
+		opCodes.put((byte) 0xFB, new Opcode("EI", () -> setInterruptsEnabled(true), (byte) 4));
+		opCodes.put((byte) 0xF3, new Opcode("DI", () -> setInterruptsEnabled(false), (byte) 4));
+		opCodes.put((byte) 0xBE, new Opcode("CP (HL)", () -> compareAddress(getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0xAF, new Opcode("XOR A", () -> xor(getA()), (byte) 4));
+		opCodes.put((byte) 0xA9, new Opcode("XOR C", () -> xor(getC()), (byte) 4));
+		opCodes.put((byte) 0xE6, new Opcode("AND n", () -> and(), (byte) 8));
+		opCodes.put((byte) 0xA1, new Opcode("AND C", () -> and(getC()), (byte) 4));
+		opCodes.put((byte) 0xA7, new Opcode("AND A", () -> and(getA()), (byte) 4));
+		opCodes.put((byte) 0xB1, new Opcode("OR C", () -> or(getC()), (byte) 4));
+		opCodes.put((byte) 0xB0, new Opcode("OR B", () -> or(getB()), (byte) 4));
+		opCodes.put((byte) 0xB3, new Opcode("OR E", () -> or(getE()), (byte) 4));
+		opCodes.put((byte) 0x86, new Opcode("ADD A,(HL)", () -> addAddress(getA(), getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0x87, new Opcode("ADD A,A", () -> add(getA()), (byte) 4));
+		opCodes.put((byte) 0x19, new Opcode("ADD HL, DE", () -> add(getH(), getL(), getD(), getE()), (byte) 8));
+		opCodes.put((byte) 0x90, new Opcode("SUB B", () -> subtract(getB()), (byte) 4));
+		opCodes.put((byte) 0x7B, new Opcode("LD A, E", () -> load(getA(), getE()), (byte) 4));
+		opCodes.put((byte) 0x7A, new Opcode("LD A, D", () -> load(getA(), getD()), (byte) 4));
+		opCodes.put((byte) 0x7F, new Opcode("LD A, A", () -> load(getA(), getA()), (byte) 4));
+		opCodes.put((byte) 0x5F, new Opcode("LD E, A", () -> load(getE(), getA()), (byte) 4));
+		opCodes.put((byte) 0x4f, new Opcode("LD C, A", () -> load(getC(), getA()), (byte) 4));
+		opCodes.put((byte) 0x67, new Opcode("LD H, A", () -> load(getH(), getA()), (byte) 4));
+		opCodes.put((byte) 0x57, new Opcode("LD D, A", () -> load(getD(), getA()), (byte) 4));
+		opCodes.put((byte) 0x47, new Opcode("LD B, A", () -> load(getB(), getA()), (byte) 4));
+		opCodes.put((byte) 0x7C, new Opcode("LD A, H", () -> load(getA(), getH()), (byte) 4));
+		opCodes.put((byte) 0x7D, new Opcode("LD A, L", () -> load(getA(), getL()), (byte) 4));
+		opCodes.put((byte) 0x6F, new Opcode("LD L, A", () -> load(getL(), getA()), (byte) 4));
+		opCodes.put((byte) 0x78, new Opcode("LD A, B", () -> load(getA(), getB()), (byte) 4));
+		opCodes.put((byte) 0x0E, new Opcode("LD C, n", () -> load(getC(), read8Immediate()), (byte) 8));
+		opCodes.put((byte) 0x16, new Opcode("LD D, n", () -> load(getD(), read8Immediate()), (byte) 8));
+		opCodes.put((byte) 0x26, new Opcode("LD H, n", () -> load(getH(), read8Immediate()), (byte) 8));
+		opCodes.put((byte) 0x3E, new Opcode("LD A, n", () -> load(getA(), read8Immediate()), (byte) 8));
+		opCodes.put((byte) 0x06, new Opcode("LD B, n", () -> load(getB(), read8Immediate()), (byte) 8));
+		opCodes.put((byte) 0x1E, new Opcode("LD E, n", () -> load(getE(), read8Immediate()), (byte) 8));
+		opCodes.put((byte) 0x2e, new Opcode("LD L, n", () -> load(getL(), read8Immediate()), (byte) 8));
+		opCodes.put((byte) 0x31, new Opcode("LD SP, nn", () -> sp = read16Immediate(), (byte) 12));
+		opCodes.put((byte) 0x21, new Opcode("LD HL, nn", () -> load(getH(), getL(), read16Immediate()), (byte) 12));
+		opCodes.put((byte) 0x11, new Opcode("LD DE, nn", () -> load(getD(), getE(), read16Immediate()), (byte) 12));
+		opCodes.put((byte) 0x01, new Opcode("LD BC, nn", () -> load(getB(), getC(), read16Immediate()), (byte) 12));
+		opCodes.put((byte) 0x5E, new Opcode("LD E, (HL)", () -> load(getE(), getH(), getL(), false), (byte) 8));
+		opCodes.put((byte) 0x6E, new Opcode("LD L, (HL)", () -> load(getL(), getH(), getL(), false), (byte) 8));
+		opCodes.put((byte) 0x1A, new Opcode("LD A, (DE)", () -> load(getA(), getD(), getE(), false), (byte) 8));
+		opCodes.put((byte) 0x7E, new Opcode("LD A, (HL)", () -> load(getA(), getH(), getL(), false), (byte) 8));
+		opCodes.put((byte) 0x4E, new Opcode("LD C, (HL)", () -> load(getC(), getH(), getL(), false), (byte) 8));
+		opCodes.put((byte) 0x46, new Opcode("LD B, (HL)", () -> load(getB(), getH(), getL(), false), (byte) 8));
+		opCodes.put((byte) 0x56, new Opcode("LD D, (HL)", () -> load(getD(), getH(), getL(), false), (byte) 8));
+		opCodes.put((byte) 0x77, new Opcode("LD (HL), A", () -> load(getH(), getL(), getA(), true), (byte) 8));
+		opCodes.put((byte) 0x73, new Opcode("LD (HL), E", () -> load(getH(), getL(), getE(), true), (byte) 8));
+		opCodes.put((byte) 0x70, new Opcode("LD (HL), B", () -> load(getH(), getL(), getB(), true), (byte) 8));
+		opCodes.put((byte) 0x71, new Opcode("LD (HL), C", () -> load(getH(), getL(), getC(), true), (byte) 8));
+		opCodes.put((byte) 0x12, new Opcode("LD (DE), A", () -> load(getD(), getE(), getA(), true), (byte) 8));
+		opCodes.put((byte) 0x36, new Opcode("LD (HL), n", () -> load(getH(), getL(), read8Immediate()), (byte) 12));
+		opCodes.put((byte) 0x32, new Opcode("LDD (HL), A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
+		opCodes.put((byte) 0x22, new Opcode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8));
+		opCodes.put((byte) 0xEA, new Opcode("LD nn A", () -> loadToImmediateAddress(getA()), (byte) 16)); // TODO:
+																											// refactor
+		opCodes.put((byte) 0x79, new Opcode("LD A, C", () -> load(getA(), getC()), (byte) 4));
+		opCodes.put((byte) 0xE0, new Opcode("LDH (n), A", () -> loadToImmediateEightBitAddress(getA()), (byte) 12)); // TODO:
+																														// refactor
+		opCodes.put((byte) 0xF0, new Opcode("LDH A, (n)", () -> loadFromEightImmediateAddress(getA()), (byte) 12)); // TODO:
+																													// refactor
 		opCodes.put((byte) 0x2A,
-				new OpCode("LD A, (HL+)", () -> loadIncrementFromAddress(getA(), getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0x73, new OpCode("LD (HL), E", () -> loadToAddress(getH(), getL(), getE()), (byte) 8));
-		opCodes.put((byte) 0xFA, new OpCode("LD A, (a16)", () -> loadFromSixteenImmediateAddress(getA()), (byte)16)); // TODO: refactor
-		opCodes.put((byte) 0xE2, new OpCode("LDH (C), A", () -> loadToRegisterAddress(getC(), getA()), (byte) 8));
-		opCodes.put((byte) 0x9F, new OpCode("SBC A, A", () -> subtractWithCarry(getA()), (byte) 8));
-		opCodes.put((byte) 0x0C, new OpCode("INC C", () -> increment(getC()), (byte) 4));
-		opCodes.put((byte) 0x1C, new OpCode("INC E", () -> increment(getE()), (byte) 4));
-		opCodes.put((byte) 0x23, new OpCode("INC HL", () -> increment(getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0x3C, new OpCode("INC A", () -> increment(getA()), (byte) 4));
-		opCodes.put((byte) 0x2C, new OpCode("INC L", () -> increment(getL()), (byte) 4));
-		opCodes.put((byte) 0x14, new OpCode("INC D", () -> increment(getD()), (byte) 4));
-		opCodes.put((byte) 0x04, new OpCode("INC B", () -> increment(getB()), (byte) 4));
-		opCodes.put((byte) 0x13, new OpCode("INC DE", () -> increment(getD(), getE()), (byte) 8));
-		opCodes.put((byte) 0x24, new OpCode("INC H", () -> increment(getH()), (byte) 4));
-		opCodes.put((byte) 0x05, new OpCode("DEC B", () -> decrement(getB()), (byte) 4));
-		opCodes.put((byte) 0x3D, new OpCode("DEC A", () -> decrement(getA()), (byte) 4));
-		opCodes.put((byte) 0x1D, new OpCode("DEC E", () -> decrement(getE()), (byte) 4));
-		opCodes.put((byte) 0x15, new OpCode("DEC D", () -> decrement(getD()), (byte) 4));
-		opCodes.put((byte) 0x0D, new OpCode("DEC C", () -> decrement(getC()), (byte) 4));
-		opCodes.put((byte) 0x0B, new OpCode("DEC BC", () -> decrement(getB(), getC()), (byte) 8));
-		opCodes.put((byte) 0x1B, new OpCode("DEC DE", () -> decrement(getD(), getE()), (byte) 8));
-		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushFrom(getB(), getC()), (byte) 16));
-		opCodes.put((byte) 0xD5, new OpCode("PUSH DE", () -> pushFrom(getD(), getE()), (byte) 16));
-		opCodes.put((byte) 0xE5, new OpCode("PUSH HL", () -> pushFrom(getH(), getL()), (byte) 16));
-		opCodes.put((byte) 0xF5, new OpCode("PUSH AF", () -> pushFrom(getA(), getF()), (byte) 16));
-		opCodes.put((byte) 0xC1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
-		opCodes.put((byte) 0xD1, new OpCode("POP DE", () -> popTo(getD(), getE()), (byte) 12));
-		opCodes.put((byte) 0xE1, new OpCode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
-		opCodes.put((byte) 0xF1, new OpCode("POP AF", () -> popTo(getA(), getF()), (byte) 12));
-		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> call(), (byte) 24));
-		opCodes.put((byte) 0xC9, new OpCode("RET", () -> ret(true), (byte) 16));
-		opCodes.put((byte) 0xC0, new OpCode("RET NZ", () -> ret(!isZeroFlag()), (byte) 20, (byte) 8));
-		opCodes.put((byte) 0xD0, new OpCode("RET NC", () -> ret(!isFullCarryFlag()), (byte) 20, (byte) 8));
-		opCodes.put((byte) 0xC8, new OpCode("RET Z", () -> ret(isZeroFlag()), (byte) 20, (byte) 8));
-		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> compare(), (byte) 8));
-		opCodes.put((byte) 0x28, new OpCode("JR Z, n", () -> relativeJump(isZeroFlag(), load8bitImmediate()), (byte) 12, (byte) 8));
-		opCodes.put((byte) 0x18, new OpCode("JR n", () -> relativeJump(true, load8bitImmediate()), (byte) 12));
-		opCodes.put((byte) 0xC3, new OpCode("JP nn", () -> pc = load16bitImmediate(), (byte) 16));
-		opCodes.put((byte) 0xE9, new OpCode("JP (HL)", () -> jump(true, readDualRegister(getH(), getL())), (byte) 4));
-		opCodes.put((byte) 0xCA, new OpCode("JP Z a16", () -> jump(isZeroFlag(), load16bitImmediate()), (byte) 16, (byte) 12));
-		opCodes.put((byte) 0xC2, new OpCode("JP NZ a16", () -> jump(!isZeroFlag(), load16bitImmediate()), (byte) 16, (byte) 12));
-		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> relativeJump(!isZeroFlag(), load8bitImmediate()), (byte) 12, (byte) 8));
-		opCodes.put((byte) 0xEF, new OpCode("RST 28H", () -> rst((byte) 0x28), (byte) 16));
+				new Opcode("LD A, (HL+)", () -> loadIncrementFromAddress(getA(), getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0xFA, new Opcode("LD A, (a16)", () -> loadFromSixteenImmediateAddress(getA()), (byte) 16)); // TODO:
+																														// refactor
+		opCodes.put((byte) 0xE2, new Opcode("LDH (C), A", () -> loadToRegisterAddress(getC(), getA()), (byte) 8));
+		opCodes.put((byte) 0x9F, new Opcode("SBC A, A", () -> subtractWithCarry(getA()), (byte) 8));
+		opCodes.put((byte) 0x0C, new Opcode("INC C", () -> increment(getC()), (byte) 4));
+		opCodes.put((byte) 0x1C, new Opcode("INC E", () -> increment(getE()), (byte) 4));
+		opCodes.put((byte) 0x3C, new Opcode("INC A", () -> increment(getA()), (byte) 4));
+		opCodes.put((byte) 0x2C, new Opcode("INC L", () -> increment(getL()), (byte) 4));
+		opCodes.put((byte) 0x14, new Opcode("INC D", () -> increment(getD()), (byte) 4));
+		opCodes.put((byte) 0x04, new Opcode("INC B", () -> increment(getB()), (byte) 4));
+		opCodes.put((byte) 0x24, new Opcode("INC H", () -> increment(getH()), (byte) 4));
+		opCodes.put((byte) 0x23, new Opcode("INC HL", () -> increment(getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0x13, new Opcode("INC DE", () -> increment(getD(), getE()), (byte) 8));
+		opCodes.put((byte) 0x05, new Opcode("DEC B", () -> decrement(getB()), (byte) 4));
+		opCodes.put((byte) 0x3D, new Opcode("DEC A", () -> decrement(getA()), (byte) 4));
+		opCodes.put((byte) 0x1D, new Opcode("DEC E", () -> decrement(getE()), (byte) 4));
+		opCodes.put((byte) 0x15, new Opcode("DEC D", () -> decrement(getD()), (byte) 4));
+		opCodes.put((byte) 0x0D, new Opcode("DEC C", () -> decrement(getC()), (byte) 4));
+		opCodes.put((byte) 0x0B, new Opcode("DEC BC", () -> decrement(getB(), getC()), (byte) 8));
+		opCodes.put((byte) 0x1B, new Opcode("DEC DE", () -> decrement(getD(), getE()), (byte) 8));
+		opCodes.put((byte) 0xc5, new Opcode("PUSH BC", () -> pushFrom(getB(), getC()), (byte) 16));
+		opCodes.put((byte) 0xD5, new Opcode("PUSH DE", () -> pushFrom(getD(), getE()), (byte) 16));
+		opCodes.put((byte) 0xE5, new Opcode("PUSH HL", () -> pushFrom(getH(), getL()), (byte) 16));
+		opCodes.put((byte) 0xF5, new Opcode("PUSH AF", () -> pushFrom(getA(), getF()), (byte) 16));
+		opCodes.put((byte) 0xC1, new Opcode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
+		opCodes.put((byte) 0xD1, new Opcode("POP DE", () -> popTo(getD(), getE()), (byte) 12));
+		opCodes.put((byte) 0xE1, new Opcode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
+		opCodes.put((byte) 0xF1, new Opcode("POP AF", () -> popTo(getA(), getF()), (byte) 12));
+		opCodes.put((byte) 0xCD, new Opcode("CALL nn", () -> call(), (byte) 24));
+		opCodes.put((byte) 0xC9, new Opcode("RET", () -> ret(true), (byte) 16));
+		opCodes.put((byte) 0xC0, new Opcode("RET NZ", () -> ret(!isZeroFlag()), (byte) 20, (byte) 8));
+		opCodes.put((byte) 0xD0, new Opcode("RET NC", () -> ret(!isFullCarryFlag()), (byte) 20, (byte) 8));
+		opCodes.put((byte) 0xC8, new Opcode("RET Z", () -> ret(isZeroFlag()), (byte) 20, (byte) 8));
+		opCodes.put((byte) 0xFE, new Opcode("CP n", () -> compare(), (byte) 8));
+		opCodes.put((byte) 0x28, new Opcode("JR Z, n", () -> relativeJump(isZeroFlag(), read8Immediate()), (byte) 12, (byte) 8));
+		opCodes.put((byte) 0x18, new Opcode("JR n", () -> relativeJump(true, read8Immediate()), (byte) 12));
+		opCodes.put((byte) 0xC3, new Opcode("JP nn", () -> pc = read16Immediate(), (byte) 16));
+		opCodes.put((byte) 0xE9, new Opcode("JP (HL)", () -> jump(true, readDualRegister(getH(), getL())), (byte) 4));
+		opCodes.put((byte) 0xCA, new Opcode("JP Z a16", () -> jump(isZeroFlag(), read16Immediate()), (byte) 16, (byte) 12));
+		opCodes.put((byte) 0xC2, new Opcode("JP NZ a16", () -> jump(!isZeroFlag(), read16Immediate()), (byte) 16, (byte) 12));
+		opCodes.put((byte) 0x20, new Opcode("JR NZ, n", () -> relativeJump(!isZeroFlag(), read8Immediate()), (byte) 12, (byte) 8));
+		opCodes.put((byte) 0xEF, new Opcode("RST 28H", () -> rst((byte) 0x28), (byte) 16));
 	}
 
 	/**
 	 * Builds extended opcode table (CB prefixed opcodes)
 	 */
 	private void loadCbOpCodes() {
-		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit(7, getH()), (byte) 8));
-		cbOpCodes.put((byte) 0x7F, new OpCode("BIT 7 F", () -> bit(7, getF()), (byte) 8));
-		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rl(getC()), (byte) 8));
-		cbOpCodes.put((byte) 0x87, new OpCode("RES 0, A", () -> res(0, getA()), (byte) 8));
-		cbOpCodes.put((byte) 0x37, new OpCode("SWAP A", () -> swap(getA()), (byte) 8));
-		 
+		cbOpCodes.put((byte) 0x7c, new Opcode("BIT 7 H", () -> bit(7, getH()), (byte) 8));
+		cbOpCodes.put((byte) 0x7F, new Opcode("BIT 7 F", () -> bit(7, getF()), (byte) 8));
+		cbOpCodes.put((byte) 0x11, new Opcode("RL C", () -> rl(getC()), (byte) 8));
+		cbOpCodes.put((byte) 0x87, new Opcode("RES 0, A", () -> res(0, getA()), (byte) 8));
+		cbOpCodes.put((byte) 0x37, new Opcode("SWAP A", () -> swap(getA()), (byte) 8));
+
 	}
 
 	public Logger getLogger() {
@@ -392,7 +396,7 @@ public class CPU {
 	public boolean isFullCarryFlag() {
 		return fullCarryFlag;
 	}
-	
+
 	// XXX: change F to a Register, the bool flags aren't a good design decision
 	public Register getF() {
 		String reg = "";
@@ -473,14 +477,14 @@ public class CPU {
 	private void setA(Register a) {
 		this.a = a;
 	}
-	
-	private byte load8bitImmediate() {
+
+	private byte read8Immediate() {
 		byte d8 = mem.readByte(pc);
 		pc++;
 		return d8;
 	}
-	
-	private char load16bitImmediate() {
+
+	private char read16Immediate() {
 		byte b2 = mem.readByte(pc);
 		pc++;
 		byte b1 = mem.readByte(pc);
@@ -538,7 +542,8 @@ public class CPU {
 	/**
 	 * Swaps high and low nibbles of a register
 	 * 
-	 * @param r register to swap
+	 * @param r
+	 *            register to swap
 	 */
 	private void swap(Register r) {
 		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(r.getValue()), 8);
@@ -638,21 +643,24 @@ public class CPU {
 		destination.setValue(source.getValue());
 	}
 
-	/**
-	 * Load 8-bit immediate into specified register
-	 */
-	private void loadEightImmediate(Register destination) {
-		destination.setValue(mem.readByte(pc));
-		pc++;
+	private void load(Register destination, byte value) {
+		destination.setValue(value);
 	}
 
-	/**
-	 * Loads a sixteen-bit immediate into a dual register
-	 */
-	private void loadSixteen(Register r1, Register r2) {
-		char value = mem.readWord((char) pc);
-		writeDualRegister(r1, r2, value);
-		pc += 2;
+	private void load(Register d1, Register d2, char value) {
+		writeDualRegister(d1, d2, value);
+	}
+	
+	private void load(Register addressDest1, Register addressDest2, byte value) {
+		mem.writeByte(readDualRegister(addressDest1, addressDest2), value);
+	}
+
+	private void load(Register r1, Register r2, Register r3, boolean loadToAddress) {
+		if (loadToAddress) {
+			mem.writeByte(readDualRegister(r1, r2), r3.getValue());
+		} else {
+			r1.setValue(mem.readByte(readDualRegister(r2, r3)));
+		}
 	}
 
 	/**
@@ -676,14 +684,6 @@ public class CPU {
 	}
 
 	/**
-	 * Loads the value of src into the memory address pointed to by d1d2
-	 */
-	private void loadToAddress(Register d1, Register d2, Register source) {
-		char address = readDualRegister(d1, d2);
-		mem.writeByte(address, source.getValue());
-	}
-
-	/**
 	 * Loads 8-bit immediate into the address pointed to by d1d2
 	 */
 	private void loadImmediateToAddress(Register d1, Register d2) {
@@ -702,14 +702,6 @@ public class CPU {
 		pc++;
 		char address = (char) (0xFF00 + immediate);
 		mem.writeByte(address, source.getValue());
-	}
-
-	/**
-	 * Loads the value pointed to by s1s2 into destination
-	 */
-	private void loadFromAddress(Register destination, Register s1, Register s2) {
-		char address = readDualRegister(s1, s2);
-		destination.setValue(mem.readByte(address));
 	}
 
 	/**
@@ -740,7 +732,7 @@ public class CPU {
 		char address = (char) (0xFF00 + immediate);
 		destination.setValue(mem.readByte(address));
 	}
-	
+
 	/**
 	 * Loads value from a 16-bit immediate address into destination
 	 */
@@ -801,7 +793,7 @@ public class CPU {
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
 	}
-	
+
 	/**
 	 * Performs a right-rotate-through-carry on r
 	 */
@@ -811,15 +803,15 @@ public class CPU {
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
 	}
-	
-	//XXX: Should these two be generalized into one function? 
+
+	// XXX: Should these two be generalized into one function?
 	// Check if there are more "compare" instructions
-	
+
 	/**
 	 * Compare 8-bit immediate to A
 	 */
 	private void compare() {
-		byte immediate = load8bitImmediate();
+		byte immediate = read8Immediate();
 		setOperationFlag(true);
 		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), immediate));
 
@@ -843,20 +835,20 @@ public class CPU {
 		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), memAtDual));
 		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), memAtDual));
 	}
-	
+
 	private void ret(boolean condition) {
-		if(condition) {
+		if (condition) {
 			char address = pop();
 			logger.fine("RET called, returning to " + Integer.toHexString(address & 0xFFFF));
 			pc = address;
 		}
 	}
-	
+
 	/**
 	 * Call routine at 16-bit immediate
 	 */
 	private void call() {
-		char address = load16bitImmediate();
+		char address = read16Immediate();
 		push(pc);
 		logger.fine("Pushed address " + Integer.toHexString(pc & 0xFFFF) + " to stack");
 		pc = address;
@@ -878,10 +870,10 @@ public class CPU {
 	private void nop() {
 		logger.finer("no op");
 	}
-	
+
 	private void bit(int bitno, Register r) {
 		boolean bitOn = RegisterUtils.readBit(bitno, r);
-		if(!bitOn) {
+		if (!bitOn) {
 			setZeroFlag(true);
 		} else {
 			setZeroFlag(false);
@@ -890,26 +882,16 @@ public class CPU {
 		setHalfCarryFlag(true);
 		logger.finer("Testing bit " + bitno + " of " + r + ": zeroFlag = " + isZeroFlag());
 	}
-	
+
 	private void res(int bitNumber, Register r) {
 		r.setValue(RegisterUtils.resetBit(bitNumber, r));
 	}
 
 	/**
-	 * Loads a 16 bit immediate into SP
-	 */
-	private void ldSpNn() {
-		sp = mem.readWord((char) (pc));
-		logger.finer("Loaded value: " + Integer.toHexString(sp) + " into SP");
-		pc += 2;
-	}
-	
-	/**
-	 * Absolute jump to 16-bit immediate address if condition
-	 * is met.
+	 * Absolute jump to 16-bit immediate address if condition is met.
 	 */
 	private void jump(boolean condition, char address) {
-		if(condition) {
+		if (condition) {
 			logger.finer("Jumping to " + StringUtils.charToReadableHex(address));
 			pc = address;
 		} else {
@@ -917,12 +899,12 @@ public class CPU {
 			logger.finer("Jump condition not met; no jmp");
 		}
 	}
-	
+
 	/**
 	 * Relative jump by SIGNED 8-bit immediate if condition is met.
 	 */
-	private void relativeJump(boolean condition, byte value) { 
-		if(condition) {
+	private void relativeJump(boolean condition, byte value) {
+		if (condition) {
 			logger.finer("Relative jump by " + StringUtils.byteToReadableHex(value));
 			pc += value;
 		} else {
@@ -932,7 +914,7 @@ public class CPU {
 	}
 
 	/**
-	 * Jump to reset vector 
+	 * Jump to reset vector
 	 */
 	private void rst(byte resetVector) {
 		push(pc);
