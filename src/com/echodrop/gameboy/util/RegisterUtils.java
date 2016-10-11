@@ -44,5 +44,14 @@ public class RegisterUtils {
 		toRotate.setValue(Integer.parseInt(shifted.substring(0, 8), 2));
 		return shifted.charAt(8) == '1';
 	}
+	
+	// XXX Double check the logic on this
+	public static boolean rightRotateThroughCarry(Register toRotate, boolean carryFlag) {
+		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(toRotate.getValue() & 0xFF), 8)
+				+ (carryFlag ? '1' : '0');
+		String shifted = bin.charAt(bin.length() - 1) + bin.substring(0, bin.length() - 2);
+		toRotate.setValue(Integer.parseInt(shifted.substring(0, 8), 2));
+		return shifted.charAt(0) == '1';
+	}
 
 }

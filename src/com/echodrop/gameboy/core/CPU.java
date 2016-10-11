@@ -221,6 +221,7 @@ public class CPU {
 	private void loadOpCodes() {
 		opCodes.put((byte) 0x00, new OpCode("NOP", () -> nop(), (byte) 4));
 		opCodes.put((byte) 0x17, new OpCode("RL A", () -> rl(getA()), (byte) 4));
+		opCodes.put((byte) 0x1F, new OpCode("RRA", () -> rr(getA()), (byte) 4));
 		opCodes.put((byte) 0x2F, new OpCode("CPL", () -> complement(), (byte) 4));
 		opCodes.put((byte) 0xFB, new OpCode("EI", () -> setInterruptsEnabled(true), (byte) 4));
 		opCodes.put((byte) 0xF3, new OpCode("DI", () -> setInterruptsEnabled(false), (byte) 4));
@@ -232,6 +233,7 @@ public class CPU {
 		opCodes.put((byte) 0xA7, new OpCode("AND A", () -> and(getA()), (byte) 4));
 		opCodes.put((byte) 0xB1, new OpCode("OR C", () -> or(getC()), (byte) 4));
 		opCodes.put((byte) 0xB0, new OpCode("OR B", () -> or(getB()), (byte) 4));
+		opCodes.put((byte) 0xB3, new OpCode("OR E", () -> or(getE()), (byte) 4));
 		opCodes.put((byte) 0x86, new OpCode("ADD A,(HL)", () -> addAddress(getA(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x87, new OpCode("ADD A,A", () -> add(getA()), (byte) 4));
 		opCodes.put((byte) 0x19, new OpCode("ADD HL, DE", () -> add(getH(), getL(), getD(), getE()), (byte) 8));
@@ -240,10 +242,14 @@ public class CPU {
 		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> loadSixteen(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> loadImmediate(getA()), (byte) 8));
 		opCodes.put((byte) 0x7B, new OpCode("LD A, E", () -> load(getA(), getE()), (byte) 4));
+		opCodes.put((byte) 0x7A, new OpCode("LD A, D", () -> load(getA(), getD()), (byte) 4));
+		opCodes.put((byte) 0x7F, new OpCode("LD A, A", () -> load(getA(), getA()), (byte) 4));
 		opCodes.put((byte) 0x5F, new OpCode("LD E, A", () -> load(getE(), getA()), (byte) 4));
 		opCodes.put((byte) 0x0E, new OpCode("LD C, n", () -> loadImmediate(getC()), (byte) 8));
 		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> loadImmediate(getD()), (byte) 8));
+		opCodes.put((byte) 0x26, new OpCode("LD H, n", () -> loadImmediate(getH()), (byte) 8));
 		opCodes.put((byte) 0x5E, new OpCode("LD E, (HL)", () -> loadFromAddress(getE(), getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0x6E, new OpCode("LD L, (HL)", () -> loadFromAddress(getL(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x7C, new OpCode("LD A,H", () -> load(getA(), getH()), (byte) 4));
 		opCodes.put((byte) 0x11, new OpCode("LD DE, nn", () -> loadSixteen(getD(), getE()), (byte) 12));
 		opCodes.put((byte) 0x01, new OpCode("LD BC, nn", () -> loadSixteen(getB(), getC()), (byte) 12));
@@ -251,6 +257,7 @@ public class CPU {
 		opCodes.put((byte) 0x7E, new OpCode("LD A, (HL)", () -> loadFromAddress(getA(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x56, new OpCode("LD D, (HL)", () -> loadFromAddress(getD(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x77, new OpCode("LD (HL), A", () -> loadToAddress(getH(), getL(), getA()), (byte) 8));
+		opCodes.put((byte) 0x71, new OpCode("LD (HL), C", () -> loadToAddress(getH(), getL(), getC()), (byte) 8));
 		opCodes.put((byte) 0x12, new OpCode("LD (DE), A", () -> loadToAddress(getD(), getE(), getA()), (byte) 8));
 		opCodes.put((byte) 0x36, new OpCode("LD (HL), n", () -> loadImmediateToAddress(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0x32, new OpCode("LDD (HL), A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
@@ -262,6 +269,7 @@ public class CPU {
 		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> loadImmediate(getE()), (byte) 8));
 		opCodes.put((byte) 0x47, new OpCode("LD B, A", () -> load(getB(), getA()), (byte) 4));
 		opCodes.put((byte) 0x7D, new OpCode("LD A, L", () -> load(getA(), getL()), (byte) 4));
+		opCodes.put((byte) 0x6F, new OpCode("LD L, A", () -> load(getL(), getA()), (byte) 4));
 		opCodes.put((byte) 0x78, new OpCode("LD A, B", () -> load(getA(), getB()), (byte) 4));
 		opCodes.put((byte) 0xEA, new OpCode("LD nn A", () -> loadToImmediateAddress(getA()), (byte) 16));
 		opCodes.put((byte) 0x79, new OpCode("LD A, C", () -> load(getA(), getC()), (byte) 4));
@@ -289,6 +297,7 @@ public class CPU {
 		opCodes.put((byte) 0x15, new OpCode("DEC D", () -> decrement(getD()), (byte) 4));
 		opCodes.put((byte) 0x0D, new OpCode("DEC C", () -> decrement(getC()), (byte) 4));
 		opCodes.put((byte) 0x0B, new OpCode("DEC BC", () -> decrement(getB(), getC()), (byte) 8));
+		opCodes.put((byte) 0x1B, new OpCode("DEC DE", () -> decrement(getD(), getE()), (byte) 8));
 		opCodes.put((byte) 0xc5, new OpCode("PUSH BC", () -> pushFrom(getB(), getC()), (byte) 16));
 		opCodes.put((byte) 0xD5, new OpCode("PUSH DE", () -> pushFrom(getD(), getE()), (byte) 16));
 		opCodes.put((byte) 0xE5, new OpCode("PUSH HL", () -> pushFrom(getH(), getL()), (byte) 16));
@@ -296,10 +305,11 @@ public class CPU {
 		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
 		opCodes.put((byte) 0xD1, new OpCode("POP DE", () -> popTo(getD(), getE()), (byte) 12));
 		opCodes.put((byte) 0xE1, new OpCode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
-		//opCodes.put((byte) 0xF1, new OpCode("POP AF", () -> popTo(getA(), getF()), (byte) 12));
+		opCodes.put((byte) 0xF1, new OpCode("POP AF", () -> popTo(getA(), getF()), (byte) 12));
 		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> callNn(), (byte) 24));
 		opCodes.put((byte) 0xC9, new OpCode("RET", () -> ret(), (byte) 16));
 		opCodes.put((byte) 0xC0, new OpCode("RET NZ", () -> retnz(), (byte) 20, (byte) 8));
+		opCodes.put((byte) 0xC8, new OpCode("RET Z", () -> retz(), (byte) 20, (byte) 8));
 		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> compare(), (byte) 8));
 		opCodes.put((byte) 0x28, new OpCode("JR Z, n", () -> jrZn(), (byte) 12, (byte) 8));
 		opCodes.put((byte) 0x18, new OpCode("JR n", () -> jrN(), (byte) 12));
@@ -314,10 +324,12 @@ public class CPU {
 	 * Builds extended opcode table (CB prefixed opcodes)
 	 */
 	private void loadCbOpCodes() {
-		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit7h(), (byte) 8));
+		cbOpCodes.put((byte) 0x7c, new OpCode("BIT 7 H", () -> bit(7, getH()), (byte) 8));
+		cbOpCodes.put((byte) 0x7F, new OpCode("BIT 7 F", () -> bit(7, getF()), (byte) 8));
 		cbOpCodes.put((byte) 0x11, new OpCode("RL C", () -> rl(getC()), (byte) 8));
 		cbOpCodes.put((byte) 0x87, new OpCode("RES 0, A", () -> res(0, getA()), (byte) 8));
 		cbOpCodes.put((byte) 0x37, new OpCode("SWAP A", () -> swap(getA()), (byte) 8));
+		 
 	}
 
 	public Logger getLogger() {
@@ -803,6 +815,13 @@ public class CPU {
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
 	}
+	
+	private void rr(Register r) {
+		setFullCarryFlag(RegisterUtils.rightRotateThroughCarry(r, isFullCarryFlag()));
+		setZeroFlag(r.getValue() == 0);
+		setOperationFlag(false);
+		setHalfCarryFlag(false);
+	}
 
 	/**
 	 * Relative jmp by signed immediate
@@ -880,6 +899,18 @@ public class CPU {
 			pc = address;
 		}
 	}
+	
+	/**
+	 * Return if Z flag is set
+	 */
+	private void retz() {
+		if(isZeroFlag()) {
+			char address = pop();
+			logger.fine("RET Z called, returning to " + Integer.toHexString(address & 0xFFFF));
+			pc = address;
+		}
+	}
+	
 	/**
 	 * Call routine at nn
 	 */
@@ -906,20 +937,17 @@ public class CPU {
 	private void nop() {
 		logger.finer("no op");
 	}
-
-	/**
-	 * Test bit 7 of register H
-	 * 
-	 * //TODO: Generalize to bit(bitno, regiter)
-	 */
-	private void bit7h() {
-		String bin = Integer.toBinaryString(getH().getValue() & 0xFF);
-		if (bin.toCharArray()[7] == '0') {
+	
+	private void bit(int bitno, Register r) {
+		boolean bitOn = RegisterUtils.readBit(bitno, r);
+		if(!bitOn) {
 			setZeroFlag(true);
 		} else {
 			setZeroFlag(false);
 		}
-		logger.finer("Testing bit 7 of " + bin + ": zeroFlag = " + isZeroFlag());
+		setOperationFlag(false);
+		setHalfCarryFlag(true);
+		logger.finer("Testing bit " + bitno + " of " + r + ": zeroFlag = " + isZeroFlag());
 	}
 	
 	private void res(int bitNumber, Register r) {
