@@ -118,7 +118,6 @@ public class MMU {
 	 * @return the MemoryRegion that the specified address will be located in.
 	 */
 	public MemoryRegion findMemoryRegion(char address) {
-
 		/*
 		 * mask off the last 4 bits of the address to find which memory region
 		 * it's located in
@@ -204,6 +203,12 @@ public class MMU {
 		} else if (address >= 0xFF01 && address <= 0xFF7F) {
 			return system.getGpu().readByte(address);
 		}
+		
+		//Trap reads from ECHO RAM
+		if(address >= 0xE000 && address <= 0xFDFF) {
+			address -= 0x2000;
+		}
+		
 		MemoryRegion r = findMemoryRegion(address);
 		if (r != null) {
 			return r.getMem(address);
@@ -236,6 +241,12 @@ public class MMU {
 		} else if (address >= 0xFF01 && address <= 0xFF7F) {
 			system.getGpu().writeByte(address, data);
 		} else {
+			
+			//Trap writes to ECHO RAM
+			if(address >= 0xE000 && address <= 0xFDFF) {
+				address -= 0x2000;
+			}
+			
 			MemoryRegion r = findMemoryRegion(address);
 			if (r != null) {
 				r.setMem(address, data);
