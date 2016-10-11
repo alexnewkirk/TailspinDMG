@@ -115,7 +115,7 @@ public class CPU {
 		}
 
 		if (instruction != null) {
-			logger.fine(instruction.getDisassembly());
+			logger.fine(instruction.getMnemonic());
 			instruction.exec();
 
 			/*

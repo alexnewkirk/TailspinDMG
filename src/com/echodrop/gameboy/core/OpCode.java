@@ -44,7 +44,7 @@ public class OpCode {
 		this.instruction = instruction;
 	}
 
-	public String getDisassembly() {
+	public String getMnemonic() {
 		return disassembly;
 	}
 
