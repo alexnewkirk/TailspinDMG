@@ -255,8 +255,11 @@ public class CPU {
 		opCodes.put((byte) 0x01, new OpCode("LD BC, nn", () -> loadSixteen(getB(), getC()), (byte) 12));
 		opCodes.put((byte) 0x1A, new OpCode("LD A, (DE)", () -> loadFromAddress(getA(), getD(), getE()), (byte) 8));
 		opCodes.put((byte) 0x7E, new OpCode("LD A, (HL)", () -> loadFromAddress(getA(), getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0x4E, new OpCode("LD C, (HL)", () -> loadFromAddress(getC(), getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0x46, new OpCode("LD B, (HL)", () -> loadFromAddress(getB(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x56, new OpCode("LD D, (HL)", () -> loadFromAddress(getD(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x77, new OpCode("LD (HL), A", () -> loadToAddress(getH(), getL(), getA()), (byte) 8));
+		opCodes.put((byte) 0x70, new OpCode("LD (HL), B", () -> loadToAddress(getH(), getL(), getB()), (byte) 8));
 		opCodes.put((byte) 0x71, new OpCode("LD (HL), C", () -> loadToAddress(getH(), getL(), getC()), (byte) 8));
 		opCodes.put((byte) 0x12, new OpCode("LD (DE), A", () -> loadToAddress(getD(), getE(), getA()), (byte) 8));
 		opCodes.put((byte) 0x36, new OpCode("LD (HL), n", () -> loadImmediateToAddress(getH(), getL()), (byte) 12));
@@ -302,13 +305,14 @@ public class CPU {
 		opCodes.put((byte) 0xD5, new OpCode("PUSH DE", () -> pushFrom(getD(), getE()), (byte) 16));
 		opCodes.put((byte) 0xE5, new OpCode("PUSH HL", () -> pushFrom(getH(), getL()), (byte) 16));
 		opCodes.put((byte) 0xF5, new OpCode("PUSH AF", () -> pushFrom(getA(), getF()), (byte) 16));
-		opCodes.put((byte) 0xc1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
+		opCodes.put((byte) 0xC1, new OpCode("POP BC", () -> popTo(getB(), getC()), (byte) 12));
 		opCodes.put((byte) 0xD1, new OpCode("POP DE", () -> popTo(getD(), getE()), (byte) 12));
 		opCodes.put((byte) 0xE1, new OpCode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0xF1, new OpCode("POP AF", () -> popTo(getA(), getF()), (byte) 12));
 		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> callNn(), (byte) 24));
 		opCodes.put((byte) 0xC9, new OpCode("RET", () -> ret(), (byte) 16));
 		opCodes.put((byte) 0xC0, new OpCode("RET NZ", () -> retnz(), (byte) 20, (byte) 8));
+		opCodes.put((byte) 0xD0, new OpCode("RET NC", () -> retnc(), (byte) 20, (byte) 8));
 		opCodes.put((byte) 0xC8, new OpCode("RET Z", () -> retz(), (byte) 20, (byte) 8));
 		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> compare(), (byte) 8));
 		opCodes.put((byte) 0x28, new OpCode("JR Z, n", () -> jrZn(), (byte) 12, (byte) 8));
@@ -316,6 +320,7 @@ public class CPU {
 		opCodes.put((byte) 0xC3, new OpCode("JP nn", () -> jumpToImmediate(), (byte) 16));
 		opCodes.put((byte) 0xE9, new OpCode("JP (HL)", () -> jumpToAddress(getH(), getL()), (byte) 4));
 		opCodes.put((byte) 0xCA, new OpCode("JP Z a16", () -> jpzToSixteenImmediateAddress(), (byte) 16, (byte) 12));
+		opCodes.put((byte) 0xC2, new OpCode("JP NZ a16", () -> jpnzToSixteenImmediateAddress(), (byte) 16, (byte) 12));
 		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> jrNzN(), (byte) 12, (byte) 8));
 		opCodes.put((byte) 0xEF, new OpCode("RST 28H", () -> rst((byte) 0x28), (byte) 16));
 	}
@@ -755,10 +760,22 @@ public class CPU {
 	}
 	
 	/**
-	 * Jumps to a sixteen-bit immediate address if the zero flag is not set
+	 * Jumps to a sixteen-bit immediate address if the zero flag is set
 	 */
 	private void jpzToSixteenImmediateAddress() {
 		if(isZeroFlag()) {
+			char address = mem.readWord(pc);
+			pc = address;
+		}
+	}
+	
+	// XXX: Generalize these to just take a boolean expression as a parameter
+	
+	/**
+	 * Jumps to a sixteen-bit immediate address if the zero flag is not set
+	 */
+	private void jpnzToSixteenImmediateAddress() {
+		if(!isZeroFlag()) {
 			char address = mem.readWord(pc);
 			pc = address;
 		}
@@ -896,6 +913,19 @@ public class CPU {
 		if(!isZeroFlag()) {
 			char address = pop();
 			logger.fine("RET NZ called, returning to " + Integer.toHexString(address & 0xFFFF));
+			pc = address;
+		}
+	}
+	
+	// XXX: Generalize to ret(bool)
+	
+	/**
+	 * Return if C flag is reset
+	 */
+	private void retnc() {
+		if(!isFullCarryFlag()) {
+			char address = pop();
+			logger.fine("RET NC called, returning to " + Integer.toHexString(address & 0xFFFF));
 			pc = address;
 		}
 	}
