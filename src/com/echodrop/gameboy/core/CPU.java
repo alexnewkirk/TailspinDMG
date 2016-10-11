@@ -238,21 +238,21 @@ public class CPU {
 		opCodes.put((byte) 0x87, new OpCode("ADD A,A", () -> add(getA()), (byte) 4));
 		opCodes.put((byte) 0x19, new OpCode("ADD HL, DE", () -> add(getH(), getL(), getD(), getE()), (byte) 8));
 		opCodes.put((byte) 0x90, new OpCode("SUB B", () -> subtract(getB()), (byte) 4));
-		opCodes.put((byte) 0x31, new OpCode("LD SP, nn", () -> ldSpNn(), (byte) 12));
-		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> loadSixteen(getH(), getL()), (byte) 12));
-		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> loadImmediate(getA()), (byte) 8));
+		opCodes.put((byte) 0x31, new OpCode("LD SP, nn", () -> ldSpNn(), (byte) 12)); // TODO: refactor
+		opCodes.put((byte) 0x21, new OpCode("LD HL, nn", () -> loadSixteen(getH(), getL()), (byte) 12)); // TODO: refactor
+		opCodes.put((byte) 0x3E, new OpCode("LD A, n", () -> loadEightImmediate(getA()), (byte) 8)); // TODO: refactor
 		opCodes.put((byte) 0x7B, new OpCode("LD A, E", () -> load(getA(), getE()), (byte) 4));
 		opCodes.put((byte) 0x7A, new OpCode("LD A, D", () -> load(getA(), getD()), (byte) 4));
 		opCodes.put((byte) 0x7F, new OpCode("LD A, A", () -> load(getA(), getA()), (byte) 4));
 		opCodes.put((byte) 0x5F, new OpCode("LD E, A", () -> load(getE(), getA()), (byte) 4));
-		opCodes.put((byte) 0x0E, new OpCode("LD C, n", () -> loadImmediate(getC()), (byte) 8));
-		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> loadImmediate(getD()), (byte) 8));
-		opCodes.put((byte) 0x26, new OpCode("LD H, n", () -> loadImmediate(getH()), (byte) 8));
-		opCodes.put((byte) 0x5E, new OpCode("LD E, (HL)", () -> loadFromAddress(getE(), getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0x6E, new OpCode("LD L, (HL)", () -> loadFromAddress(getL(), getH(), getL()), (byte) 8));
+		opCodes.put((byte) 0x0E, new OpCode("LD C, n", () -> loadEightImmediate(getC()), (byte) 8)); // TODO: refactor
+		opCodes.put((byte) 0x16, new OpCode("LD D, n", () -> loadEightImmediate(getD()), (byte) 8)); // TODO: refactor
+		opCodes.put((byte) 0x26, new OpCode("LD H, n", () -> loadEightImmediate(getH()), (byte) 8)); // TODO: refactor
+		opCodes.put((byte) 0x5E, new OpCode("LD E, (HL)", () -> loadFromAddress(getE(), getH(), getL()), (byte) 8)); // TODO: refactor
+		opCodes.put((byte) 0x6E, new OpCode("LD L, (HL)", () -> loadFromAddress(getL(), getH(), getL()), (byte) 8));// TODO: refactor
 		opCodes.put((byte) 0x7C, new OpCode("LD A,H", () -> load(getA(), getH()), (byte) 4));
-		opCodes.put((byte) 0x11, new OpCode("LD DE, nn", () -> loadSixteen(getD(), getE()), (byte) 12));
-		opCodes.put((byte) 0x01, new OpCode("LD BC, nn", () -> loadSixteen(getB(), getC()), (byte) 12));
+		opCodes.put((byte) 0x11, new OpCode("LD DE, nn", () -> loadSixteen(getD(), getE()), (byte) 12)); // TODO: refactor
+		opCodes.put((byte) 0x01, new OpCode("LD BC, nn", () -> loadSixteen(getB(), getC()), (byte) 12)); // TODO: refactor
 		opCodes.put((byte) 0x1A, new OpCode("LD A, (DE)", () -> loadFromAddress(getA(), getD(), getE()), (byte) 8));
 		opCodes.put((byte) 0x7E, new OpCode("LD A, (HL)", () -> loadFromAddress(getA(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x4E, new OpCode("LD C, (HL)", () -> loadFromAddress(getC(), getH(), getL()), (byte) 8));
@@ -264,25 +264,25 @@ public class CPU {
 		opCodes.put((byte) 0x12, new OpCode("LD (DE), A", () -> loadToAddress(getD(), getE(), getA()), (byte) 8));
 		opCodes.put((byte) 0x36, new OpCode("LD (HL), n", () -> loadImmediateToAddress(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0x32, new OpCode("LDD (HL), A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
-		opCodes.put((byte) 0x22, new OpCode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8));
+		opCodes.put((byte) 0x22, new OpCode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8)); 
 		opCodes.put((byte) 0x4f, new OpCode("LD C, A", () -> load(getC(), getA()), (byte) 4));
-		opCodes.put((byte) 0x06, new OpCode("LD B, n", () -> loadImmediate(getB()), (byte) 8));
+		opCodes.put((byte) 0x06, new OpCode("LD B, n", () -> loadEightImmediate(getB()), (byte) 8)); // TODO: refactor
 		opCodes.put((byte) 0x67, new OpCode("LD H, A", () -> load(getH(), getA()), (byte) 4));
 		opCodes.put((byte) 0x57, new OpCode("LD D, A", () -> load(getD(), getA()), (byte) 4));
-		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> loadImmediate(getE()), (byte) 8));
+		opCodes.put((byte) 0x1E, new OpCode("LD E, n", () -> loadEightImmediate(getE()), (byte) 8)); // TODO: refactor
 		opCodes.put((byte) 0x47, new OpCode("LD B, A", () -> load(getB(), getA()), (byte) 4));
 		opCodes.put((byte) 0x7D, new OpCode("LD A, L", () -> load(getA(), getL()), (byte) 4));
 		opCodes.put((byte) 0x6F, new OpCode("LD L, A", () -> load(getL(), getA()), (byte) 4));
 		opCodes.put((byte) 0x78, new OpCode("LD A, B", () -> load(getA(), getB()), (byte) 4));
-		opCodes.put((byte) 0xEA, new OpCode("LD nn A", () -> loadToImmediateAddress(getA()), (byte) 16));
+		opCodes.put((byte) 0xEA, new OpCode("LD nn A", () -> loadToImmediateAddress(getA()), (byte) 16)); // TODO: refactor
 		opCodes.put((byte) 0x79, new OpCode("LD A, C", () -> load(getA(), getC()), (byte) 4));
-		opCodes.put((byte) 0x2e, new OpCode("LD L, n", () -> loadImmediate(getL()), (byte) 8));
-		opCodes.put((byte) 0xE0, new OpCode("LDH (n), A", () -> loadToImmediateEightBitAddress(getA()), (byte) 12));
-		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> loadFromEightImmediateAddress(getA()), (byte) 12));
+		opCodes.put((byte) 0x2e, new OpCode("LD L, n", () -> loadEightImmediate(getL()), (byte) 8)); // TODO: refactor
+		opCodes.put((byte) 0xE0, new OpCode("LDH (n), A", () -> loadToImmediateEightBitAddress(getA()), (byte) 12)); // TODO: refactor
+		opCodes.put((byte) 0xF0, new OpCode("LDH A, (n)", () -> loadFromEightImmediateAddress(getA()), (byte) 12)); // TODO: refactor
 		opCodes.put((byte) 0x2A,
 				new OpCode("LD A, (HL+)", () -> loadIncrementFromAddress(getA(), getH(), getL()), (byte) 8));
 		opCodes.put((byte) 0x73, new OpCode("LD (HL), E", () -> loadToAddress(getH(), getL(), getE()), (byte) 8));
-		opCodes.put((byte) 0xFA, new OpCode("LD A, (a16)", () -> loadFromSixteenImmediateAddress(getA()), (byte)16));
+		opCodes.put((byte) 0xFA, new OpCode("LD A, (a16)", () -> loadFromSixteenImmediateAddress(getA()), (byte)16)); // TODO: refactor
 		opCodes.put((byte) 0xE2, new OpCode("LDH (C), A", () -> loadToRegisterAddress(getC(), getA()), (byte) 8));
 		opCodes.put((byte) 0x9F, new OpCode("SBC A, A", () -> subtractWithCarry(getA()), (byte) 8));
 		opCodes.put((byte) 0x0C, new OpCode("INC C", () -> increment(getC()), (byte) 4));
@@ -309,19 +309,19 @@ public class CPU {
 		opCodes.put((byte) 0xD1, new OpCode("POP DE", () -> popTo(getD(), getE()), (byte) 12));
 		opCodes.put((byte) 0xE1, new OpCode("POP HL", () -> popTo(getH(), getL()), (byte) 12));
 		opCodes.put((byte) 0xF1, new OpCode("POP AF", () -> popTo(getA(), getF()), (byte) 12));
-		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> callNn(), (byte) 24));
-		opCodes.put((byte) 0xC9, new OpCode("RET", () -> ret(), (byte) 16));
-		opCodes.put((byte) 0xC0, new OpCode("RET NZ", () -> retnz(), (byte) 20, (byte) 8));
-		opCodes.put((byte) 0xD0, new OpCode("RET NC", () -> retnc(), (byte) 20, (byte) 8));
-		opCodes.put((byte) 0xC8, new OpCode("RET Z", () -> retz(), (byte) 20, (byte) 8));
+		opCodes.put((byte) 0xCD, new OpCode("CALL nn", () -> call(), (byte) 24));
+		opCodes.put((byte) 0xC9, new OpCode("RET", () -> ret(true), (byte) 16));
+		opCodes.put((byte) 0xC0, new OpCode("RET NZ", () -> ret(!isZeroFlag()), (byte) 20, (byte) 8));
+		opCodes.put((byte) 0xD0, new OpCode("RET NC", () -> ret(!isFullCarryFlag()), (byte) 20, (byte) 8));
+		opCodes.put((byte) 0xC8, new OpCode("RET Z", () -> ret(isZeroFlag()), (byte) 20, (byte) 8));
 		opCodes.put((byte) 0xFE, new OpCode("CP n", () -> compare(), (byte) 8));
-		opCodes.put((byte) 0x28, new OpCode("JR Z, n", () -> jrZn(), (byte) 12, (byte) 8));
-		opCodes.put((byte) 0x18, new OpCode("JR n", () -> jrN(), (byte) 12));
-		opCodes.put((byte) 0xC3, new OpCode("JP nn", () -> jumpToImmediate(), (byte) 16));
-		opCodes.put((byte) 0xE9, new OpCode("JP (HL)", () -> jumpToAddress(getH(), getL()), (byte) 4));
-		opCodes.put((byte) 0xCA, new OpCode("JP Z a16", () -> jpzToSixteenImmediateAddress(), (byte) 16, (byte) 12));
-		opCodes.put((byte) 0xC2, new OpCode("JP NZ a16", () -> jpnzToSixteenImmediateAddress(), (byte) 16, (byte) 12));
-		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> jrNzN(), (byte) 12, (byte) 8));
+		opCodes.put((byte) 0x28, new OpCode("JR Z, n", () -> relativeJump(isZeroFlag(), load8bitImmediate()), (byte) 12, (byte) 8));
+		opCodes.put((byte) 0x18, new OpCode("JR n", () -> relativeJump(true, load8bitImmediate()), (byte) 12));
+		opCodes.put((byte) 0xC3, new OpCode("JP nn", () -> pc = load16bitImmediate(), (byte) 16));
+		opCodes.put((byte) 0xE9, new OpCode("JP (HL)", () -> jump(true, readDualRegister(getH(), getL())), (byte) 4));
+		opCodes.put((byte) 0xCA, new OpCode("JP Z a16", () -> jump(isZeroFlag(), load16bitImmediate()), (byte) 16, (byte) 12));
+		opCodes.put((byte) 0xC2, new OpCode("JP NZ a16", () -> jump(!isZeroFlag(), load16bitImmediate()), (byte) 16, (byte) 12));
+		opCodes.put((byte) 0x20, new OpCode("JR NZ, n", () -> relativeJump(!isZeroFlag(), load8bitImmediate()), (byte) 12, (byte) 8));
 		opCodes.put((byte) 0xEF, new OpCode("RST 28H", () -> rst((byte) 0x28), (byte) 16));
 	}
 
@@ -393,6 +393,7 @@ public class CPU {
 		return fullCarryFlag;
 	}
 	
+	// XXX: change F to a Register, the bool flags aren't a good design decision
 	public Register getF() {
 		String reg = "";
 		reg += isZeroFlag() ? '1' : '0';
@@ -472,29 +473,19 @@ public class CPU {
 	private void setA(Register a) {
 		this.a = a;
 	}
-
-	/***************************************************************************
-	 * From here down, you'll find the definitions for each opcode listed in the
-	 * tables above.
-	 * *************************************************************************/
-
-	/**
-	 * Jumps to address pointed to by 16-bit immediate
-	 */
-	private void jumpToImmediate() {
+	
+	private byte load8bitImmediate() {
+		byte d8 = mem.readByte(pc);
+		pc++;
+		return d8;
+	}
+	
+	private char load16bitImmediate() {
 		byte b2 = mem.readByte(pc);
 		pc++;
 		byte b1 = mem.readByte(pc);
-		char address = NumberUtils.bytesToWord(b2, b1);
-		pc = address;
-	}
-	
-	/**
-	 * Jumps to address stored in 16 bit register
-	 */
-	private void jumpToAddress(Register r1, Register r2) {
-		char address = readDualRegister(r1, r2);
-		pc = address;
+		pc++;
+		return NumberUtils.bytesToWord(b2, b1);
 	}
 
 	/**
@@ -650,7 +641,7 @@ public class CPU {
 	/**
 	 * Load 8-bit immediate into specified register
 	 */
-	private void loadImmediate(Register destination) {
+	private void loadEightImmediate(Register destination) {
 		destination.setValue(mem.readByte(pc));
 		pc++;
 	}
@@ -758,28 +749,6 @@ public class CPU {
 		pc += 2;
 		destination.setValue(mem.readByte(address));
 	}
-	
-	/**
-	 * Jumps to a sixteen-bit immediate address if the zero flag is set
-	 */
-	private void jpzToSixteenImmediateAddress() {
-		if(isZeroFlag()) {
-			char address = mem.readWord(pc);
-			pc = address;
-		}
-	}
-	
-	// XXX: Generalize these to just take a boolean expression as a parameter
-	
-	/**
-	 * Jumps to a sixteen-bit immediate address if the zero flag is not set
-	 */
-	private void jpnzToSixteenImmediateAddress() {
-		if(!isZeroFlag()) {
-			char address = mem.readWord(pc);
-			pc = address;
-		}
-	}
 
 	/**
 	 * Loads the value at the address pointed to by s1s2 into destination.
@@ -833,46 +802,24 @@ public class CPU {
 		setHalfCarryFlag(false);
 	}
 	
+	/**
+	 * Performs a right-rotate-through-carry on r
+	 */
 	private void rr(Register r) {
 		setFullCarryFlag(RegisterUtils.rightRotateThroughCarry(r, isFullCarryFlag()));
 		setZeroFlag(r.getValue() == 0);
 		setOperationFlag(false);
 		setHalfCarryFlag(false);
 	}
-
-	/**
-	 * Relative jmp by signed immediate
-	 */
-	private void jrN() {
-		byte immediate = mem.readByte(pc);
-		pc++;
-		pc += immediate;
-		logger.fine("Jmping by " + immediate);
-	}
-
-	/**
-	 * Relative jmp by signed immediate if last result was zero
-	 */
-	private void jrZn() {
-		byte immediate = mem.readByte(pc);
-		pc++;
-
-		if (isZeroFlag()) {
-			pc += immediate;
-			logger.fine("Zero flag set, jmping by " + immediate);
-		} else {
-			// Use the smaller clock duration since the jmp was not executed
-			setConditionalNotExecFlag(true);
-			logger.fine("Zero flag not set, no jmp");
-		}
-	}
-
+	
+	//XXX: Should these two be generalized into one function? 
+	// Check if there are more "compare" instructions
+	
 	/**
 	 * Compare 8-bit immediate to A
 	 */
 	private void compare() {
-		byte immediate = mem.readByte(pc);
-		pc++;
+		byte immediate = load8bitImmediate();
 		setOperationFlag(true);
 		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), immediate));
 
@@ -890,64 +837,28 @@ public class CPU {
 	 * Compares the value pointed to by r1r2 to register A
 	 */
 	private void compareAddress(Register r1, Register r2) {
-		operationFlag = true;
+		setOperationFlag(true);
 		byte memAtDual = mem.readByte(readDualRegister(r1, r2));
 		setZeroFlag(getA().getValue() == memAtDual);
 		setHalfCarryFlag(NumberUtils.byteSubtractionNibbleBorrow(getA().getValue(), memAtDual));
 		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), memAtDual));
 	}
-
-	/**
-	 * return
-	 */
-	private void ret() {
-		char address = pop();
-		logger.fine("RET called, returning to " + Integer.toHexString(address & 0xFFFF));
-		pc = address;
-	}
 	
-	/**
-	 * Return if Z flag is reset
-	 */
-	private void retnz() {
-		if(!isZeroFlag()) {
+	private void ret(boolean condition) {
+		if(condition) {
 			char address = pop();
-			logger.fine("RET NZ called, returning to " + Integer.toHexString(address & 0xFFFF));
-			pc = address;
-		}
-	}
-	
-	// XXX: Generalize to ret(bool)
-	
-	/**
-	 * Return if C flag is reset
-	 */
-	private void retnc() {
-		if(!isFullCarryFlag()) {
-			char address = pop();
-			logger.fine("RET NC called, returning to " + Integer.toHexString(address & 0xFFFF));
+			logger.fine("RET called, returning to " + Integer.toHexString(address & 0xFFFF));
 			pc = address;
 		}
 	}
 	
 	/**
-	 * Return if Z flag is set
+	 * Call routine at 16-bit immediate
 	 */
-	private void retz() {
-		if(isZeroFlag()) {
-			char address = pop();
-			logger.fine("RET Z called, returning to " + Integer.toHexString(address & 0xFFFF));
-			pc = address;
-		}
-	}
-	
-	/**
-	 * Call routine at nn
-	 */
-	private void callNn() {
-		char address = mem.readWord(pc);
-		push((char) (pc + 2));
-		logger.fine("Pushed address " + Integer.toHexString((pc + 2) & 0xFFFF) + " to stack");
+	private void call() {
+		char address = load16bitImmediate();
+		push(pc);
+		logger.fine("Pushed address " + Integer.toHexString(pc & 0xFFFF) + " to stack");
 		pc = address;
 		logger.fine("Calling subroutine at 0x" + Integer.toHexString(address & 0xFFFF));
 	}
@@ -992,34 +903,37 @@ public class CPU {
 		logger.finer("Loaded value: " + Integer.toHexString(sp) + " into SP");
 		pc += 2;
 	}
-
+	
 	/**
-	 * Relative jump by signed immediate (single byte) if last result was not
-	 * zero
+	 * Absolute jump to 16-bit immediate address if condition
+	 * is met.
 	 */
-	private void jrNzN() {
-		if (!isZeroFlag()) {
-			byte n = (byte) (mem.readByte(pc) & 0xFF);
-
-			/*
-			 * we want to jump from the instruction location, not the location
-			 * of n. thus, increment pc before jumping.
-			 */
-			pc++;
-
-			// geronimo!
-			pc += n;
-			logger.finer("Jmping by " + n);
+	private void jump(boolean condition, char address) {
+		if(condition) {
+			logger.finer("Jumping to " + StringUtils.charToReadableHex(address));
+			pc = address;
 		} else {
-			// Use the smaller clock duration since the jmp was not executed
 			setConditionalNotExecFlag(true);
-
-			// If theres no jump, we still want to skip the immediate
-			pc++;
-			logger.finer("Zero flag set, no jmp");
+			logger.finer("Jump condition not met; no jmp");
+		}
+	}
+	
+	/**
+	 * Relative jump by SIGNED 8-bit immediate if condition is met.
+	 */
+	private void relativeJump(boolean condition, byte value) { 
+		if(condition) {
+			logger.finer("Relative jump by " + StringUtils.byteToReadableHex(value));
+			pc += value;
+		} else {
+			setConditionalNotExecFlag(true);
+			logger.finer("Jump condition not met; no jmp");
 		}
 	}
 
+	/**
+	 * Jump to reset vector 
+	 */
 	private void rst(byte resetVector) {
 		push(pc);
 		pc = (char) resetVector;
