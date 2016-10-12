@@ -4,6 +4,8 @@ import com.echodrop.gameboy.core.Register;
 
 public class RegisterUtils {
 	
+	//XXX: the bit numbers might be reversed, needs more testing
+	
 	/**
 	 * Reads the value of a specific bit from data
 	 * 
@@ -14,9 +16,13 @@ public class RegisterUtils {
 		return bin.charAt(bit) == '1';
 	}
 	
-	public static byte resetBit(int bit, Register r) {
+	public static byte setBit(int bit, Register r, boolean status) {
 		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(r.getValue() & 0xFF), 8);
-		return (byte) Integer.parseInt('0' + bin.substring(1), 2);
+		String result = bin.substring(0, bit) + (status ? '1' : '0');
+		if(bit < 7) {
+			result += bin.substring(bit + 1);
+		}
+		return (byte) Integer.parseInt(result, 2);
 	}
 	
 	/**

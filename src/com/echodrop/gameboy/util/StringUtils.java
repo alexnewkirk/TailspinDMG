@@ -23,6 +23,13 @@ public class StringUtils {
 	public static String charToReadableHex(char c) {
 		return "0x" + zeroLeftPad(Integer.toHexString(c & 0xFFFF).toUpperCase(), 4);
 	}
+	
+	public static String charToAssemblyLiteral(char c) {
+		byte[] bytes = NumberUtils.wordToBytes(c);
+		String b1 = zeroLeftPad(Integer.toHexString(bytes[0] & 0xFF), 2);
+		String b2 = zeroLeftPad(Integer.toHexString(bytes[1] & 0xFF), 2);
+		return "$" + b1 + b2;
+	}
 
 	/**
 	 * Left-pads a string with zeros until it is of length size
