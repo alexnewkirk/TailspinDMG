@@ -52,6 +52,18 @@ public class DebuggerCLI {
 
 		system.initLogging(Level.OFF, new SimpleConsoleLogger());
 		System.out.println("[Tailspin Debugger]");
+		
+		int opcodeCount = system.getProcessor().getOpcodeCount();
+		System.out.println("Opcodes Implemented: " + 
+							 + opcodeCount +
+							"/" + 244 + ": " + opcodeCount/244f + "%");
+		
+		int cbOpcodeCount = system.getProcessor().getCbOpcodeCount();
+		System.out.println("Extended Opcodes Implemented: " + 
+				 + cbOpcodeCount +
+				"/" + 255 + ": " + cbOpcodeCount/255f + "%");
+		
+		System.out.println();
 		System.out.println("Type 'help' for a list of commands.");
 		System.out.println("hint: begin by loading a ROM.\n\n");
 
