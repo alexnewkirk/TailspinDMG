@@ -56,12 +56,12 @@ public class DebuggerCLI {
 		int opcodeCount = system.getProcessor().getOpcodeCount();
 		System.out.println("Opcodes Implemented: " + 
 							 + opcodeCount +
-							"/" + 244 + ": " + opcodeCount/244f + "%");
+							"/" + 244 + ": " + opcodeCount/244f*100 + "%");
 		
 		int cbOpcodeCount = system.getProcessor().getCbOpcodeCount();
 		System.out.println("Extended Opcodes Implemented: " + 
 				 + cbOpcodeCount +
-				"/" + 255 + ": " + cbOpcodeCount/255f + "%");
+				"/" + 255 + ": " + cbOpcodeCount/255f*100 + "%");
 		
 		System.out.println();
 		System.out.println("Type 'help' for a list of commands.");
