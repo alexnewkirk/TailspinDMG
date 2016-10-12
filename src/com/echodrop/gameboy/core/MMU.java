@@ -200,7 +200,13 @@ public class MMU {
 		if (address == 0xFF00) {
 			// D-pad
 			return 00;
-		} else if (address >= 0xFF01 && address <= 0xFF7F) {
+		} else if(address == 0xFF01) {
+			// Link cable: data
+			return 00;
+		}else if(address == 0xFF02) {
+			// Link cable: serial transfer control
+			return (byte)0x81; // 0b10000001, "START TRANSFER"
+		} else if (address >= 0xFF03 && address <= 0xFF7F) {
 			return system.getGpu().readByte(address);
 		}
 		
@@ -235,13 +241,19 @@ public class MMU {
 	public void writeByte(char address, byte data) {
 		if (address == 0xFF50 && data == 1) {
 			biosMapped = false;
-			logger.info("[!] BIOS unmapped from memory!");
+			logger.info("[!] BIOS unmapped from memory");
 		} else if (address == 0xFF00) {
 			// D-pad
-		} else if (address >= 0xFF01 && address <= 0xFF7F) {
+		} else if(address == 0xFF01) {
+			// Link-cable: data
+			//TODO: out this to the logger instead of syso
+			System.out.print((char)data);
+		} else if(address == 0xFF02) {
+			// Link-cable: serial transfer control
+			
+		} else if (address >= 0xFF03 && address <= 0xFF7F) {
 			system.getGpu().writeByte(address, data);
 		} else {
-			
 			//Trap writes to ECHO RAM
 			if(address >= 0xE000 && address <= 0xFDFF) {
 				address -= 0x2000;
