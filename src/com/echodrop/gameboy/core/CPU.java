@@ -32,14 +32,7 @@ public class CPU {
 	private Register e;
 	private Register h;
 	private Register l;
-
-	/*
-	 * Flag register, stored as boolean values for convenience
-	 */
-	private boolean zeroFlag;
-	private boolean operationFlag;
-	private boolean halfCarryFlag;
-	private boolean fullCarryFlag;
+	private Register f;
 
 	/**
 	 * This flag is not present in the actual hardware, it's here for
@@ -60,11 +53,11 @@ public class CPU {
 	/* Memory Management Unit */
 	private MMU mem;
 
-	private boolean running;
-
 	/* Opcode tables */
 	private HashMap<Byte, Opcode> opCodes;
 	private HashMap<Byte, Opcode> cbOpCodes;
+
+	private boolean running;
 
 	public CPU(TailspinGB system) {
 		this.initialize();
@@ -76,7 +69,36 @@ public class CPU {
 		this.loadCbOpCodes();
 		this.running = false;
 	}
+	
+	/**
+	 * Resets the CPU to its initial state
+	 */
+	public void initialize() {
+		setA(new Register((byte) 0x0, "A"));
+		setB(new Register((byte) 0x0, "B"));
+		setC(new Register((byte) 0x0, "C"));
+		setD(new Register((byte) 0x0, "D"));
+		setE(new Register((byte) 0x0, "E"));
+		setH(new Register((byte) 0x0, "H"));
+		setL(new Register((byte) 0x0, "L"));
+		setF(new Register((byte) 0x0, "F"));
 
+		setZeroFlag(false);
+		setOperationFlag(false);
+		setHalfCarryFlag(false);
+		setFullCarryFlag(false);
+
+		pc = 0;
+		sp = 0;
+
+		setClockT(new Register((byte) 0x0, "Clock T"));
+		setClockM(new Register((byte) 0x0, "Clock M"));
+	}
+
+	public void initLogging() {
+		logger.setParent(system.getLogger());
+	}
+	
 	/**
 	 * Start emulation loop
 	 */
@@ -143,34 +165,6 @@ public class CPU {
 
 		system.getGpu().clockStep();
 		setConditionalNotExecFlag(false);
-	}
-
-	/**
-	 * Resets the CPU to its initial state
-	 */
-	public void initialize() {
-		setA(new Register((byte) 0x0, "A"));
-		setB(new Register((byte) 0x0, "B"));
-		setC(new Register((byte) 0x0, "C"));
-		setD(new Register((byte) 0x0, "D"));
-		setE(new Register((byte) 0x0, "E"));
-		setH(new Register((byte) 0x0, "H"));
-		setL(new Register((byte) 0x0, "L"));
-
-		setZeroFlag(false);
-		setOperationFlag(false);
-		setHalfCarryFlag(false);
-		setFullCarryFlag(false);
-
-		pc = 0;
-		sp = 0;
-
-		setClockT(new Register((byte) 0x0, "Clock T"));
-		setClockM(new Register((byte) 0x0, "Clock M"));
-	}
-
-	public void initLogging() {
-		logger.setParent(system.getLogger());
 	}
 
 	/**
@@ -244,6 +238,7 @@ public class CPU {
 		opCodes.put((byte) 0x5F, new Opcode("LD E, A", () -> load(getE(), getA()), (byte) 4));
 		opCodes.put((byte) 0x4f, new Opcode("LD C, A", () -> load(getC(), getA()), (byte) 4));
 		opCodes.put((byte) 0x67, new Opcode("LD H, A", () -> load(getH(), getA()), (byte) 4));
+		opCodes.put((byte) 0x79, new Opcode("LD A, C", () -> load(getA(), getC()), (byte) 4));
 		opCodes.put((byte) 0x57, new Opcode("LD D, A", () -> load(getD(), getA()), (byte) 4));
 		opCodes.put((byte) 0x47, new Opcode("LD B, A", () -> load(getB(), getA()), (byte) 4));
 		opCodes.put((byte) 0x7C, new Opcode("LD A, H", () -> load(getA(), getH()), (byte) 4));
@@ -275,19 +270,16 @@ public class CPU {
 		opCodes.put((byte) 0x12, new Opcode("LD (DE), A", () -> load(getD(), getE(), getA(), true), (byte) 8));
 		opCodes.put((byte) 0x36, new Opcode("LD (HL), n", () -> load(getH(), getL(), read8Immediate()), (byte) 12));
 		opCodes.put((byte) 0x32, new Opcode("LDD (HL), A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
-		opCodes.put((byte) 0x22, new Opcode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8));
-		opCodes.put((byte) 0xEA, new Opcode("LD nn A", () -> loadToImmediateAddress(getA()), (byte) 16)); // TODO:
-																											// refactor
-		opCodes.put((byte) 0x79, new Opcode("LD A, C", () -> load(getA(), getC()), (byte) 4));
-		opCodes.put((byte) 0xE0, new Opcode("LDH (n), A", () -> loadToImmediateEightBitAddress(getA()), (byte) 12)); // TODO:
-																														// refactor
-		opCodes.put((byte) 0xF0, new Opcode("LDH A, (n)", () -> loadFromEightImmediateAddress(getA()), (byte) 12)); // TODO:
-																													// refactor
+		opCodes.put((byte) 0x22, new Opcode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8));//refactor
+		opCodes.put((byte) 0xEA, new Opcode("LD nn A", () -> load(read16Immediate(), getA()), (byte) 16));
+		opCodes.put((byte) 0xE0,
+				new Opcode("LDH (n), A", () -> load((char) (0xFF00 + read8Immediate()), getA()), (byte) 12));
+		opCodes.put((byte) 0xF0,
+				new Opcode("LDH A, (n)", () -> load(getA(), (char) (0xFF00 + read8Immediate())), (byte) 12));
 		opCodes.put((byte) 0x2A,
-				new Opcode("LD A, (HL+)", () -> loadIncrementFromAddress(getA(), getH(), getL()), (byte) 8));
-		opCodes.put((byte) 0xFA, new Opcode("LD A, (a16)", () -> loadFromSixteenImmediateAddress(getA()), (byte) 16)); // TODO:
-																														// refactor
-		opCodes.put((byte) 0xE2, new Opcode("LDH (C), A", () -> loadToRegisterAddress(getC(), getA()), (byte) 8));
+				new Opcode("LD A, (HL+)", () -> loadIncrementFromAddress(getA(), getH(), getL()), (byte) 8));// refactor
+		opCodes.put((byte) 0xFA, new Opcode("LD A, (a16)", () -> loadFromSixteenImmediateAddress(getA()), (byte) 16)); // refactor
+		opCodes.put((byte) 0xE2, new Opcode("LDH (C), A", () -> loadToRegisterAddress(getC(), getA()), (byte) 8));// refactor
 		opCodes.put((byte) 0x9F, new Opcode("SBC A, A", () -> subtractWithCarry(getA()), (byte) 8));
 		opCodes.put((byte) 0x0C, new Opcode("INC C", () -> increment(getC()), (byte) 4));
 		opCodes.put((byte) 0x1C, new Opcode("INC E", () -> increment(getE()), (byte) 4));
@@ -319,13 +311,17 @@ public class CPU {
 		opCodes.put((byte) 0xD0, new Opcode("RET NC", () -> ret(!isFullCarryFlag()), (byte) 20, (byte) 8));
 		opCodes.put((byte) 0xC8, new Opcode("RET Z", () -> ret(isZeroFlag()), (byte) 20, (byte) 8));
 		opCodes.put((byte) 0xFE, new Opcode("CP n", () -> compare(), (byte) 8));
-		opCodes.put((byte) 0x28, new Opcode("JR Z, n", () -> relativeJump(isZeroFlag(), read8Immediate()), (byte) 12, (byte) 8));
+		opCodes.put((byte) 0x28,
+				new Opcode("JR Z, n", () -> relativeJump(isZeroFlag(), read8Immediate()), (byte) 12, (byte) 8));
 		opCodes.put((byte) 0x18, new Opcode("JR n", () -> relativeJump(true, read8Immediate()), (byte) 12));
 		opCodes.put((byte) 0xC3, new Opcode("JP nn", () -> pc = read16Immediate(), (byte) 16));
 		opCodes.put((byte) 0xE9, new Opcode("JP (HL)", () -> jump(true, readDualRegister(getH(), getL())), (byte) 4));
-		opCodes.put((byte) 0xCA, new Opcode("JP Z a16", () -> jump(isZeroFlag(), read16Immediate()), (byte) 16, (byte) 12));
-		opCodes.put((byte) 0xC2, new Opcode("JP NZ a16", () -> jump(!isZeroFlag(), read16Immediate()), (byte) 16, (byte) 12));
-		opCodes.put((byte) 0x20, new Opcode("JR NZ, n", () -> relativeJump(!isZeroFlag(), read8Immediate()), (byte) 12, (byte) 8));
+		opCodes.put((byte) 0xCA,
+				new Opcode("JP Z a16", () -> jump(isZeroFlag(), read16Immediate()), (byte) 16, (byte) 12));
+		opCodes.put((byte) 0xC2,
+				new Opcode("JP NZ a16", () -> jump(!isZeroFlag(), read16Immediate()), (byte) 16, (byte) 12));
+		opCodes.put((byte) 0x20,
+				new Opcode("JR NZ, n", () -> relativeJump(!isZeroFlag(), read8Immediate()), (byte) 12, (byte) 8));
 		opCodes.put((byte) 0xEF, new Opcode("RST 28H", () -> rst((byte) 0x28), (byte) 16));
 	}
 
@@ -381,33 +377,24 @@ public class CPU {
 		return l;
 	}
 
+	public Register getF() {
+		return f;
+	}
+
 	public boolean isZeroFlag() {
-		return zeroFlag;
+		return RegisterUtils.readBit(7, getF());
 	}
 
 	public boolean isOperationFlag() {
-		return operationFlag;
+		return RegisterUtils.readBit(6, getF());
 	}
 
 	public boolean isHalfCarryFlag() {
-		return halfCarryFlag;
+		return RegisterUtils.readBit(5, getF());
 	}
 
 	public boolean isFullCarryFlag() {
-		return fullCarryFlag;
-	}
-
-	// XXX: change F to a Register, the bool flags aren't a good design decision
-	public Register getF() {
-		String reg = "";
-		reg += isZeroFlag() ? '1' : '0';
-		reg += isOperationFlag() ? '1' : '0';
-		reg += isHalfCarryFlag() ? '1' : '0';
-		reg += isFullCarryFlag() ? '1' : '0';
-		reg += "0000";
-		byte registerValue = (byte) Integer.parseUnsignedInt(reg, 2);
-		Register flag = new Register(registerValue, "F");
-		return flag;
+		return RegisterUtils.readBit(4, getF());
 	}
 
 	public boolean isConditionalNotExecFlag() {
@@ -425,6 +412,18 @@ public class CPU {
 	public Register getClockT() {
 		return clockT;
 	}
+	
+	public int getOpcodeCount() {
+		return this.opCodes.size();
+	}
+	
+	public int getCbOpcodeCount() {
+		return this.cbOpCodes.size();
+	}
+	
+	public int getTotalOpcodeCount() {
+		return getCbOpcodeCount() + getOpcodeCount();
+	}
 
 	private void setClockT(Register clockT) {
 		this.clockT = clockT;
@@ -435,19 +434,23 @@ public class CPU {
 	}
 
 	private void setFullCarryFlag(boolean fullCarryFlag) {
-		this.fullCarryFlag = fullCarryFlag;
+		getF().setValue(RegisterUtils.setBit(4, getF(), fullCarryFlag));
 	}
 
 	private void setHalfCarryFlag(boolean halfCarryFlag) {
-		this.halfCarryFlag = halfCarryFlag;
+		getF().setValue(RegisterUtils.setBit(5, getF(), halfCarryFlag));
 	}
 
 	private void setOperationFlag(boolean operationFlag) {
-		this.operationFlag = operationFlag;
+		getF().setValue(RegisterUtils.setBit(6, getF(), operationFlag));
 	}
 
 	private void setZeroFlag(boolean zeroFlag) {
-		this.zeroFlag = zeroFlag;
+		getF().setValue(RegisterUtils.setBit(7, getF(), zeroFlag));
+	}
+
+	private void setF(Register f) {
+		this.f = f;
 	}
 
 	private void setL(Register l) {
@@ -478,12 +481,18 @@ public class CPU {
 		this.a = a;
 	}
 
+	/**
+	 * Reads 8 bits from memory beginning at pc, and increments pc
+	 */
 	private byte read8Immediate() {
 		byte d8 = mem.readByte(pc);
 		pc++;
 		return d8;
 	}
 
+	/**
+	 * Reads 16 bits from memory beginning at pc, and increments pc
+	 */
 	private char read16Immediate() {
 		byte b2 = mem.readByte(pc);
 		pc++;
@@ -496,7 +505,7 @@ public class CPU {
 	 * Adds value at address pointed to by s1s2 to destination.
 	 */
 	private void addAddress(Register destination, Register s1, Register s2) {
-		operationFlag = false;
+		setOperationFlag(false);
 		byte memAtDual = mem.readByte(readDualRegister(s1, s2));
 		setFullCarryFlag(NumberUtils.byteAdditionOverflow(destination.getValue(), memAtDual));
 		setHalfCarryFlag(NumberUtils.byteAdditionNibbleOverflow(destination.getValue(), memAtDual));
@@ -512,7 +521,7 @@ public class CPU {
 		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), r.getValue()));
 		getA().setValue(getA().getValue() - r.getValue());
 		setZeroFlag(getA().getValue() == 0);
-		operationFlag = true;
+		setOperationFlag(true);
 	}
 
 	/**
@@ -612,12 +621,6 @@ public class CPU {
 		setFullCarryFlag(false);
 	}
 
-	private void setFullCarryFlag() {
-		setOperationFlag(false);
-		setHalfCarryFlag(false);
-		setFullCarryFlag(true);
-	}
-
 	/**
 	 * Increments a register
 	 */
@@ -636,11 +639,12 @@ public class CPU {
 		writeDualRegister(r1, r2, (char) (dual + 1));
 	}
 
-	/**
-	 * Loads a value from one register into another
-	 */
 	private void load(Register destination, Register source) {
 		destination.setValue(source.getValue());
+	}
+
+	private void load(Register destination, char sourceAddress) {
+		destination.setValue(mem.readByte(sourceAddress));
 	}
 
 	private void load(Register destination, byte value) {
@@ -650,7 +654,7 @@ public class CPU {
 	private void load(Register d1, Register d2, char value) {
 		writeDualRegister(d1, d2, value);
 	}
-	
+
 	private void load(Register addressDest1, Register addressDest2, byte value) {
 		mem.writeByte(readDualRegister(addressDest1, addressDest2), value);
 	}
@@ -661,6 +665,10 @@ public class CPU {
 		} else {
 			r1.setValue(mem.readByte(readDualRegister(r2, r3)));
 		}
+	}
+
+	private void load(char address, Register source) {
+		mem.writeByte(address, source.getValue());
 	}
 
 	/**
@@ -684,53 +692,12 @@ public class CPU {
 	}
 
 	/**
-	 * Loads 8-bit immediate into the address pointed to by d1d2
-	 */
-	private void loadImmediateToAddress(Register d1, Register d2) {
-		char address = readDualRegister(d1, d2);
-		byte value = mem.readByte(pc);
-		pc++;
-		mem.writeByte(address, value);
-	}
-
-	/**
-	 * Write the value of source into the address pointed to by 0xFF00 + an
-	 * 8-bit immediate
-	 */
-	private void loadToImmediateEightBitAddress(Register source) {
-		byte immediate = mem.readByte(pc);
-		pc++;
-		char address = (char) (0xFF00 + immediate);
-		mem.writeByte(address, source.getValue());
-	}
-
-	/**
 	 * Loads the value of source into the address pointed to by d1d2
 	 */
 	private void loadToAddressInc(Register d1, Register d2, Register source) {
 		char dual = readDualRegister(d1, d2);
 		mem.writeByte(dual, source.getValue());
 		writeDualRegister(d1, d2, (char) (dual + 1));
-	}
-
-	/**
-	 * Loads the value of source into the address pointed to by a 16-bit
-	 * immediate.
-	 */
-	private void loadToImmediateAddress(Register source) {
-		char address = mem.readWord(pc);
-		mem.writeByte(address, source.getValue());
-		pc += 2;
-	}
-
-	/**
-	 * Loads value at address 0xFF00 + an 8-bit immediate into destination
-	 */
-	private void loadFromEightImmediateAddress(Register destination) {
-		byte immediate = mem.readByte(pc);
-		pc++;
-		char address = (char) (0xFF00 + immediate);
-		destination.setValue(mem.readByte(address));
 	}
 
 	/**
@@ -836,6 +803,10 @@ public class CPU {
 		setFullCarryFlag(NumberUtils.byteSubtractionBorrow(getA().getValue(), memAtDual));
 	}
 
+	/**
+	 * Returns to last address pushed onto the stack if condition evaluates to
+	 * true
+	 */
 	private void ret(boolean condition) {
 		if (condition) {
 			char address = pop();
@@ -860,6 +831,7 @@ public class CPU {
 	 */
 	private void setInterruptsEnabled(boolean enabled) {
 		/* this will be important later, but for now it's a nop */
+		// TODO: Implement CPU interrupts
 		logger.finer("Enable interrupts");
 		logger.warning("Interrupts not yet implemented");
 	}
@@ -871,6 +843,9 @@ public class CPU {
 		logger.finer("no op");
 	}
 
+	/**
+	 * Tests bit number bitno of register r
+	 */
 	private void bit(int bitno, Register r) {
 		boolean bitOn = RegisterUtils.readBit(bitno, r);
 		if (!bitOn) {
@@ -883,8 +858,11 @@ public class CPU {
 		logger.finer("Testing bit " + bitno + " of " + r + ": zeroFlag = " + isZeroFlag());
 	}
 
+	/**
+	 * Resets specified bit of register r
+	 */
 	private void res(int bitNumber, Register r) {
-		r.setValue(RegisterUtils.resetBit(bitNumber, r));
+		r.setValue(RegisterUtils.setBit(bitNumber, r, false));
 	}
 
 	/**
@@ -921,6 +899,9 @@ public class CPU {
 		pc = (char) resetVector;
 	}
 
+	/**
+	 * Adds value of r to the accumulator
+	 */
 	private void add(Register r) {
 		byte a = getA().getValue();
 		boolean fullCarry = NumberUtils.byteAdditionOverflow(a, a);
