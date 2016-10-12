@@ -26,7 +26,7 @@ public class MMU {
 	private TailspinGB system;
 
 	/**
-	 * After the bios runs, it is unmapped from memory by setting this flag to
+	 * After the bootstrap runs, it is unmapped from memory by setting this flag to
 	 * false
 	 */
 	private boolean biosMapped = true;
@@ -62,17 +62,17 @@ public class MMU {
 	}
 
 	/**
-	 * Loads the DMG bios into memory
+	 * Loads the DMG bootstrap into memory
 	 */
-	public void loadBios(byte[] gbBios) {
-		if (gbBios.length != 256) {
+	public void loadBootstrap(byte[] gbBios) {
+		if (gbBios.length > 256) {
 			throw new RomFileSizeException(256, gbBios.length);
 		}
 		for (int i = 0; i < gbBios.length; i++) {
 			getBios().setMem((char) i, (byte) (gbBios[i] & 0xFF));
 		}
 		biosMapped = true;
-		logger.info("BIOS loaded: " + gbBios.length + " bytes");
+		logger.info("Bootstrap loaded: " + gbBios.length + " bytes");
 	}
 
 	/**

@@ -45,7 +45,7 @@ public class DebuggerCLI {
 		try {
 			byte[] bios = null;
 			bios = FileUtils.readBytes(DEFAULT_BIOS_PATH);
-			system.getMem().loadBios(bios);
+			system.getMem().loadBootstrap(bios);
 		} catch (IOException e) {
 			System.err.print("[!] Unable to load BIOS from default path: " + DEFAULT_BIOS_PATH);
 		}
@@ -134,7 +134,7 @@ public class DebuggerCLI {
 			byte[] bios;
 			try {
 				bios = FileUtils.readBytes(readFilename());
-				tdb.getSystem().getMem().loadBios(bios);
+				tdb.getSystem().getMem().loadBootstrap(bios);
 			} catch (IOException e) {
 				System.err.println(e.getMessage());
 			}
