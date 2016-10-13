@@ -69,7 +69,7 @@ public class CPU {
 		this.loadCbOpCodes();
 		this.running = false;
 	}
-	
+
 	/**
 	 * Resets the CPU to its initial state
 	 */
@@ -98,7 +98,7 @@ public class CPU {
 	public void initLogging() {
 		logger.setParent(system.getLogger());
 	}
-	
+
 	/**
 	 * Start emulation loop
 	 */
@@ -270,16 +270,17 @@ public class CPU {
 		opCodes.put((byte) 0x12, new Opcode("LD (DE), A", () -> load(getD(), getE(), getA(), true), (byte) 8));
 		opCodes.put((byte) 0x36, new Opcode("LD (HL), n", () -> load(getH(), getL(), read8Immediate()), (byte) 12));
 		opCodes.put((byte) 0x32, new Opcode("LDD (HL), A", () -> loadDecrement(getH(), getL(), getA()), (byte) 8));
-		opCodes.put((byte) 0x22, new Opcode("LDI (HL), A", () -> loadToAddressInc(getH(), getL(), getA()), (byte) 8));//refactor
+		opCodes.put((byte) 0x22,
+				new Opcode("LDI (HL), A", () -> loadIncrement(getH(), getL(), getA(), true), (byte) 8));
 		opCodes.put((byte) 0xEA, new Opcode("LD nn A", () -> load(read16Immediate(), getA()), (byte) 16));
 		opCodes.put((byte) 0xE0,
 				new Opcode("LDH (n), A", () -> load((char) (0xFF00 + read8Immediate()), getA()), (byte) 12));
 		opCodes.put((byte) 0xF0,
 				new Opcode("LDH A, (n)", () -> load(getA(), (char) (0xFF00 + read8Immediate())), (byte) 12));
 		opCodes.put((byte) 0x2A,
-				new Opcode("LD A, (HL+)", () -> loadIncrementFromAddress(getA(), getH(), getL()), (byte) 8));// refactor
-		opCodes.put((byte) 0xFA, new Opcode("LD A, (a16)", () -> loadFromSixteenImmediateAddress(getA()), (byte) 16)); // refactor
-		opCodes.put((byte) 0xE2, new Opcode("LDH (C), A", () -> loadToRegisterAddress(getC(), getA()), (byte) 8));// refactor
+				new Opcode("LD A, (HL+)", () -> loadIncrement(getA(), getH(), getL(), false), (byte) 8));
+		opCodes.put((byte) 0xFA, new Opcode("LD A, (a16)", () -> load(getA(), read16Immediate()), (byte) 16));
+		opCodes.put((byte) 0xE2, new Opcode("LDH (C), A", () -> ldh(getC(), getA()), (byte) 8));// refactor
 		opCodes.put((byte) 0x9F, new Opcode("SBC A, A", () -> subtractWithCarry(getA()), (byte) 8));
 		opCodes.put((byte) 0x0C, new Opcode("INC C", () -> increment(getC()), (byte) 4));
 		opCodes.put((byte) 0x1C, new Opcode("INC E", () -> increment(getE()), (byte) 4));
@@ -329,7 +330,7 @@ public class CPU {
 	 * Builds extended opcode table (CB prefixed opcodes)
 	 */
 	private void loadCbOpCodes() {
-		cbOpCodes.put((byte) 0x7c, new Opcode("BIT 7 H", () -> bit(7, getH()), (byte) 8));
+		cbOpCodes.put((byte) 0x7C, new Opcode("BIT 7 H", () -> bit(7, getH()), (byte) 8));
 		cbOpCodes.put((byte) 0x7F, new Opcode("BIT 7 F", () -> bit(7, getF()), (byte) 8));
 		cbOpCodes.put((byte) 0x11, new Opcode("RL C", () -> rl(getC()), (byte) 8));
 		cbOpCodes.put((byte) 0x87, new Opcode("RES 0, A", () -> res(0, getA()), (byte) 8));
@@ -412,15 +413,15 @@ public class CPU {
 	public Register getClockT() {
 		return clockT;
 	}
-	
+
 	public int getOpcodeCount() {
 		return this.opCodes.size();
 	}
-	
+
 	public int getCbOpcodeCount() {
 		return this.cbOpCodes.size();
 	}
-	
+
 	public int getTotalOpcodeCount() {
 		return getCbOpcodeCount() + getOpcodeCount();
 	}
@@ -683,42 +684,28 @@ public class CPU {
 	}
 
 	/**
+	 * Loads the value of source into the address pointed to by d1d2
+	 */
+	private void loadIncrement(Register r1, Register r2, Register r3, boolean loadToAddress) {
+		if (loadToAddress) {
+			char dual = readDualRegister(r1, r2);
+			mem.writeByte(dual, r3.getValue());
+			writeDualRegister(r1, r2, (char) (dual + 1));
+		} else {
+			char dual = readDualRegister(r2, r3);
+			r1.setValue(mem.readByte(dual));
+			dual++;
+			writeDualRegister(r2, r3, dual);
+		}
+	}
+
+	/**
 	 * Loads the value of source into the address pointed to by 0xFF00 +
 	 * destination
 	 */
-	private void loadToRegisterAddress(Register destination, Register source) {
+	private void ldh(Register destination, Register source) {
 		char address = (char) (0xFF00 + destination.getValue());
 		mem.writeByte(address, source.getValue());
-	}
-
-	/**
-	 * Loads the value of source into the address pointed to by d1d2
-	 */
-	private void loadToAddressInc(Register d1, Register d2, Register source) {
-		char dual = readDualRegister(d1, d2);
-		mem.writeByte(dual, source.getValue());
-		writeDualRegister(d1, d2, (char) (dual + 1));
-	}
-
-	/**
-	 * Loads value from a 16-bit immediate address into destination
-	 */
-	private void loadFromSixteenImmediateAddress(Register destination) {
-		char address = mem.readWord(pc);
-		pc += 2;
-		destination.setValue(mem.readByte(address));
-	}
-
-	/**
-	 * Loads the value at the address pointed to by s1s2 into destination.
-	 * Increments s1s2
-	 */
-	private void loadIncrementFromAddress(Register destination, Register s1, Register s2) {
-		char address = readDualRegister(s1, s2);
-		destination.setValue(mem.readByte(address));
-		address++;
-		writeDualRegister(s1, s2, address);
-
 	}
 
 	/**
