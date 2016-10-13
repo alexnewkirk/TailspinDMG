@@ -280,7 +280,7 @@ public class CPU {
 		opCodes.put((byte) 0x2A,
 				new Opcode("LD A, (HL+)", () -> loadIncrement(getA(), getH(), getL(), false), (byte) 8));
 		opCodes.put((byte) 0xFA, new Opcode("LD A, (a16)", () -> load(getA(), read16Immediate()), (byte) 16));
-		opCodes.put((byte) 0xE2, new Opcode("LDH (C), A", () -> ldh(getC(), getA()), (byte) 8));// refactor
+		opCodes.put((byte) 0xE2, new Opcode("LDH (C), A", () -> ldh(getC(), getA()), (byte) 8));
 		opCodes.put((byte) 0x9F, new Opcode("SBC A, A", () -> subtractWithCarry(getA()), (byte) 8));
 		opCodes.put((byte) 0x0C, new Opcode("INC C", () -> increment(getC()), (byte) 4));
 		opCodes.put((byte) 0x1C, new Opcode("INC E", () -> increment(getE()), (byte) 4));
