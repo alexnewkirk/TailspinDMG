@@ -1,3 +1,11 @@
+/**
+ * Launcher.java
+ * 
+ * @author anewkirk
+ * 
+ * Licensing information can be found in the root directory of the project.
+ */
+
 package com.echodrop.gameboy.ui.processing;
 
 import java.io.IOException;
@@ -13,6 +21,10 @@ import com.echodrop.gameboy.util.FileUtils;
 import processing.core.PApplet;
 import processing.core.PImage;
 
+/**
+ * A simple Processing UI for testing
+ * @author anewkirk
+ */
 public class Launcher extends PApplet implements IGraphicsObserver {
 	
 	private GPU gpu;
@@ -29,6 +41,7 @@ public class Launcher extends PApplet implements IGraphicsObserver {
 		this.buffer = new PImage(160, 144);
 		screen = gpu.getFrameBuffer();
 		
+		// TODO: remove hardcoded values
 		byte[] drmario = FileUtils.readBytes("roms/drmario.gb");
 		byte[] bootstrap = FileUtils.readBytes("bios.gb");
 		tdb.getSystem().getMem().loadBootstrap(bootstrap);
