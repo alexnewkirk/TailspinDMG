@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.StackPane?>
 
-<AnchorPane prefHeight="450.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="450.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.echodrop.gameboy.ui.jfx.TsUiController">
    <children>
       <StackPane prefHeight="454.0" prefWidth="800.0">
          <children>
@@ -19,14 +19,14 @@
               <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
-                        <Canvas height="255.0" layoutX="20.0" layoutY="99.0" width="296.0" />
+                        <Canvas fx:id="canvas" height="255.0" layoutX="20.0" layoutY="99.0" width="296.0" />
                      </children>
                   </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="452.0" prefWidth="338.0">
                      <children>
                         <ToolBar layoutY="412.0" prefHeight="40.0" prefWidth="387.0">
                           <items>
-                            <Button mnemonicParsing="false" text="Step" />
+                            <Button fx:id="stepButton" mnemonicParsing="false" text="Step" />
                               <Button mnemonicParsing="false" text="Continue" />
                               <Button mnemonicParsing="false" text="Restart" />
                           </items>
