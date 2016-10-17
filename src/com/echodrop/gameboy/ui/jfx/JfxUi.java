@@ -8,21 +8,16 @@ import com.echodrop.gameboy.logging.SimpleConsoleLogger;
 import com.echodrop.gameboy.util.FileUtils;
 
 import javafx.application.Application;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 public class JfxUi extends Application {
 
-	@FXML
-	private Canvas canvas;
-
 	private TailspinDebugger tdb;
 	private final String FXML_PATH = "layout/UiLayout.fxml";
-	private final String WINDOW_TITLE = "TailspinDMG 0.1";
+	private final String WINDOW_TITLE = "TailspinDMG 0.2";
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -34,10 +29,14 @@ public class JfxUi extends Application {
 		primaryStage.setScene(scene);
 		primaryStage.setResizable(false);
 		primaryStage.setTitle(WINDOW_TITLE);
+		primaryStage.show();
 
 		TsUiController tsuic = (TsUiController) loader.getController();
 		tdb = new TailspinDebugger();
 		tsuic.setTdb(tdb);
+
+		EmulatorService es = new EmulatorService(tdb);
+		tsuic.setEmuService(es);
 
 		// TODO: make a Logger that displays to the jfx ui
 		tdb.getSystem().initLogging(Level.OFF, new SimpleConsoleLogger());
@@ -47,15 +46,10 @@ public class JfxUi extends Application {
 		byte[] bootstrap = FileUtils.readBytes("bios.gb");
 		tdb.getSystem().getMem().loadBootstrap(bootstrap);
 		tdb.getSystem().getMem().loadRom(drmario);
-
-		primaryStage.show();
-
-		EmulatorService es = new EmulatorService(tdb);
-		es.start();
 	}
 
 	public static void main(String[] args) {
-		// enable hardware acceleration for gfx rendering
+		// Enable hardware acceleration for gfx rendering
 		System.setProperty("sun.java2d.opengl", "true");
 		launch(args);
 	}

@@ -1,14 +1,12 @@
 package com.echodrop.gameboy.ui.jfx;
 
 import java.net.URL;
-
 import java.nio.IntBuffer;
 import java.util.ResourceBundle;
 
 import com.echodrop.gameboy.debugger.TailspinDebugger;
 import com.echodrop.gameboy.graphics.GPU;
 import com.echodrop.gameboy.interfaces.IGraphicsObserver;
-
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -20,15 +18,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
-
-import javafx.scene.image.PixelWriter;
-import javafx.scene.layout.AnchorPane;
-import javafx.stage.StageStyle;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritablePixelFormat;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import javafx.stage.StageStyle;
 
 public class TsUiController implements Initializable, IGraphicsObserver {
 
@@ -45,8 +40,11 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 	private Button resetButton;
 
 	@FXML
-	private Button continueButton;
-	
+	private Button startButton;
+
+	@FXML
+	private Button stopButton;
+
 	@FXML
 	private MenuItem aboutButton;
 
@@ -65,6 +63,7 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 	private TailspinDebugger tdb;
 	private GPU gpu;
 	private PixelWriter pw;
+	private EmulatorService es;
 	private WritablePixelFormat<IntBuffer> pixelFormat;
 
 	@Override
@@ -74,13 +73,19 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 		this.pixelFormat = PixelFormat.getIntArgbPreInstance();
 		this.buffer = new int[W * H];
 
+		initButtons();
+	}
+
+	private void initButtons() {
 		stepButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
-				tdb.getSystem().getProcessor().step();
+				if (!es.isRunning()) {
+					tdb.getSystem().getProcessor().step();
+				}
 			}
 		});
-		
+
 		aboutButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
@@ -92,6 +97,36 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 			}
 		});
 
+		startButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				if (!es.isRunning()) {
+					es.restart();
+				}
+			}
+		});
+
+		stopButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				if (es.isRunning()) {
+					es.cancel();
+				}
+			}
+		});
+		
+		resetButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				// FIXME: clear the screen on reset
+				
+				if (es.isRunning()) {
+					es.cancel();
+				}
+				
+				tdb.getSystem().reset();
+			}
+		});
 	}
 
 	private int toInt(Color c) {
@@ -129,6 +164,10 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 		}
 
 		Platform.runLater(() -> pw.setPixels(0, 0, W, H, pixelFormat, buffer, 0, W));
+	}
+
+	public void setEmuService(EmulatorService es) {
+		this.es = es;
 	}
 
 	public void setTdb(TailspinDebugger tdb) {

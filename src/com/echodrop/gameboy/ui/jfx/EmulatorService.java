@@ -18,7 +18,9 @@ public class EmulatorService extends Service<Void> {
 		return new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				tdb.getSystem().getProcessor().beginDispatch();
+				while(!isCancelled()) {
+					tdb.getSystem().getProcessor().step();
+				}
 				return null;
 			}
 		};

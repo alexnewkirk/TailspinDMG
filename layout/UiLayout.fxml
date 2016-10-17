@@ -25,9 +25,10 @@
                      <children>
                         <ToolBar layoutY="286.0" maxHeight="36.0" maxWidth="320.0" minHeight="36.0" minWidth="320.0" prefHeight="36.0" prefWidth="320.0">
                           <items>
+                              <Button fx:id="startButton" mnemonicParsing="false" text="Start" />
+                              <Button fx:id="stopButton" mnemonicParsing="false" text="Stop" />
                             <Button fx:id="stepButton" mnemonicParsing="false" text="Step" />
-                              <Button mnemonicParsing="false" text="Continue" />
-                              <Button mnemonicParsing="false" text="Restart" />
+                              <Button fx:id="resetButton" mnemonicParsing="false" text="Reset" />
                           </items>
                         </ToolBar>
                         <TextArea editable="false" layoutY="27.0" minWidth="320.0" prefHeight="261.0" prefWidth="320.0" />
