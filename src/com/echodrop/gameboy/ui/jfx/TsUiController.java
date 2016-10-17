@@ -12,8 +12,8 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.image.PixelWriter;
 import javafx.scene.paint.Color;
 
 public class TsUiController implements Initializable, IGraphicsObserver {
@@ -31,8 +31,8 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 	private Button continueButton;
 
 	private byte[][] screen;
-	private int pixelSize = 4;
-	private PixelWriter pw;
+	private int pixelSize = 2;
+	private GraphicsContext gc2d;
 	private TailspinDebugger tdb;
 	private GPU gpu;
 
@@ -45,7 +45,7 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 			}
 		});
 
-		this.pw = canvas.getGraphicsContext2D().getPixelWriter();
+		this.gc2d = canvas.getGraphicsContext2D();
 	}
 
 	@Override
@@ -75,7 +75,9 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 					break;
 				}
 
-				pw.setColor(i, j, p);
+				// pw.setColor(i, j, p);
+				gc2d.setFill(p);
+				gc2d.fillRect(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
 			}
 		}
 	}

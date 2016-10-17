@@ -55,6 +55,8 @@ public class JfxUi extends Application {
 	}
 
 	public static void main(String[] args) {
+		// enable hardware acceleration for gfx rendering
+		System.setProperty("sun.java2d.opengl", "true");
 		launch(args);
 	}
 }

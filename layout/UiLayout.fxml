@@ -19,7 +19,7 @@
               <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
-                        <Canvas fx:id="canvas" height="255.0" layoutX="20.0" layoutY="99.0" width="296.0" />
+                        <Canvas fx:id="canvas" height="403.0" layoutX="4.0" layoutY="26.0" width="403.0" />
                      </children>
                   </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="452.0" prefWidth="338.0">
