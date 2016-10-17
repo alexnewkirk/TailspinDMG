@@ -3,6 +3,7 @@ package com.echodrop.gameboy.ui.jfx;
 import java.net.URL;
 import java.nio.IntBuffer;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 
 import com.echodrop.gameboy.debugger.TailspinDebugger;
 import com.echodrop.gameboy.graphics.GPU;
@@ -17,6 +18,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelWriter;
@@ -29,6 +31,9 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 
 	@FXML
 	private Canvas canvas;
+
+	@FXML
+	private ListView<String> logView;
 
 	@FXML
 	private AnchorPane displayPane;
@@ -88,7 +93,7 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 		aboutButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
-				Alert alert = new Alert(AlertType.NONE);
+				Alert alert = new Alert(AlertType.INFORMATION);
 				alert.setTitle("About TailspinDMG");
 				alert.setHeaderText(null);
 				alert.setContentText("some info here");
@@ -100,6 +105,7 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 			@Override
 			public void handle(ActionEvent arg0) {
 				if (!es.isRunning()) {
+					tdb.getSystem().getLogger().setLevel(Level.OFF);
 					es.restart();
 				}
 			}
@@ -110,6 +116,7 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 			public void handle(ActionEvent arg0) {
 				if (es.isRunning()) {
 					es.cancel();
+					tdb.getSystem().getLogger().setLevel(Level.ALL);
 				}
 			}
 		});
@@ -177,6 +184,10 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 	private void setGpu(GPU gpu) {
 		this.gpu = gpu;
 		this.gpu.registerObserver(this);
+	}
+
+	public ListView<String> getLogView() {
+		return this.logView;
 	}
 
 }
