@@ -11,13 +11,20 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.MenuItem;
+import javafx.scene.image.PixelWriter;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+import javafx.stage.StageStyle;
 
 public class TsUiController implements Initializable, IGraphicsObserver {
 
+	@FXML
+	private Canvas canvas;
+	
 	@FXML
 	private AnchorPane displayPane;
 
@@ -29,61 +36,71 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 
 	@FXML
 	private Button continueButton;
+	
+	@FXML
+	private MenuItem aboutButton;
+
 
 	private byte[][] screen;
+	private int[] buffer;
 	private int pixelSize = 2;
 	private TailspinDebugger tdb;
 	private GPU gpu;
-	private Rectangle[][] pixels;
+	private PixelWriter pw;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
+		
+		this.pw = canvas.getGraphicsContext2D().getPixelWriter();
+		this.buffer = new int[320 * 288];
+		
 		stepButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
 				tdb.getSystem().getProcessor().step();
 			}
 		});
-
-		this.pixels = new Rectangle[160][144];
-		for (int i = 0; i < 160; i++) {
-			for (int j = 0; j < 144; j++) {
-				pixels[i][j] = new Rectangle(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
-				pixels[i][j].setFill(Color.BLACK);
-				displayPane.getChildren().add(pixels[i][j]);
+		
+		aboutButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				Alert alert = new Alert(AlertType.NONE);
+				alert.setTitle("About TailspinDMG");
+				alert.setHeaderText(null);
+				alert.setContentText("some info here");
+				alert.initStyle(StageStyle.UTILITY);
+				alert.showAndWait();
 			}
-		}
+		});
+
 	}
 
 	@Override
 	public void updateDisplay() {
-		screen = gpu.getFrameBuffer();
-		for (int i = 0; i < 160; i++) {
-			for (int j = 0; j < 144; j++) {
-				Color p = null;
-				switch (screen[i][j]) {
-				case 0:
-					p = Color.WHITE;
-					break;
-				case 1:
-					p = Color.LIGHTGRAY;
-					break;
-				case 2:
-					p = Color.DARKGRAY;
-					break;
-				case 3:
-					p = Color.BLACK;
-					break;
-				default:
-					// This should never happen, but it'll be easy to
-					// spot if something goes wrong
-					p = Color.RED;
-					break;
-				}
-
-				pixels[i][j].setFill(p);
-			}
-		}
+//		for (int i = 0; i < 160; i++) {
+//			for (int j = 0; j < 144; j++) {
+//				Color p = null;
+//				switch (screen[i][j]) {
+//				case 0:
+//					p = Color.WHITE;
+//					break;
+//				case 1:
+//					p = Color.LIGHTGRAY;
+//					break;
+//				case 2:
+//					p = Color.DARKGRAY;
+//					break;
+//				case 3:
+//					p = Color.BLACK;
+//					break;
+//				default:
+//					// This should never happen, but it'll be easy to
+//					// spot if something goes wrong
+//					p = Color.RED;
+//					break;
+//				}
+//			}
+//		}
 	}
 
 	public void setTdb(TailspinDebugger tdb) {
