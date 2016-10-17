@@ -6,11 +6,11 @@ import java.util.logging.LogRecord;
 import javafx.application.Platform;
 import javafx.scene.control.ListView;
 
-public class JfxListViewLogger extends Handler {
+public class SimpleListViewLogger extends Handler {
 
 	private ListView<String> lv;
 
-	public JfxListViewLogger(ListView<String> lv) {
+	public SimpleListViewLogger(ListView<String> lv) {
 		this.lv = lv;
 	}
 

@@ -4,7 +4,7 @@ import java.io.FileInputStream;
 import java.util.logging.Level;
 
 import com.echodrop.gameboy.debugger.TailspinDebugger;
-import com.echodrop.gameboy.logging.JfxListViewLogger;
+import com.echodrop.gameboy.logging.SimpleListViewLogger;
 import com.echodrop.gameboy.util.FileUtils;
 
 import javafx.application.Application;
@@ -38,15 +38,14 @@ public class JfxUi extends Application {
 		EmulatorService es = new EmulatorService(tdb);
 		tsuic.setEmuService(es);
 
-		// TODO: make a Logger that displays to the jfx ui
-		tdb.getSystem().initLogging(Level.INFO, new JfxListViewLogger(tsuic.getLogView()));
+		tdb.getSystem().initLogging(Level.INFO, new SimpleListViewLogger(tsuic.getLogView()));
 
 		// TODO: remove hardcoded values
 		byte[] drmario = FileUtils.readBytes("roms/drmario.gb");
 		byte[] bootstrap = FileUtils.readBytes("bios.gb");
 		tdb.getSystem().getMem().loadBootstrap(bootstrap);
 		tdb.getSystem().getMem().loadRom(drmario);
-		
+
 		tdb.getSystem().getLogger().setLevel(Level.OFF);
 	}
 
