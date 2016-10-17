@@ -68,7 +68,6 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-
 		this.pw = canvas.getGraphicsContext2D().getPixelWriter();
 		this.pixelFormat = PixelFormat.getIntArgbPreInstance();
 		this.buffer = new int[W * H];
@@ -114,16 +113,16 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 				}
 			}
 		});
-		
+
 		resetButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
 				// FIXME: clear the screen on reset
-				
+
 				if (es.isRunning()) {
 					es.cancel();
 				}
-				
+
 				tdb.getSystem().reset();
 			}
 		});
