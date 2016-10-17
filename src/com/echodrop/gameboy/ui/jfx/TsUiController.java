@@ -1,12 +1,16 @@
 package com.echodrop.gameboy.ui.jfx;
 
 import java.net.URL;
+
+import java.nio.IntBuffer;
 import java.util.ResourceBundle;
 
 import com.echodrop.gameboy.debugger.TailspinDebugger;
 import com.echodrop.gameboy.graphics.GPU;
 import com.echodrop.gameboy.interfaces.IGraphicsObserver;
 
+
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -16,15 +20,21 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
+
 import javafx.scene.image.PixelWriter;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.StageStyle;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritablePixelFormat;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
 
 public class TsUiController implements Initializable, IGraphicsObserver {
 
 	@FXML
 	private Canvas canvas;
-	
+
 	@FXML
 	private AnchorPane displayPane;
 
@@ -40,20 +50,30 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 	@FXML
 	private MenuItem aboutButton;
 
+	private final int PIXEL_SIZE = 2;
+	private final int W = 320;
+	private final int H = 288;
 
-	private byte[][] screen;
+	private int color0 = toInt(Color.WHITE);
+	private int color1 = toInt(new Color(0.66f, 0.66f, 0.66f, 1));
+	private int color2 = toInt(new Color(0.33f, 0.33f, 0.33f, 1));
+	private int color3 = toInt(new Color(0, 0, 0, 1));
+
 	private int[] buffer;
-	private int pixelSize = 2;
+	private byte[][] screen;
+
 	private TailspinDebugger tdb;
 	private GPU gpu;
 	private PixelWriter pw;
+	private WritablePixelFormat<IntBuffer> pixelFormat;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		
+
 		this.pw = canvas.getGraphicsContext2D().getPixelWriter();
-		this.buffer = new int[320 * 288];
-		
+		this.pixelFormat = PixelFormat.getIntArgbPreInstance();
+		this.buffer = new int[W * H];
+
 		stepButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
@@ -69,38 +89,46 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 				alert.setHeaderText(null);
 				alert.setContentText("some info here");
 				alert.initStyle(StageStyle.UTILITY);
-				alert.showAndWait();
 			}
 		});
 
 	}
 
+	private int toInt(Color c) {
+		return (255 << 24) | ((int) (c.getRed() * 255) << 16) | ((int) (c.getGreen() * 255) << 8)
+				| ((int) (c.getBlue() * 255));
+	}
+
 	@Override
 	public void updateDisplay() {
-//		for (int i = 0; i < 160; i++) {
-//			for (int j = 0; j < 144; j++) {
-//				Color p = null;
-//				switch (screen[i][j]) {
-//				case 0:
-//					p = Color.WHITE;
-//					break;
-//				case 1:
-//					p = Color.LIGHTGRAY;
-//					break;
-//				case 2:
-//					p = Color.DARKGRAY;
-//					break;
-//				case 3:
-//					p = Color.BLACK;
-//					break;
-//				default:
-//					// This should never happen, but it'll be easy to
-//					// spot if something goes wrong
-//					p = Color.RED;
-//					break;
-//				}
-//			}
-//		}
+		screen = gpu.getFrameBuffer();
+		for (int i = 0; i < W; i += PIXEL_SIZE) {
+			for (int j = 0; j < H; j += PIXEL_SIZE) {
+				byte cell = screen[i / 2][j / 2];
+				int c = 0;
+				switch (cell) {
+				case 0:
+					c = color0;
+					break;
+				case 1:
+					c = color1;
+					break;
+				case 2:
+					c = color2;
+					break;
+				case 3:
+					c = color3;
+					break;
+				}
+				int current = j * W + i;
+				buffer[current] = c;
+				buffer[current + 1] = c;
+				buffer[current + W] = c;
+				buffer[current + W + 1] = c;
+			}
+		}
+
+		Platform.runLater(() -> pw.setPixels(0, 0, W, H, pixelFormat, buffer, 0, W));
 	}
 
 	public void setTdb(TailspinDebugger tdb) {

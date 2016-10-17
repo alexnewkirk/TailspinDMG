@@ -23,7 +23,7 @@
                      </children></AnchorPane>
                 <AnchorPane maxWidth="320.0" minHeight="0.0" minWidth="320.0" prefHeight="311.0" prefWidth="320.0">
                      <children>
-                        <ToolBar layoutY="282.0" prefHeight="40.0" prefWidth="307.0">
+                        <ToolBar layoutY="286.0" maxHeight="36.0" maxWidth="320.0" minHeight="36.0" minWidth="320.0" prefHeight="36.0" prefWidth="320.0">
                           <items>
                             <Button fx:id="stepButton" mnemonicParsing="false" text="Step" />
                               <Button mnemonicParsing="false" text="Continue" />
