@@ -11,16 +11,15 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.image.PixelWriter;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 public class TsUiController implements Initializable, IGraphicsObserver {
 
 	@FXML
-	private Canvas canvas;
+	private AnchorPane displayPane;
 
 	@FXML
 	private Button stepButton;
@@ -33,10 +32,9 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 
 	private byte[][] screen;
 	private int pixelSize = 2;
-	private GraphicsContext gc2d;
-	private PixelWriter pw;
 	private TailspinDebugger tdb;
 	private GPU gpu;
+	private Rectangle[][] pixels;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -47,14 +45,19 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 			}
 		});
 
-		this.gc2d = canvas.getGraphicsContext2D();
-		this.pw = gc2d.getPixelWriter();
+		this.pixels = new Rectangle[160][144];
+		for (int i = 0; i < 160; i++) {
+			for (int j = 0; j < 144; j++) {
+				pixels[i][j] = new Rectangle(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
+				pixels[i][j].setFill(Color.BLACK);
+				displayPane.getChildren().add(pixels[i][j]);
+			}
+		}
 	}
 
 	@Override
 	public void updateDisplay() {
 		screen = gpu.getFrameBuffer();
-
 		for (int i = 0; i < 160; i++) {
 			for (int j = 0; j < 144; j++) {
 				Color p = null;
@@ -78,9 +81,7 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 					break;
 				}
 
-//				 pw.setColor(i, j, p);
-				gc2d.setFill(p);
-				gc2d.fillRect(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
+				pixels[i][j].setFill(p);
 			}
 		}
 	}

@@ -40,7 +40,7 @@ public class JfxUi extends Application {
 		tsuic.setTdb(tdb);
 
 		// TODO: make a Logger that displays to the jfx ui
-		tdb.getSystem().initLogging(Level.INFO, new SimpleConsoleLogger());
+		tdb.getSystem().initLogging(Level.OFF, new SimpleConsoleLogger());
 
 		// TODO: remove hardcoded values
 		byte[] drmario = FileUtils.readBytes("roms/drmario.gb");
