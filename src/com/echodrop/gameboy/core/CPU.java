@@ -799,6 +799,8 @@ public class CPU {
 			char address = pop();
 			logger.fine("RET called, returning to " + Integer.toHexString(address & 0xFFFF));
 			pc = address;
+		} else {
+			setConditionalNotExecFlag(true);
 		}
 	}
 
