@@ -1,13 +1,17 @@
 package com.echodrop.gameboy.ui.jfx;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.IntBuffer;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 
 import com.echodrop.gameboy.debugger.TailspinDebugger;
+import com.echodrop.gameboy.exceptions.MapperNotImplementedException;
 import com.echodrop.gameboy.graphics.GPU;
 import com.echodrop.gameboy.interfaces.IGraphicsObserver;
+import com.echodrop.gameboy.util.FileUtils;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -25,6 +29,7 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritablePixelFormat;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.StageStyle;
 
 public class TsUiController implements Initializable, IGraphicsObserver {
@@ -51,6 +56,12 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 	private Button stopButton;
 
 	@FXML
+	private MenuItem loadRomButton;
+
+	@FXML
+	private MenuItem loadBootstrapButton;
+
+	@FXML
 	private MenuItem aboutButton;
 
 	private final int PIXEL_SIZE = 2;
@@ -64,12 +75,14 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 
 	private int[] buffer;
 	private byte[][] screen;
-
+	private byte[] bootstrap;
 	private TailspinDebugger tdb;
 	private GPU gpu;
 	private PixelWriter pw;
 	private EmulatorService es;
 	private WritablePixelFormat<IntBuffer> pixelFormat;
+	private final FileChooser fileChooser = new FileChooser();
+	private String bootstrapPath = "bios.gb";
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -133,11 +146,41 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 				tdb.getSystem().reset();
 			}
 		});
-	}
 
-	private int toInt(Color c) {
-		return (255 << 24) | ((int) (c.getRed() * 255) << 16) | ((int) (c.getGreen() * 255) << 8)
-				| ((int) (c.getBlue() * 255));
+		loadRomButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				File rom = fileChooser.showOpenDialog(null);
+				tdb.getSystem().getLogger().setLevel(Level.ALL);
+				if (rom != null) {
+					String filepath = rom.getPath();
+					try {
+						byte[] romData = FileUtils.readBytes(filepath);
+						tdb.getSystem().reset();
+						readBootstrap();
+						registerWithGpu();
+						tdb.getSystem().getMem().loadRom(romData);
+					} catch (IOException e) {
+						ioErrorAlert();
+					} catch (MapperNotImplementedException e) {
+						Alert mapperErrorAlert = new Alert(AlertType.ERROR);
+						mapperErrorAlert.setContentText("Unsupported MBC");
+					}
+				}
+			}
+		});
+
+		loadBootstrapButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent arg0) {
+				File bios = fileChooser.showOpenDialog(null);
+				tdb.getSystem().getLogger().setLevel(Level.ALL);
+				if (bios != null) {
+					bootstrapPath = bios.getPath();
+					readBootstrap();
+				}
+			}
+		});
 	}
 
 	@Override
@@ -181,13 +224,36 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 		this.setGpu(tdb.getSystem().getGpu());
 	}
 
-	private void setGpu(GPU gpu) {
-		this.gpu = gpu;
-		this.gpu.registerObserver(this);
-	}
-
 	public ListView<String> getLogView() {
 		return this.logView;
+	}
+	
+	private void registerWithGpu() {
+		gpu.registerObserver(this);
+	}
+	
+	private void readBootstrap() {
+		try {
+			this.bootstrap = FileUtils.readBytes(bootstrapPath);
+			tdb.getSystem().getMem().loadBootstrap(bootstrap);
+		} catch (IOException e) {
+			ioErrorAlert();
+		}
+	}
+
+	private void ioErrorAlert() {
+		Alert ioErrorAlert = new Alert(AlertType.ERROR);
+		ioErrorAlert.setContentText("Could not load file");
+	}
+	
+	private int toInt(Color c) {
+		return (255 << 24) | ((int) (c.getRed() * 255) << 16) | ((int) (c.getGreen() * 255) << 8)
+				| ((int) (c.getBlue() * 255));
+	}
+
+	private void setGpu(GPU gpu) {
+		this.gpu = gpu;
+		registerWithGpu();
 	}
 
 }
