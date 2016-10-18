@@ -111,6 +111,7 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 				alert.setHeaderText(null);
 				alert.setContentText("some info here");
 				alert.initStyle(StageStyle.UTILITY);
+				alert.show();
 			}
 		});
 
@@ -244,6 +245,8 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 	private void ioErrorAlert() {
 		Alert ioErrorAlert = new Alert(AlertType.ERROR);
 		ioErrorAlert.setContentText("Could not load file");
+		ioErrorAlert.setHeaderText(null);
+		ioErrorAlert.show();
 	}
 	
 	private int toInt(Color c) {
