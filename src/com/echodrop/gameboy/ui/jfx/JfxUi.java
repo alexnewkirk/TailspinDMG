@@ -7,11 +7,14 @@ import com.echodrop.gameboy.debugger.TailspinDebugger;
 import com.echodrop.gameboy.logging.SimpleListViewLogger;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class JfxUi extends Application {
 
@@ -32,6 +35,13 @@ public class JfxUi extends Application {
 		primaryStage.setScene(mainScene);
 		primaryStage.setResizable(false);
 		primaryStage.setTitle(WINDOW_TITLE);
+		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent arg0) {
+				Platform.exit();
+			}
+		});
+		
 		primaryStage.show();
 
 		Stage debuggerStage = new Stage();
