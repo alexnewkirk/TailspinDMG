@@ -5,11 +5,17 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import com.echodrop.gameboy.debugger.TailspinDebugger;
+import com.sun.javafx.geom.BaseBounds;
+import com.sun.javafx.geom.transform.BaseTransform;
+import com.sun.javafx.jmx.MXNodeAlgorithm;
+import com.sun.javafx.jmx.MXNodeAlgorithmContext;
+import com.sun.javafx.sg.prism.NGNode;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
@@ -42,8 +48,7 @@ public class DebuggerController implements Initializable {
 	}
 
 	private void initControls() {
-		
-		
+
 		stepButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
@@ -74,7 +79,7 @@ public class DebuggerController implements Initializable {
 			}
 		});
 	}
-	
+
 	private void updateRegisterView() {
 
 	}
@@ -90,7 +95,7 @@ public class DebuggerController implements Initializable {
 	public void setMainController(TsUiController mainController) {
 		this.mainController = mainController;
 	}
-	
+
 	public ListView<String> getLogView() {
 		return this.logView;
 	}

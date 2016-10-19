@@ -57,6 +57,11 @@ public class TsUiController implements Initializable, IGraphicsObserver {
 	private MenuItem debuggerMenuItem;
 	@FXML
 	private MenuItem closeMenuItem;
+	@FXML
+	private MenuItem saveStateMenuItem;
+	@FXML
+	private MenuItem loadStateMenuItem;
+	
 
 	private int color0 = toInt(Color.WHITE);
 	private int color1 = toInt(new Color(0.66f, 0.66f, 0.66f, 1));
