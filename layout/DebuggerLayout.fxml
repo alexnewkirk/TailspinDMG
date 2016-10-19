@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+
+<SplitPane dividerPositions="0.06082289803220036, 0.629695885509839, 0.7370304114490162" maxWidth="854.0" minWidth="853.0" orientation="VERTICAL" prefHeight="561.0" prefWidth="853.0" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.echodrop.gameboy.ui.jfx.DebuggerController">
+   <items>
+      <ButtonBar buttonMinWidth="90.0" maxHeight="30.0" minHeight="30.0" prefHeight="30.0" prefWidth="815.0" style="margin: auto;">
+        <buttons>
+          <Button fx:id="stepButton" mnemonicParsing="false" text="Step" />
+            <Button fx:id="continueButton" mnemonicParsing="false" text="Continue" />
+            <Button fx:id="stopButton" mnemonicParsing="false" text="Stop" />
+            <Button fx:id="resetButton" mnemonicParsing="false" text="Reset" />
+        </buttons>
+      </ButtonBar>
+      <SplitPane dividerPositions="0.5" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="310.0" prefWidth="860.0" SplitPane.resizableWithParent="false">
+        <items>
+          <AnchorPane maxWidth="449.0" minHeight="0.0" minWidth="427.0" prefHeight="310.0" prefWidth="449.0">
+               <children>
+                  <TableView layoutX="2.0" prefHeight="310.0" prefWidth="427.0">
+                    <columns>
+                      <TableColumn prefWidth="25.0" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="00" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="01" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="02" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="03" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="04" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="05" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="06" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="07" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="08" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="09" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="0A" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="0B" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="0C" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="0D" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="0E" />
+                        <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="0F" />
+                    </columns>
+                  </TableView>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="427.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <ListView layoutY="26.0" prefHeight="287.0" prefWidth="427.0" />
+                  <Label layoutX="164.0" layoutY="6.0" text="Breakpoints" />
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+      <TableView maxHeight="50.0" minHeight="50.0" prefHeight="50.0" prefWidth="200.0">
+        <columns>
+          <TableColumn prefWidth="85.0" text="PC" />
+            <TableColumn prefWidth="85.0" text="SP" />
+            <TableColumn prefWidth="85.0" text="A" />
+            <TableColumn prefWidth="85.0" text="F" />
+            <TableColumn prefWidth="85.0" text="B" />
+            <TableColumn prefWidth="85.0" text="C" />
+            <TableColumn prefWidth="85.0" text="D" />
+            <TableColumn prefWidth="85.0" text="E" />
+            <TableColumn prefWidth="85.0" text="H" />
+            <TableColumn prefWidth="85.0" text="L" />
+        </columns>
+      </TableView>
+      <AnchorPane prefHeight="116.0" prefWidth="927.0">
+         <children>
+            <ListView prefHeight="143.0" prefWidth="851.0" />
+         </children>
+      </AnchorPane>
+   </items>
+</SplitPane>
