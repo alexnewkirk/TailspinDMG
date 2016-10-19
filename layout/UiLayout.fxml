@@ -21,8 +21,8 @@
                 <Menu mnemonicParsing="false" text="File">
                   <items>
                         <MenuItem fx:id="loadRomMenuItem" mnemonicParsing="false" text="Load ROM" />
-                        <MenuItem fx:id="loadBootstrapMenuItem" mnemonicParsing="false" text="Load Bootstrap ROM" />
-                    <MenuItem fx:id="closeMenuItem" mnemonicParsing="false" text="Close" />
+                        <MenuItem fx:id="loadBootstrapMenuItem" mnemonicParsing="false" text="Load Bootstrap" />
+                    <MenuItem fx:id="closeMenuItem" mnemonicParsing="false" text="Exit" />
                   </items>
                 </Menu>
                   <Menu mnemonicParsing="false" text="Run">
