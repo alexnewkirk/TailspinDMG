@@ -10,6 +10,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 
 public class DebuggerController implements Initializable {
 
@@ -21,6 +22,8 @@ public class DebuggerController implements Initializable {
 	private Button stopButton;
 	@FXML
 	private Button resetButton;
+	@FXML
+	private ListView<String> logView;
 
 	private TailspinDebugger tdb;
 	private EmulatorService es;
@@ -73,6 +76,10 @@ public class DebuggerController implements Initializable {
 
 	public void setMainController(TsUiController mainController) {
 		this.mainController = mainController;
+	}
+	
+	public ListView<String> getLogView() {
+		return this.logView;
 	}
 
 }

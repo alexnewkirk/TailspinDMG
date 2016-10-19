@@ -4,7 +4,7 @@ import java.io.FileInputStream;
 import java.util.logging.Level;
 
 import com.echodrop.gameboy.debugger.TailspinDebugger;
-import com.echodrop.gameboy.logging.SimpleConsoleLogger;
+import com.echodrop.gameboy.logging.SimpleListViewLogger;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -56,7 +56,8 @@ public class JfxUi extends Application {
 		dbgc.setMainController(tsuic);
 		tsuic.setDebuggerStage(debuggerStage);
 
-		tdb.getSystem().initLogging(Level.OFF, new SimpleConsoleLogger());
+		SimpleListViewLogger log = new SimpleListViewLogger(dbgc.getLogView());
+		tdb.getSystem().initLogging(Level.OFF, log);
 	}
 
 	public static void main(String[] args) {

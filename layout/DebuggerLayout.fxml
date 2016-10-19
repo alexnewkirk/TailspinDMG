@@ -71,7 +71,7 @@
       </TableView>
       <AnchorPane prefHeight="116.0" prefWidth="927.0">
          <children>
-            <ListView prefHeight="143.0" prefWidth="851.0" />
+            <ListView fx:id="logView" prefHeight="143.0" prefWidth="851.0" />
          </children>
       </AnchorPane>
    </items>
