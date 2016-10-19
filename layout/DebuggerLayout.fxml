@@ -24,7 +24,7 @@
         <items>
           <AnchorPane maxWidth="449.0" minHeight="0.0" minWidth="427.0" prefHeight="310.0" prefWidth="449.0">
                <children>
-                  <TableView layoutX="2.0" prefHeight="310.0" prefWidth="427.0">
+                  <TableView fx:id="memoryView" layoutX="2.0" prefHeight="310.0" prefWidth="427.0">
                     <columns>
                       <TableColumn prefWidth="25.0" />
                         <TableColumn prefWidth="25.0" style="-fx-font-size: 12;" text="00" />
@@ -55,7 +55,7 @@
             </AnchorPane>
         </items>
       </SplitPane>
-      <TableView maxHeight="50.0" minHeight="50.0" prefHeight="50.0" prefWidth="200.0">
+      <TableView fx:id="registerView" maxHeight="50.0" minHeight="50.0" prefHeight="50.0" prefWidth="200.0">
         <columns>
           <TableColumn prefWidth="85.0" text="PC" />
             <TableColumn prefWidth="85.0" text="SP" />

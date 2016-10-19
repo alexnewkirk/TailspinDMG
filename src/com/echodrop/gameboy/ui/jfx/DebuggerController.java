@@ -1,6 +1,7 @@
 package com.echodrop.gameboy.ui.jfx;
 
 import java.net.URL;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import com.echodrop.gameboy.debugger.TailspinDebugger;
@@ -11,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableView;
 
 public class DebuggerController implements Initializable {
 
@@ -24,6 +26,10 @@ public class DebuggerController implements Initializable {
 	private Button resetButton;
 	@FXML
 	private ListView<String> logView;
+	@FXML
+	private TableView<String> memoryView;
+	@FXML
+	private TableView<Map> registerView;
 
 	private TailspinDebugger tdb;
 	private EmulatorService es;
@@ -32,9 +38,12 @@ public class DebuggerController implements Initializable {
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		initControls();
+		updateRegisterView();
 	}
 
 	private void initControls() {
+		
+		
 		stepButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent arg0) {
@@ -64,6 +73,10 @@ public class DebuggerController implements Initializable {
 				mainController.resetEmu();
 			}
 		});
+	}
+	
+	private void updateRegisterView() {
+
 	}
 
 	public void setTdb(TailspinDebugger tdb) {
