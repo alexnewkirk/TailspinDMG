@@ -26,8 +26,8 @@ public class MMU {
 	private TailspinGB system;
 
 	/**
-	 * After the bootstrap runs, it is unmapped from memory by setting this flag to
-	 * false
+	 * After the bootstrap runs, it is unmapped from memory by setting this flag
+	 * to false
 	 */
 	private boolean biosMapped = true;
 
@@ -77,24 +77,26 @@ public class MMU {
 
 	/**
 	 * Loads a ROM binary with the specified filename into memory
-	 * @throws MapperNotImplementedException if the ROM uses an 
-	 * unsupported MBC
+	 * 
+	 * @throws MapperNotImplementedException
+	 *             if the ROM uses an unsupported MBC
 	 */
 	public void loadRom(byte[] romData) throws MapperNotImplementedException {
-		
+
 		RomFile rf = new RomFile(romData);
 		loadedRomFile = rf;
 		logger.info("Attempting to load ROM...");
 		logger.info(rf.toString());
-		
+
 		// Load first 16kb regardless of what type of cartridge it is
 		for (int i = 0; i < 0x4000; i++) {
 			getRomBank0().setMem((char) i, (byte) (romData[i] & 0xFF));
 		}
-		
-		// Switch on cartridge type to load the rest; for now only need to support
+
+		// Switch on cartridge type to load the rest; for now only need to
+		// support
 		// ctype 0 and MBC1
-		switch(loadedRomFile.cartridgeType) {
+		switch (loadedRomFile.cartridgeType) {
 		case 0:
 			// No MBC (32kb ROM)
 			for (int i = 0x4000; i < 0x8000; i++) {
@@ -107,7 +109,7 @@ public class MMU {
 		default:
 			throw new MapperNotImplementedException();
 		}
-		
+
 		logger.info("ROM data loaded: " + romData.length + " bytes");
 	}
 
@@ -197,29 +199,54 @@ public class MMU {
 	 * @return an 8-bit value from the address specified.
 	 */
 	public byte readByte(char address) {
-		if (address == 0xFF00) {
+
+		switch (address) {
+		case 0xFF00:
 			// D-pad
-			return 00;
-		} else if(address == 0xFF01) {
+			return 0;
+		case 0xFF01:
 			// Link cable: data
-			return 00;
-		}else if(address == 0xFF02) {
+			return 0;
+		case 0xFF02:
 			// Link cable: serial transfer control
-			return (byte)0x81; // 0b10000001, "START TRANSFER"
-		} else if (address >= 0xFF03 && address <= 0xFF7F) {
-			return system.getGpu().readByte(address);
+			return (byte) 0x81; // 0b10000001, "START TRANSFER"
+		default:
+			if (address >= 0xFF33 && address <= 0xFF7F) {
+				return system.getGpu().readByte(address);
+			} else if (address >= 0xE000 && address <= 0xFDFF) {
+				address -= 0x2000;
+			}
+			
+			MemoryRegion r = findMemoryRegion(address);
+			if (r != null) {
+				return r.getMem(address);
+			}
+			return 0;
+
 		}
-		
-		//Trap reads from ECHO RAM
-		if(address >= 0xE000 && address <= 0xFDFF) {
-			address -= 0x2000;
-		}
-		
-		MemoryRegion r = findMemoryRegion(address);
-		if (r != null) {
-			return r.getMem(address);
-		}
-		return 0;
+		// if (address == 0xFF00) {
+		// // D-pad
+		// return 00;
+		// } else if(address == 0xFF01) {
+		// // Link cable: data
+		// return 00;
+		// }else if(address == 0xFF02) {
+		// // Link cable: serial transfer control
+		// return (byte)0x81; // 0b10000001, "START TRANSFER"
+		// } else if (address >= 0xFF03 && address <= 0xFF7F) {
+		// return system.getGpu().readByte(address);
+		// }
+		//
+		// //Trap reads from ECHO RAM
+		// if(address >= 0xE000 && address <= 0xFDFF) {
+		// address -= 0x2000;
+		// }
+		//
+		// MemoryRegion r = findMemoryRegion(address);
+		// if (r != null) {
+		// return r.getMem(address);
+		// }
+		// return 0;
 	}
 
 	/**
@@ -244,21 +271,21 @@ public class MMU {
 			logger.info("[!] BIOS unmapped from memory");
 		} else if (address == 0xFF00) {
 			// D-pad
-		} else if(address == 0xFF01) {
+		} else if (address == 0xFF01) {
 			// Link-cable: data
-			//TODO: out this to the logger instead of syso
-			System.out.print((char)data);
-		} else if(address == 0xFF02) {
+			// TODO: out this to the logger instead of syso
+			System.out.print((char) data);
+		} else if (address == 0xFF02) {
 			// Link-cable: serial transfer control
-			
+
 		} else if (address >= 0xFF03 && address <= 0xFF7F) {
 			system.getGpu().writeByte(address, data);
 		} else {
-			//Trap writes to ECHO RAM
-			if(address >= 0xE000 && address <= 0xFDFF) {
+			// Trap writes to ECHO RAM
+			if (address >= 0xE000 && address <= 0xFDFF) {
 				address -= 0x2000;
 			}
-			
+
 			MemoryRegion r = findMemoryRegion(address);
 			if (r != null) {
 				r.setMem(address, data);

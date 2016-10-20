@@ -39,6 +39,8 @@ public class NumberUtils {
 		}
 		char result = (char) Integer.parseInt(hex1 + hex2, 16);
 		return result;
+
+//		return (char)((b2 * 256) | b1);
 	}
 
 	public static boolean byteAdditionOverflow(byte b1, byte b2) {

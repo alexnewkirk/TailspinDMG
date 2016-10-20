@@ -28,5 +28,17 @@ public class NumberUtilsTest {
 	public void ByteAdditionNibbleOverflowTest() {
 		
 	}
+	
+	@Test
+	public void BytesToWordTest() {
+		
+	}
+	
+	@Test
+	public void WordToBytesTest() {
+//		byte[] b = NumberUtils.wordToBytes((char)0xFFFE);
+//		assertEquals(b[1], 0xFF);
+//		assertEquals(b[0], 0xFE);
+	}
 
 }

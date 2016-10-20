@@ -16,12 +16,11 @@ public class RegisterUtils {
 	}
 	
 	public static byte setBit(int bit, Register r, boolean status) {
-		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(r.getValue() & 0xFF), 8);
-		String result = bin.substring(0, bit) + (status ? '1' : '0');
-		if(bit < 7) {
-			result += bin.substring(bit + 1);
+		if(status) {
+			return (byte) (r.getValue() | (1 << (7 - bit)));
+		} else {
+			return (byte) (r.getValue() & ~(1 << (7 - bit)));
 		}
-		return (byte) Integer.parseInt(result, 2);
 	}
 	
 	/**

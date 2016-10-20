@@ -88,9 +88,8 @@ public class GPU {
 	 * http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU
 	 */
 	public void clockStep() {
-		logger.info("GPU Clock Step: line:" + getLine() + " mode:" + getMode() + " modeClock: " + getModeClock());
 		switch (getMode().getValue()) {
-
+		
 		// HBLANK
 		case 0:
 			if (getModeClock() >= 204) {
