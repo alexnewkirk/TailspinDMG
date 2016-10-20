@@ -1,6 +1,6 @@
 #TailspinDMG
 
-Interpreting GameBoy emulator and tooling written in Java.
+An interpreting GameBoy emulator and development tooling written in Java.
 
 Licensed under the [MIT License](https://opensource.org/licenses/MITL).
 
@@ -10,12 +10,45 @@ Licensed under the [MIT License](https://opensource.org/licenses/MITL).
 Emulator core for Tailspin (_com.echodrop.gameboy.core_ and _com.echodrop.gameboy.graphics_). Contains core hardware model and logic.
 
 ###TDMG-UI
-A collection of user interfaces for various components of TDMG
+A collection of user interfaces for various components of TDMG (_com.echodrop.gameboy.ui_). Command-line interfaces are available in addition to graphical user interfaces to the debugger and emulator.
 
 ###TDBG
-Emulation/ROM debugging engine (_com.echodrop.gameboy.debugger_)
+Emulation/ROM debugging engine (_com.echodrop.gameboy.debugger_). Supports memory/register dumping, tile/framebuffer dumping, conditional breakpoints, and live memory search/edit. Real-time disassembler has yet to be implemented.
 
-###Resources
+##Roadmap
+
+###Emulator Core
+
+* CPU interrupts
+
+* Sprite Rendering
+
+* Direct Memory Access transfers
+
+* Joypad input
+
+* CPU timers
+
+* State serialization
+
+
+###Debugger
+
+* Time-travel
+
+* Real-time disassembly
+
+
+###Misc / Stretch goals
+
+* Android support
+
+* Custom color palettes
+
+* Tailspin Bootstrap
+
+
+##Resources
 Documentation used in the development of TDMG
 
 1. http://bgb.bircd.org/pandocs.htm
