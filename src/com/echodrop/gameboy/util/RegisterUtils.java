@@ -12,8 +12,7 @@ public class RegisterUtils {
 	 * @return true if the specified bit is 1
 	 */
 	public static boolean readBit(int bit, Register r) {
-		String bin = StringUtils.zeroLeftPad(Integer.toBinaryString(r.getValue() & 0xFF), 8);
-		return bin.charAt(bit) == '1';
+		return (r.getValue() & (1 << (7 -bit))) > 0;
 	}
 	
 	public static byte setBit(int bit, Register r, boolean status) {

@@ -36,10 +36,11 @@ public class StringUtils {
 	 */
 	public static String zeroLeftPad(String s, int size) {
 		String result = s;
-		while (result.length() < size) {
-			result = "0" + result;
+		String zero = "";
+		for(int i = result.length(); i < size; i++) {
+			zero += '0';
 		}
-		return result;
+		return zero + result;
 	}
 	
 	/**
