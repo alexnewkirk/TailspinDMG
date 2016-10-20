@@ -7,27 +7,16 @@ public class GraphicsUtils {
 	/**
 	 * Maps a row of pixels from a tile, to be rendered to the screen.
 	 * 
-	 * @param palette
-	 *            the value of a background color palette register
-	 * @param b1
-	 *            the first byte of the row to be mapped
-	 * @param b2
-	 *            the second byte of a row to be mapped
+	 * @param palette current palette register
+	 * @param b1 first byte of the row
+	 * @param b2 second byte of the row
 	 * @return an array of length 8 containing mapped pixels
 	 */
 	public static byte[] mapRow(byte palette, byte b1, byte b2) {
 		byte[] row = new byte[8];
 
-		String bin1 = Integer.toBinaryString(b1 & 0xFF);
-		bin1 = StringUtils.zeroLeftPad(bin1, 8);
-
-		String bin2 = Integer.toBinaryString(b2 & 0xFF);
-		bin2 = StringUtils.zeroLeftPad(bin2, 8);
-
 		for (int i = 0; i < 8; i++) {
-			byte color = (byte) (Integer.parseUnsignedInt("" + bin2.charAt(i) + bin1.charAt(i), 2) & 0xFF);
-			row[i] = color;// (byte)(Integer.parseInt(paletteSb.charAt(color) &
-							// 0xFF;
+			row[7 - i] = (byte) (((b2 & 1 << i) >> i) << 1 | ((b1 & 1 << i) >> i));
 			// XXX this isnt being mapped through the palette
 		}
 		return row;
@@ -72,5 +61,5 @@ public class GraphicsUtils {
 		}
 		return tile;
 	}
-	
+
 }

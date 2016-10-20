@@ -19,8 +19,6 @@ import com.echodrop.gameboy.interfaces.IGraphicsObserver;
 import com.echodrop.gameboy.util.GraphicsUtils;
 import com.echodrop.gameboy.util.RegisterUtils;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 /**
  * Emulation core for GameBoy Graphics Processing Unit
  */
@@ -153,7 +151,6 @@ public class GPU {
 				logger.info("\n[!] GPU MODE SWITCHING TO HBLANK (mode 0)\n");
 				mode.setValue(0);
 
-				// TODO: Implement rendering individual scanlines
 				// Write scanline to framebuffer
 				// renderScanLine();
 			}
@@ -191,8 +188,8 @@ public class GPU {
 	}
 
 	public char readWord(char address) {
-		// TODO Does the gpu need to be able to write 16-bit values?
-		throw new NotImplementedException();
+		// TODO Does the gpu need to be able to read 16-bit values?
+		throw new RuntimeException("Attempted 16-bit read from GPU");
 	}
 
 	public void writeByte(char address, byte data) {
@@ -240,26 +237,21 @@ public class GPU {
 	}
 
 	// private void renderScanLine() {
+	// boolean tileset = RegisterUtils.readBit(3, getLcdControl());
+	// char address = (char) (RegisterUtils.readBit(3, getLcdControl()) ? 0x9C00
+	// : 0x9800);
 	// }
 
 	public void renderFrame() {
-
 		boolean tileset = RegisterUtils.readBit(3, getLcdControl());
-
 		char address = (char) (RegisterUtils.readBit(4, getLcdControl()) ? 0x9C00 : 0x9800);
-
 		byte[][] rendered = new byte[256][256];
-		byte[][] newFrameBuffer = new byte[160][144];
 
 		for (int i = 0; i < 1024; i++) {
-
 			int x = (i % 32) * 8;
 			int y = (i / 32) * 8;
-
 			byte tileOffset = system.getMem().readByte((char) (address));
-
 			byte[] tileData = GraphicsUtils.getTile(system.getMem(), tileset, tileOffset);
-
 			byte[][] pixels = GraphicsUtils.mapTile(getBackgroundPalette().getValue(), tileData);
 
 			for (int j = 0; j < 8; j++) {
@@ -272,10 +264,10 @@ public class GPU {
 
 		for (int i = 0; i < 160; i++) {
 			for (int j = 0; j < 144; j++) {
-				newFrameBuffer[i][j] = rendered[i + getScrollX().getValue()][j + getScrollY().getValue()];
+				getFrameBuffer()[i][j] = rendered[i + getScrollX().getValue()][j + getScrollY().getValue()];
 			}
 		}
-		setFrameBuffer(newFrameBuffer);
+		notifyAllObservers();
 	}
 
 	public void incrementModeClock(byte time) {
